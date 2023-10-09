@@ -1,0 +1,94 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Overview";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome to <span class="styled-logo-text">CRONCH!</span></h1>
+    <br />
+    <div class="container text-center">
+        <div class="row">
+            <div class="col border border-bottom-0">
+                <h2><u>All Jobs</u></h2>
+                <p class="fs-3">7 of 25 enabled</p>
+            </div>
+            <div class="col border border-bottom-0">
+                <h2><u>Running Jobs</u></h2>
+                <table class="table table-striped text-start">
+                    <tr>
+                        <td>METAR <span class="badge rounded-pill text-bg-dark float-end">00:01</span></td>
+                    </tr>
+                    <tr>
+                        <td>HRRR <span class="badge rounded-pill text-bg-dark float-end">07:23</span></td>
+                    </tr>
+                    <tr>
+                        <td>GFS <span class="badge rounded-pill text-bg-dark float-end">01:12:37</span></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col border border-bottom-0">
+                <h2><u>Failed Jobs</u></h2>
+                <table class="table table-striped">
+                    <tr>
+                        <td class="text-start">Last day</td>
+                        <td class="text-end">0</td>
+                    </tr>
+                    <tr>
+                        <td class="text-start">Last week</td>
+                        <td class="text-end">0</td>
+                    </tr>
+                    <tr>
+                        <td class="text-start">Last month</td>
+                        <td class="text-end">123</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col border border-top-0">
+                <p><button class="btn btn-outline-dark">Manage Jobs</button></p>
+            </div>
+            <div class="col border border-top-0">
+                <p><button class="btn btn-outline-dark">See All 5</button></p>
+            </div>
+            <div class="col border border-top-0">
+                <p><button class="btn btn-outline-dark">View Details</button></p>
+            </div>
+        </div>
+    </div>
+    <br />
+    <h2>Recent jobs</h2>
+    <table class="table table-striped text-start">
+        <tr>
+            <th>Name</th>
+            <th>Start time</th>
+            <th>Run time</th>
+            <th class="text-center">Result</th>
+        </tr>
+        <tr>
+            <td>METAR</td>
+            <td>2020-01-01 12:40:34</td>
+            <td>01:12</td>
+            <td class="text-center"><span class="badge text-bg-secondary">Running</span></td>
+        </tr>
+        <tr>
+            <td>METAR</td>
+            <td>2020-01-01 12:23:34</td>
+            <td>01:38</td>
+            <td class="text-center"><span class="badge text-bg-success">Success</span></td>
+        </tr>
+        <tr>
+            <td>METAR</td>
+            <td>2020-01-01 12:10:33</td>
+            <td>01:38</td>
+            <td class="text-center"><span class="badge text-bg-danger">Error</span></td>
+        </tr>
+        <tr>
+            <td>METAR</td>
+            <td>2020-01-01 12:01:33</td>
+            <td>01:38</td>
+            <td class="text-center"><span class="badge text-bg-warning">Warning</span></td>
+        </tr>
+    </table>
+</div>
