@@ -9,9 +9,9 @@
     <br />
     <div class="text-start">
         <div class="btn-group">
-            <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                Actions
-            </button>
+            <a class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                <input class="form-check-input" type="checkbox" readonly="readonly" checked="checked" disabled="disabled" /> Actions
+            </a>
             <ul class="dropdown-menu">
                 <li><a class="dropdown-item" href="#">Enable</a></li>
                 <li><a class="dropdown-item" href="#">Disable</a></li>
@@ -23,21 +23,20 @@
     <br />
     <table class="table table-striped text-start align-middle">
         <tr>
-            <th><input class="form-check" type="checkbox" /></th>
+            <th><input class="form-check-input" type="checkbox" /></th>
             <th>Name</th>
-            <th>Status</th>
+            <th>Enabled</th>
             <th>Recurrence</th>
             <th>Last/Next Run</th>
             <th class="text-end">Actions</th>
         </tr>
         <tr>
-            <td><input class="form-check" type="checkbox" /></td>
+            <td><input class="form-check-input" type="checkbox" /></td>
             <td>METAR</td>
-            <td><span class="badge text-bg-success">Enabled</span></td>
+            <td><div class="form-check form-switch"><input class="form-check-input" type="checkbox" checked="checked"></div></td>
             <td><code>* */2 * * *</code></td>
             <td>Last: 2020-01-01 12:40:34<br />Next: 2020-01-01 12:45:34</td>
             <td class="text-end">
-                <button class="btn btn-sm btn-outline-danger">Disable</button>
                 <button class="btn btn-sm btn-outline-secondary">Configure</button>
                 <button class="btn btn-sm btn-danger">Delete</button>
                 <button class="btn btn-sm btn-outline-secondary">View Runs</button>
