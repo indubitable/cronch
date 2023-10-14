@@ -33,3 +33,8 @@ body {
 .styled-logo-text {
   font-weight: bold;
 }
+
+.navbar-nav .nav-item.active {
+  background-color: #ddd;
+  border-radius: var(--bs-border-radius);
+}

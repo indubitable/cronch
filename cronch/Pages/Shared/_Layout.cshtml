@@ -8,6 +8,12 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/cronch.styles.css" asp-append-version="true" />
 </head>
+@functions {
+    public string GetActive(string name)
+    {
+        return (ViewData["active"] != null && ViewData["active"]!.Equals(name) ? "active" : "");
+    }
+}
 <body>
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
@@ -19,19 +25,19 @@
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
+                        <li class="nav-item @GetActive("overview")">
                             <a class="nav-link text-dark" asp-page="/Index">Overview</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-page="/Index">Manage</a>
+                        <li class="nav-item @GetActive("manage")">
+                            <a class="nav-link text-dark" asp-page="/Manage">Manage</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-page="/Index">History</a>
+                        <li class="nav-item @GetActive("history")">
+                            <a class="nav-link text-dark" asp-page="/History">History</a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item @GetActive("settings")">
                             <a class="nav-link text-dark" asp-page="/Settings">Settings</a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item @GetActive("about")">
                             <a class="nav-link text-dark" asp-page="/About">About</a>
                         </li>
                     </ul>

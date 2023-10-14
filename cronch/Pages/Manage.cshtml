@@ -1,0 +1,48 @@
+﻿@page
+@model cronch.Pages.ManageModel
+@{
+    ViewData["Title"] = "Manage";
+    ViewData["active"] = "manage";
+}
+<div class="text-center">
+    <h1 class="display-4">All Jobs</h1>
+    <br />
+    <div class="text-start">
+        <div class="btn-group">
+            <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                Actions
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#">Enable</a></li>
+                <li><a class="dropdown-item" href="#">Disable</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="#">Delete</a></li>
+            </ul>
+        </div>
+    </div>
+    <br />
+    <table class="table table-striped text-start align-middle">
+        <tr>
+            <th><input class="form-check" type="checkbox" /></th>
+            <th>Name</th>
+            <th>Status</th>
+            <th>Recurrence</th>
+            <th>Last/Next Run</th>
+            <th class="text-end">Actions</th>
+        </tr>
+        <tr>
+            <td><input class="form-check" type="checkbox" /></td>
+            <td>METAR</td>
+            <td><span class="badge text-bg-success">Enabled</span></td>
+            <td><code>* */2 * * *</code></td>
+            <td>Last: 2020-01-01 12:40:34<br />Next: 2020-01-01 12:45:34</td>
+            <td class="text-end">
+                <button class="btn btn-sm btn-outline-danger">Disable</button>
+                <button class="btn btn-sm btn-outline-secondary">Configure</button>
+                <button class="btn btn-sm btn-danger">Delete</button>
+                <button class="btn btn-sm btn-outline-secondary">View Runs</button>
+                <button class="btn btn-sm btn-success">Run</button>
+            </td>
+        </tr>
+    </table>
+</div>
