@@ -10,4 +10,8 @@
     <Folder Include="wwwroot\fonts\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Cronos" Version="0.7.1" />
+  </ItemGroup>
+
 </Project>
