@@ -1,13 +1,33 @@
 ﻿namespace cronch.Models;
 
-[Serializable]
 public class JobModel
 {
+    public enum OutputProcessing
+    {
+        None,
+        WarningOnAnyOutput,
+        ErrorOnAnyOutput,
+        WarningOnMatchingKeywords,
+        ErrorOnMatchingKeywords
+    }
+
     public Guid Id { get; set; }
-    public string Name { get; set; } = null!;
+
+    public string Name { get; set; } = string.Empty;
+
     public bool Enabled { get; set; }
-    public string CronSchedule { get; set; } = null!;
-    public string Executor { get; set; } = null!;
-    public string Script { get; set; } = null!;
-    public string ScriptFilePathname { get; set; } = null!;
+
+    public string CronSchedule { get; set; } = string.Empty;
+
+    public string Executor { get; set; } = string.Empty;
+
+    public string Script { get; set; } = string.Empty;
+
+    public string? ScriptFilePathname { get; set; }
+
+    public List<string> Keywords { get; set; } = new List<string>();
+
+    public OutputProcessing StdOutProcessing { get; set; } = OutputProcessing.None;
+
+    public OutputProcessing StdErrProcessing { get; set; } = OutputProcessing.None;
 }
