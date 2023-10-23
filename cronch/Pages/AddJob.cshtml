@@ -1,0 +1,66 @@
+﻿@page
+@model cronch.Pages.AddJobModel
+@{
+    ViewData["Title"] = "Add Job";
+}
+<div class="text-center">
+    <h1 class="display-4">Add Job</h1>
+    <div class="text-start row">
+        <div class="col"></div>
+        <div class="col">
+            <div asp-validation-summary="All" class="rounded border border-2 border-danger"></div>
+            <form method="post">
+                <div class="mb-3">
+                    <label bs5-for="JobVM!.Name" class="form-label"></label>
+                    <input bs5-for="JobVM!.Name" class="form-control" />
+                    <span asp-validation-for="JobVM!.Name" class="text-danger"></span>
+                </div>
+                <div class="mb-3 form-check">
+                    <input bs5-for="JobVM!.Enabled" class="form-check-input" />
+					<label asp-for="JobVM!.Enabled" class="form-check-label"></label>
+                </div>
+                <div class="mb-3">
+                    <label bs5-for="JobVM!.CronSchedule" class="form-label"></label>
+                    <input bs5-for="JobVM!.CronSchedule" class="form-control" />
+                    <span asp-validation-for="JobVM!.CronSchedule" class="text-danger"></span>
+                </div>
+				<div class="mb-3">
+                    <label bs5-for="JobVM!.Executor" class="form-label"></label>
+                    <input bs5-for="JobVM!.Executor" class="form-control" />
+                    <span asp-validation-for="JobVM!.Executor" class="text-danger"></span>
+				</div>
+                <div class="mb-3">
+                    <label bs5-for="JobVM!.Script" class="form-label"></label>
+                    <textarea bs5-for="JobVM!.Script" rows="5" class="form-control"></textarea>
+                    <span asp-validation-for="JobVM!.Script" class="text-danger"></span>
+                </div>
+                <div class="mb-3">
+                    <label bs5-for="JobVM!.ScriptFilePathname" class="form-label"></label>
+                    <input bs5-for="JobVM!.ScriptFilePathname" class="form-control" />
+                    <span asp-validation-for="JobVM!.ScriptFilePathname" class="text-danger"></span>
+                </div>
+				<div class="mb-3">
+                    <label bs5-for="JobVM!.Keywords" class="form-label"></label>
+                    <input bs5-for="JobVM!.Keywords" class="form-control" />
+                    <span asp-validation-for="JobVM!.Keywords" class="text-danger"></span>
+				</div>
+				<div class="mb-3">
+					<label asp-for="JobVM!.StdOutProcessing" class="form-label"></label>
+					<select bs5-for="JobVM!.StdOutProcessing" bs5-items="Model.ProcessingOptions" class="form-select"></select>
+				</div>
+                <div class="mb-3">
+                    <label asp-for="JobVM!.StdErrProcessing" class="form-label"></label>
+                    <select bs5-for="JobVM!.StdErrProcessing" bs5-items="Model.ProcessingOptions" class="form-select"></select>
+                </div>
+                <input type="submit" />
+            </form>
+        </div>
+        <div class="col"></div>
+    </div>
+</div>
+
+@*
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+*@

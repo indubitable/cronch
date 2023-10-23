@@ -14,19 +14,44 @@ public class JobConfigService
         _configConverterService = configConverterService;
     }
 
-    public void CreateJob()
+    public void CreateJob(JobModel jobModel, bool assignNewId)
     {
+        var config = _configPersistenceService.Load() ?? new ConfigPersistenceModel();
+        var persistenceJobs = config.Jobs;
 
+        if (assignNewId)
+        {
+            jobModel.Id = Guid.NewGuid();
+        }
+        else if (persistenceJobs.Any(j => j.Id == jobModel.Id))
+        {
+            throw new InvalidOperationException("Cannot create job with duplicate Id");
+        }
+
+        var newPersistenceJob = _configConverterService.ConvertToPersistence(jobModel);
+        persistenceJobs.Add(newPersistenceJob);
+        _configPersistenceService.Save(config);
     }
 
-    public void UpdateJob()
+    public void UpdateJob(JobModel jobModel)
     {
+        var config = _configPersistenceService.Load() ?? new ConfigPersistenceModel();
+        var persistenceJobs = config.Jobs;
 
+        var oldPersistenceJob = persistenceJobs.SingleOrDefault(j => j.Id == jobModel.Id) ?? throw new InvalidOperationException("Cannot update nonexistent job");
+        persistenceJobs.Remove(oldPersistenceJob);
+        persistenceJobs.Add(_configConverterService.ConvertToPersistence(jobModel));
+        _configPersistenceService.Save(config);
     }
 
-    public void DeleteJob()
+    public void DeleteJob(Guid id)
     {
+        var config = _configPersistenceService.Load() ?? new ConfigPersistenceModel();
+        var persistenceJobs = config.Jobs;
 
+        var oldPersistenceJob = persistenceJobs.SingleOrDefault(j => j.Id == id) ?? throw new InvalidOperationException("Cannot delete nonexistent job");
+        persistenceJobs.Remove(oldPersistenceJob);
+        _configPersistenceService.Save(config);
     }
 
     public List<JobModel> GetAllJobs()
@@ -36,6 +61,6 @@ public class JobConfigService
         {
             return new List<JobModel>();
         }
-        return _configConverterService.ConvertFromPersistence(config).Jobs;
+        return _configConverterService.ConvertToModel(config).Jobs;
     }
 }

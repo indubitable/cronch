@@ -38,3 +38,15 @@ body {
   background-color: #ddd;
   border-radius: var(--bs-border-radius);
 }
+
+.validation-summary-errors {
+  margin-bottom: 1rem;
+}
+
+.validation-summary-errors ul {
+  margin-bottom: 0;
+}
+
+.validation-summary-valid {
+  display: none;
+}

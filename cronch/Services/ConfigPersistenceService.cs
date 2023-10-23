@@ -55,6 +55,8 @@ public class ConfigPersistenceService
             throw new InvalidOperationException();
         }
 
+        ArrangeModel(model);
+
         Directory.CreateDirectory(location);
         var filePathname = Path.Combine(location, CONFIG_FILE);
 
@@ -68,5 +70,10 @@ public class ConfigPersistenceService
             _logger.LogError(ex, "Cannot save configuration: unexpected error");
             throw;
         }
+    }
+
+    private static void ArrangeModel(ConfigPersistenceModel model)
+    {
+        model.Jobs.Sort((a, b) => a.Id.CompareTo(b.Id));
     }
 }

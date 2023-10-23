@@ -1,7 +1,12 @@
+using cronch.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
+builder.Services.AddSingleton<ConfigConverterService>();
+builder.Services.AddSingleton<JobConfigService>();
+builder.Services.AddSingleton<ConfigPersistenceService>();
 
 builder.Configuration.AddEnvironmentVariables(prefix: "CRONCH_");
 
