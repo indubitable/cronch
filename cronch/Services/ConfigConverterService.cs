@@ -1,5 +1,6 @@
 ﻿using cronch.Models;
 using cronch.Models.Persistence;
+using cronch.Models.ViewModels;
 
 namespace cronch.Services;
 
@@ -27,6 +28,23 @@ public class ConfigConverterService
             Keywords = new List<string>(jobPersistenceModel.Keywords),
             StdOutProcessing = Enum.Parse<JobModel.OutputProcessing>(jobPersistenceModel.StdOutProcessing),
             StdErrProcessing = Enum.Parse<JobModel.OutputProcessing>(jobPersistenceModel.StdErrProcessing),
+        };
+    }
+
+    public JobModel ConvertToModel(JobViewModel jobViewModel)
+    {
+        return new JobModel
+        {
+            Id = jobViewModel.Id,
+            Name = jobViewModel.Name,
+            Enabled = jobViewModel.Enabled,
+            CronSchedule = jobViewModel.CronSchedule,
+            Executor = jobViewModel.Executor,
+            Script = jobViewModel.Script,
+            ScriptFilePathname = jobViewModel.ScriptFilePathname,
+            Keywords = (jobViewModel.Keywords ?? "").Split(',').Select(s => s.Trim()).ToList(),
+            StdOutProcessing = Enum.Parse<JobModel.OutputProcessing>(jobViewModel.StdOutProcessing),
+            StdErrProcessing = Enum.Parse<JobModel.OutputProcessing>(jobViewModel.StdErrProcessing),
         };
     }
 

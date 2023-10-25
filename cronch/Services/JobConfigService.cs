@@ -1,5 +1,6 @@
 ﻿using cronch.Models;
 using cronch.Models.Persistence;
+using cronch.Models.ViewModels;
 
 namespace cronch.Services;
 
@@ -12,6 +13,11 @@ public class JobConfigService
     {
         _configPersistenceService = configPersistenceService;
         _configConverterService = configConverterService;
+    }
+
+    public void CreateJob(JobViewModel jobViewModel)
+    {
+        CreateJob(_configConverterService.ConvertToModel(jobViewModel), true);
     }
 
     public void CreateJob(JobModel jobModel, bool assignNewId)
