@@ -5,7 +5,7 @@
     ViewData["active"] = "manage";
 }
 <div class="text-center">
-    <h1 class="display-4">All Jobs</h1>
+    <h1 class="display-4">Manage Jobs</h1>
     <br />
     <div class="text-start">
         <div class="btn-group">
@@ -31,18 +31,49 @@
             <th>Last/Next Run</th>
             <th class="text-end">Actions</th>
         </tr>
-        <tr>
-            <td><input class="form-check-input" type="checkbox" /></td>
-            <td>METAR</td>
-            <td><div class="form-check form-switch"><input class="form-check-input" type="checkbox" checked="checked"></div></td>
-            <td><code>* */2 * * *</code></td>
-            <td>Last: 2020-01-01 12:40:34<br />Next: 2020-01-01 12:45:34</td>
-            <td class="text-end">
-                <button class="btn btn-sm btn-outline-secondary">Configure</button>
-                <button class="btn btn-sm btn-danger">Delete</button>
-                <button class="btn btn-sm btn-outline-secondary">View Runs</button>
-                <button class="btn btn-sm btn-success">Run</button>
-            </td>
-        </tr>
+        @foreach (var job in Model.Jobs)
+        {
+            <tr>
+                <td><input data-id="@job.Id" class="form-check-input" type="checkbox" /></td>
+                <td>@job.Name</td>
+                <td><div class="form-check form-switch"><input class="form-check-input" type="checkbox" @(job.Enabled ? "checked=\"checked\"" : "")></div></td>
+                <td><code>@job.CronSchedule</code></td>
+                <td>Last: TODO-2020-01-01 12:40:34<br />Next: TODO-2020-01-01 12:45:34</td>
+                <td class="text-end">
+                    <a asp-page="/Edit" asp-route-id="@job.Id" class="btn btn-sm btn-outline-secondary">Configure</a>
+                    <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-bs-jobid="@job.Id" data-bs-jobname="@job.Name">Delete</button>
+                    <button class="btn btn-sm btn-outline-secondary">View Runs</button>
+                    <button class="btn btn-sm btn-success">Run</button>
+                </td>
+            </tr>
+        }
     </table>
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="confirmDeleteModalLabel">Delete?</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete the job "<code id="confirmDeleteModalJobName"></code>"?
+                </div>
+                <div class="modal-footer">
+                    <form method="post" asp-page-handler="DeleteJob">
+                        <input type="hidden" id="confirmDeleteModalJobId" name="id" />
+
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        document.getElementById('confirmDeleteModal').addEventListener('show.bs.modal', event => {
+            const button = event.relatedTarget;
+            document.getElementById('confirmDeleteModalJobName').innerText = button.getAttribute('data-bs-jobname');
+            document.getElementById('confirmDeleteModalJobId').value = button.getAttribute('data-bs-jobid');
+        });
+    </script>
 </div>

@@ -1,10 +1,10 @@
-﻿@page
-@model cronch.Pages.AddJobModel
+﻿@page "{id:Guid}"
+@model cronch.Pages.EditModel
 @{
-    ViewData["Title"] = "Add Job";
+    ViewData["Title"] = "Edit Job";
 }
 <div class="text-center">
-    <h1 class="display-4">Add Job</h1>
+    <h1 class="display-4">Edit Job</h1>
     <div class="text-start row">
         <div class="col"></div>
         <div class="col">
@@ -14,9 +14,3 @@
         <div class="col"></div>
     </div>
 </div>
-
-@*
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}
-*@

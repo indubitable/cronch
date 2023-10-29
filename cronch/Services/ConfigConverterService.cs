@@ -72,4 +72,21 @@ public class ConfigConverterService
             StdErrProcessing = jobModel.StdErrProcessing.ToString(),
         };
     }
+
+    public JobViewModel ConvertToViewModel(JobModel jobModel)
+    {
+        return new JobViewModel
+        {
+            Id = jobModel.Id,
+            Name = jobModel.Name,
+            Enabled = jobModel.Enabled,
+            CronSchedule = jobModel.CronSchedule,
+            Executor = jobModel.Executor,
+            Script = jobModel.Script,
+            ScriptFilePathname = jobModel.ScriptFilePathname,
+            Keywords = string.Join(',', jobModel.Keywords),
+            StdOutProcessing = jobModel.StdOutProcessing.ToString(),
+            StdErrProcessing = jobModel.StdErrProcessing.ToString(),
+        };
+    }
 }

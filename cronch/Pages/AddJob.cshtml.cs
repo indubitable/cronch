@@ -9,14 +9,15 @@ namespace cronch.Pages;
 public class AddJobModel : PageModel
 {
     private readonly JobConfigService _jobConfigService;
+    private readonly ConfigConverterService _configConverterService;
 
     [BindProperty]
     public JobViewModel? JobVM { get; set; }
-    public List<SelectListItem> ProcessingOptions => JobViewModel.ProcessingOptions;
 
-    public AddJobModel(JobConfigService jobConfigService)
+    public AddJobModel(JobConfigService jobConfigService, ConfigConverterService configConverterService)
     {
         _jobConfigService = jobConfigService;
+        _configConverterService = configConverterService;
     }
 
     public IActionResult OnGet()
@@ -31,7 +32,7 @@ public class AddJobModel : PageModel
             return Page();
         }
 
-        _jobConfigService.CreateJob(JobVM);
+        _jobConfigService.CreateJob(_configConverterService.ConvertToModel(JobVM), true);
 
         return RedirectToPage("/Manage");
     }

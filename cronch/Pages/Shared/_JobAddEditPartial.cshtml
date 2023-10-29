@@ -1,0 +1,48 @@
+﻿@model cronch.Models.ViewModels.JobViewModel
+@{
+}
+<form method="post">
+    <div class="mb-3">
+        <label bs5-for="Name" class="form-label"></label>
+        <input bs5-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <div class="mb-3 form-check">
+        <input bs5-for="Enabled" class="form-check-input" />
+        <label asp-for="Enabled" class="form-check-label"></label>
+    </div>
+    <div class="mb-3">
+        <label bs5-for="CronSchedule" class="form-label"></label>
+        <input bs5-for="CronSchedule" class="form-control" />
+        <span asp-validation-for="CronSchedule" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label bs5-for="Executor" class="form-label"></label>
+        <input bs5-for="Executor" class="form-control" />
+        <span asp-validation-for="Executor" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label bs5-for="Script" class="form-label"></label>
+        <textarea bs5-for="Script" rows="5" class="form-control"></textarea>
+        <span asp-validation-for="Script" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label bs5-for="ScriptFilePathname" class="form-label"></label>
+        <input bs5-for="ScriptFilePathname" class="form-control" />
+        <span asp-validation-for="ScriptFilePathname" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label bs5-for="Keywords" class="form-label"></label>
+        <input bs5-for="Keywords" class="form-control" />
+        <span asp-validation-for="Keywords" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="StdOutProcessing" class="form-label"></label>
+        <select bs5-for="StdOutProcessing" bs5-items="cronch.Models.ViewModels.JobViewModel.ProcessingOptions" class="form-select"></select>
+    </div>
+    <div class="mb-3">
+        <label asp-for="StdErrProcessing" class="form-label"></label>
+        <select bs5-for="StdErrProcessing" bs5-items="cronch.Models.ViewModels.JobViewModel.ProcessingOptions" class="form-select"></select>
+    </div>
+    <input type="submit" />
+</form>
