@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Cronos;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
 
 namespace cronch.Models.ViewModels;
 
-public class JobViewModel
+public class JobViewModel : IValidatableObject
 {
     public Guid Id { get; set; }
 
@@ -40,6 +41,41 @@ public class JobViewModel
     [Required(AllowEmptyStrings = false)]
     [Display(Name = "Standard Error Processing")]
     public string StdErrProcessing { get; set; } = string.Empty;
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        ValidationResult? validationResult = null;
+
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(CronSchedule))
+            {
+                CronExpression.Parse(CronSchedule, CronFormat.IncludeSeconds);
+            }
+        }
+        catch (Exception ex)
+        {
+            validationResult = new ValidationResult($"The provided Cron schedule could not be parsed: {ex.Message}", new[] { nameof(CronSchedule) });
+        }
+
+        if (validationResult != null)
+        {
+            yield return validationResult;
+        }
+    }
+
+    public string GetValidatedCronDescription()
+    {
+        try
+        {
+            CronExpression.Parse(CronSchedule, CronFormat.IncludeSeconds);
+            return CronExpressionDescriptor.ExpressionDescriptor.GetDescription(CronSchedule);
+        }
+        catch (Exception)
+        {
+            return string.Empty;
+        }
+    }
 
     public static List<SelectListItem> ProcessingOptions
     {

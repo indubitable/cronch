@@ -27,9 +27,9 @@
             <th><input class="form-check-input" type="checkbox" /></th>
             <th>Name</th>
             <th>Enabled</th>
-            <th>Schedule</th>
-            <th>Last/Next Run</th>
-            <th class="text-end">Actions</th>
+            <th class="w-25">Schedule</th>
+            <th class="w-25">Last/Next Run</th>
+            <th class="text-end w-25">Actions</th>
         </tr>
         @foreach (var job in Model.Jobs)
         {
@@ -37,7 +37,11 @@
                 <td><input data-id="@job.Id" class="form-check-input" type="checkbox" /></td>
                 <td>@job.Name</td>
                 <td><div class="form-check form-switch"><input class="form-check-input" type="checkbox" @(job.Enabled ? "checked=\"checked\"" : "")></div></td>
-                <td><code>@job.CronSchedule</code></td>
+                <td>
+                    <code>@job.CronSchedule</code>
+                    <br />
+                    <small><i>@job.GetValidatedCronDescription()</i></small>
+                </td>
                 <td>Last: TODO-2020-01-01 12:40:34<br />Next: TODO-2020-01-01 12:45:34</td>
                 <td class="text-end">
                     <a asp-page="/Edit" asp-route-id="@job.Id" class="btn btn-sm btn-outline-secondary">Configure</a>
