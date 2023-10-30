@@ -5,12 +5,5 @@
 }
 <div class="text-center">
     <h1 class="display-4">Edit Job</h1>
-    <div class="text-start row">
-        <div class="col"></div>
-        <div class="col">
-            <div asp-validation-summary="All" class="rounded border border-2 border-danger"></div>
-            <partial name="_JobAddEditPartial" model="Model.JobVM!" />
-        </div>
-        <div class="col"></div>
-    </div>
+    <partial name="_JobAddEditPartial" model="Model.JobVM!" />
 </div>

@@ -1,48 +1,139 @@
 ﻿@model cronch.Models.ViewModels.JobViewModel
-@{
-}
-<form method="post">
-    <div class="mb-3">
-        <label bs5-for="Name" class="form-label"></label>
-        <input bs5-for="Name" class="form-control" />
-        <span asp-validation-for="Name" class="text-danger"></span>
-    </div>
-    <div class="mb-3 form-check">
-        <input bs5-for="Enabled" class="form-check-input" />
-        <label asp-for="Enabled" class="form-check-label"></label>
-    </div>
-    <div class="mb-3">
-        <label bs5-for="CronSchedule" class="form-label"></label>
-        <input bs5-for="CronSchedule" class="form-control" />
-        <span asp-validation-for="CronSchedule" class="text-danger"></span>
-    </div>
-    <div class="mb-3">
-        <label bs5-for="Executor" class="form-label"></label>
-        <input bs5-for="Executor" class="form-control" />
-        <span asp-validation-for="Executor" class="text-danger"></span>
-    </div>
-    <div class="mb-3">
-        <label bs5-for="Script" class="form-label"></label>
-        <textarea bs5-for="Script" rows="5" class="form-control"></textarea>
-        <span asp-validation-for="Script" class="text-danger"></span>
-    </div>
-    <div class="mb-3">
-        <label bs5-for="ScriptFilePathname" class="form-label"></label>
-        <input bs5-for="ScriptFilePathname" class="form-control" />
-        <span asp-validation-for="ScriptFilePathname" class="text-danger"></span>
-    </div>
-    <div class="mb-3">
-        <label bs5-for="Keywords" class="form-label"></label>
-        <input bs5-for="Keywords" class="form-control" />
-        <span asp-validation-for="Keywords" class="text-danger"></span>
-    </div>
-    <div class="mb-3">
-        <label asp-for="StdOutProcessing" class="form-label"></label>
-        <select bs5-for="StdOutProcessing" bs5-items="cronch.Models.ViewModels.JobViewModel.ProcessingOptions" class="form-select"></select>
-    </div>
-    <div class="mb-3">
-        <label asp-for="StdErrProcessing" class="form-label"></label>
-        <select bs5-for="StdErrProcessing" bs5-items="cronch.Models.ViewModels.JobViewModel.ProcessingOptions" class="form-select"></select>
-    </div>
-    <button type="submit" class="btn btn-primary">Save</button>
-</form>
+
+<div class="container text-start px-5">
+    <div asp-validation-summary="All" class="rounded border border-2 border-danger"></div>
+    <form method="post">
+        <div class="row gx-5">
+            <div class="col mb-3 d-flex align-items-center">
+                <div class="flex-fill">
+                    <label bs5-for="Name" class="form-label"></label>
+                    <input bs5-for="Name" class="form-control" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col mb-3 d-flex align-items-center">
+                <div class="shadow p-3 bg-body-tertiary rounded flex-fill">Choose a meaningful name for this job</div>
+            </div>
+        </div>
+        <div class="row gx-5">
+            <hr />
+        </div>
+        <div class="row gx-5">
+            <div class="col mb-3 d-flex align-items-center">
+                <div class="form-check flex-fill">
+                    <input bs5-for="Enabled" class="form-check-input" />
+                    <label asp-for="Enabled" class="form-check-label"></label>
+                </div>
+            </div>
+            <div class="col mb-3 d-flex align-items-center">
+                <div class="shadow p-3 bg-body-tertiary rounded flex-fill">Whether this job will be immediately enabled after saving</div>
+            </div>
+        </div>
+        <div class="row gx-5">
+            <hr />
+        </div>
+        <div class="row gx-5">
+            <div class="col mb-3 d-flex align-items-center">
+                <div class="flex-fill">
+                    <label bs5-for="CronSchedule" class="form-label"></label>
+                    <input bs5-for="CronSchedule" class="form-control" />
+                    <span asp-validation-for="CronSchedule" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col mb-3 d-flex align-items-center">
+                <div class="shadow p-3 bg-body-tertiary rounded flex-fill">Something<br />something else<br />another thing</div>
+            </div>
+        </div>
+        <div class="row gx-5">
+            <hr />
+        </div>
+        <div class="row gx-5">
+            <div class="col mb-3 d-flex align-items-center">
+                <div class="flex-fill">
+                    <label bs5-for="Executor" class="form-label"></label>
+                    <input bs5-for="Executor" class="form-control" />
+                    <span asp-validation-for="Executor" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col mb-3 d-flex align-items-center">
+                <div class="shadow p-3 bg-body-tertiary rounded flex-fill">Something<br />something else<br />another thing</div>
+            </div>
+        </div>
+        <div class="row gx-5">
+            <hr />
+        </div>
+        <div class="row gx-5">
+            <div class="col mb-3 d-flex align-items-center">
+                <div class="flex-fill">
+                    <label bs5-for="Script" class="form-label"></label>
+                    <textarea bs5-for="Script" rows="5" class="form-control"></textarea>
+                    <span asp-validation-for="Script" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col mb-3 d-flex align-items-center">
+                <div class="shadow p-3 bg-body-tertiary rounded flex-fill">Something<br />something else<br />another thing</div>
+            </div>
+        </div>
+        <div class="row gx-5">
+            <hr />
+        </div>
+        <div class="row gx-5">
+            <div class="col mb-3 d-flex align-items-center">
+                <div class="flex-fill">
+                    <label bs5-for="ScriptFilePathname" class="form-label"></label>
+                    <input bs5-for="ScriptFilePathname" class="form-control" />
+                    <span asp-validation-for="ScriptFilePathname" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col mb-3 d-flex align-items-center">
+                <div class="shadow p-3 bg-body-tertiary rounded flex-fill">Something<br />something else<br />another thing</div>
+            </div>
+        </div>
+        <div class="row gx-5">
+            <hr />
+        </div>
+        <div class="row gx-5">
+            <div class="col mb-3 d-flex align-items-center">
+                <div class="flex-fill">
+                    <label bs5-for="Keywords" class="form-label"></label>
+                    <input bs5-for="Keywords" class="form-control" />
+                    <span asp-validation-for="Keywords" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col mb-3 d-flex align-items-center">
+                <div class="shadow p-3 bg-body-tertiary rounded flex-fill">Something<br />something else<br />another thing</div>
+            </div>
+        </div>
+        <div class="row gx-5">
+            <hr />
+        </div>
+        <div class="row gx-5">
+            <div class="col mb-3 d-flex align-items-center">
+                <div class="flex-fill">
+                    <label asp-for="StdOutProcessing" class="form-label"></label>
+                    <select bs5-for="StdOutProcessing" bs5-items="cronch.Models.ViewModels.JobViewModel.ProcessingOptions" class="form-select"></select>
+                </div>
+            </div>
+            <div class="col mb-3 d-flex align-items-center">
+                <div class="shadow p-3 bg-body-tertiary rounded flex-fill">Something<br />something else<br />another thing</div>
+            </div>
+        </div>
+        <div class="row gx-5">
+            <hr />
+        </div>
+        <div class="row gx-5">
+            <div class="col mb-3 d-flex align-items-center">
+                <div class="flex-fill">
+                    <label asp-for="StdErrProcessing" class="form-label"></label>
+                    <select bs5-for="StdErrProcessing" bs5-items="cronch.Models.ViewModels.JobViewModel.ProcessingOptions" class="form-select"></select>
+                </div>
+            </div>
+            <div class="col mb-3 d-flex align-items-center">
+                <div class="shadow p-3 bg-body-tertiary rounded flex-fill">Something<br />something else<br />another thing</div>
+            </div>
+        </div>
+        <br />
+        <button type="submit" class="btn btn-primary">Save</button>
+        <br /><br />
+    </form>
+</div>
