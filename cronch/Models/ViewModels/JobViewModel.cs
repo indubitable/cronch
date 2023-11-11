@@ -24,6 +24,9 @@ public class JobViewModel : IValidatableObject
     [Display(Name = "Executor")]
     public string Executor { get; set; } = string.Empty;
 
+    [Display(Name = "Executor Arguments")]
+    public string? ExecutorArgs { get; set; }
+
     [Required(AllowEmptyStrings = false)]
     [Display(Name = "Script")]
     public string Script { get; set; } = string.Empty;

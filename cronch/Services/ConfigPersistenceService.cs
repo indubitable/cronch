@@ -7,7 +7,7 @@ public class ConfigPersistenceService
 {
     private readonly ILogger<ConfigPersistenceService> _logger;
     private readonly IConfiguration _configuration;
-    private XmlSerializer _serializer = new(typeof(ConfigPersistenceModel));
+    private readonly XmlSerializer _serializer = new(typeof(ConfigPersistenceModel));
     private const string CONFIG_FILE = "config.xml";
 
     public ConfigPersistenceService(ILogger<ConfigPersistenceService> logger, IConfiguration configuration)

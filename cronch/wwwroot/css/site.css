@@ -50,3 +50,7 @@ body {
 .validation-summary-valid {
   display: none;
 }
+
+.form-inline {
+  display: inline-block;
+}

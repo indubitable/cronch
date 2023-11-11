@@ -21,6 +21,8 @@ public class JobModel
 
     public string Executor { get; set; } = string.Empty;
 
+    public string? ExecutorArgs { get; set; }
+
     public string Script { get; set; } = string.Empty;
 
     public string? ScriptFilePathname { get; set; }

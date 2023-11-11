@@ -19,18 +19,22 @@ public class JobPersistenceModel
     [XmlElement(Order = 4)]
     public string Executor { get; set; } = string.Empty;
 
-    [XmlElement(Order = 5)]
+
+    [XmlElement(Order = 5, IsNullable = true)]
+    public string? ExecutorArgs { get; set; }
+
+    [XmlElement(Order = 6)]
     public string Script { get; set; } = string.Empty;
 
-    [XmlElement(Order = 6, IsNullable = true)]
+    [XmlElement(Order = 7, IsNullable = true)]
     public string? ScriptFilePathname { get; set; }
 
-    [XmlArray(Order = 7), XmlArrayItem("Keyword")]
+    [XmlArray(Order = 8), XmlArrayItem("Keyword")]
     public List<string> Keywords { get; set; } = new List<string>();
 
-    [XmlElement(Order = 8)]
+    [XmlElement(Order = 9)]
     public string StdOutProcessing { get; set; } = string.Empty;
 
-    [XmlElement(Order = 9)]
+    [XmlElement(Order = 10)]
     public string StdErrProcessing { get; set; } = string.Empty;
 }

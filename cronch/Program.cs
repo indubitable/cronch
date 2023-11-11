@@ -7,6 +7,10 @@ builder.Services.AddRazorPages();
 builder.Services.AddSingleton<ConfigConverterService>();
 builder.Services.AddSingleton<JobConfigService>();
 builder.Services.AddSingleton<ConfigPersistenceService>();
+builder.Services.AddSingleton<JobExecutionService>();
+builder.Services.AddSingleton<JobSchedulingService>();
+
+builder.Services.AddTransient<JobPersistenceService>();
 
 builder.Configuration.AddEnvironmentVariables(prefix: "CRONCH_");
 
