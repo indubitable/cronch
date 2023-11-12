@@ -27,6 +27,8 @@ public class JobModel
 
     public string? ScriptFilePathname { get; set; }
 
+    public double? TimeLimitSecs { get; set; }
+
     public List<string> Keywords { get; set; } = new List<string>();
 
     public OutputProcessing StdOutProcessing { get; set; } = OutputProcessing.None;

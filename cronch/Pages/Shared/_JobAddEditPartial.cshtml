@@ -141,6 +141,25 @@
         <div class="row gx-5">
             <div class="col mb-3 d-flex align-items-center">
                 <div class="flex-fill">
+                    <label bs5-for="TimeLimitSecs" class="form-label"></label>
+                    <input bs5-for="TimeLimitSecs" class="form-control" />
+                    <span asp-validation-for="TimeLimitSecs" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col mb-3 d-flex align-items-center">
+                <div class="shadow p-3 bg-body-tertiary rounded flex-fill">
+                    Optional - how long to permit the job to execute before forcefully killing it
+                    <br /><br />
+                    If left empty, no time limit will be enforced. If set to 0, the job will be killed immediately.
+                </div>
+            </div>
+        </div>
+        <div class="row gx-5">
+            <hr />
+        </div>
+        <div class="row gx-5">
+            <div class="col mb-3 d-flex align-items-center">
+                <div class="flex-fill">
                     <label bs5-for="Keywords" class="form-label"></label>
                     <input bs5-for="Keywords" class="form-control" />
                     <span asp-validation-for="Keywords" class="text-danger"></span>

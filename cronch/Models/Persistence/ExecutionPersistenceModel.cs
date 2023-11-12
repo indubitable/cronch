@@ -22,6 +22,9 @@ public class ExecutionPersistenceModel
     [XmlElement(IsNullable = true)]
     public int? ExitCode { get; set; }
 
+    [XmlElement(IsNullable = true)]
+    public bool? TimedOut { get; set; }
+
     public static ExecutionPersistenceModel CreateNew(Guid jobId, string reason)
     {
         return new ExecutionPersistenceModel

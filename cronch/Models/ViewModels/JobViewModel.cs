@@ -34,6 +34,9 @@ public class JobViewModel : IValidatableObject
     [Display(Name = "Script File", Description = "Optional pathname to use for script contents when they are written and executed")]
     public string? ScriptFilePathname { get; set; }
 
+    [Display(Name = "Execution Time Limit (Seconds)")]
+    public double? TimeLimitSecs { get; set; }
+
     [Display(Name = "Keywords", Description = "Comma-separated list of keywords to look for")]
     public string? Keywords { get; set; } = string.Empty;
 

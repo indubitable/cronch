@@ -29,12 +29,15 @@ public class JobPersistenceModel
     [XmlElement(Order = 7, IsNullable = true)]
     public string? ScriptFilePathname { get; set; }
 
-    [XmlArray(Order = 8), XmlArrayItem("Keyword")]
+    [XmlElement(Order = 8, IsNullable = true)]
+    public double? TimeLimitSecs { get; set; }
+
+    [XmlArray(Order = 9), XmlArrayItem("Keyword")]
     public List<string> Keywords { get; set; } = new List<string>();
 
-    [XmlElement(Order = 9)]
+    [XmlElement(Order = 10)]
     public string StdOutProcessing { get; set; } = string.Empty;
 
-    [XmlElement(Order = 10)]
+    [XmlElement(Order = 11)]
     public string StdErrProcessing { get; set; } = string.Empty;
 }

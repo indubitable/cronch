@@ -107,7 +107,29 @@ public class JobExecutionService
             process.Start();
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
-            process.WaitForExit();
+
+            if (jobModel.TimeLimitSecs.HasValue)
+            {
+                if (process.WaitForExit(TimeSpan.FromSeconds(jobModel.TimeLimitSecs.Value)))
+                {
+                    execution.TimedOut = false;
+                }
+                else
+                {
+                    execution.TimedOut = true;
+                    persistence.SaveExecution(execution);
+                    process.Kill(true);
+                    if (!process.WaitForExit(800))
+                    {
+                        _logger.LogWarning("Job '{Name}' ({Id}), execution {ExecName}, timed out and could not be fully killed in a reasonable amount of time", jobModel.Name, jobModel.Id, execution.GetExecutionName());
+                        throw new TimeoutException();
+                    }
+                }
+            }
+            else
+            {
+                process.WaitForExit();
+            }
 
             execution.CompletedOn = DateTimeOffset.UtcNow;
             execution.ExitCode = process.ExitCode;
