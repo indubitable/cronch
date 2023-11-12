@@ -36,7 +36,7 @@ namespace cronch.Pages
             var job = _jobConfigService.GetJob(id);
             if (job != null)
             {
-                _jobExecutionService.ExecuteJob(job, JobExecutionService.ExecutionReason.ManualRun);
+                _jobExecutionService.ExecuteJob(job, JobExecutionService.ExecutionReason.Manual);
                 //TempData["Message"] = "Job started!";
             }
             else

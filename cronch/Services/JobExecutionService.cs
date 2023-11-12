@@ -1,4 +1,5 @@
 ﻿using cronch.Models;
+using cronch.Models.Persistence;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 
@@ -9,28 +10,30 @@ public class JobExecutionService
     public enum ExecutionReason
     {
         Scheduled = 0,
-        ManualRun = 1,
+        Manual = 1,
     }
 
+    private readonly ILogger<JobExecutionService> _logger;
     private readonly IServiceProvider _serviceProvider;
 
-    private readonly ConcurrentDictionary<string, Thread> _executions = new ConcurrentDictionary<string, Thread>();
+    private readonly ConcurrentDictionary<string, Thread> _executions = new();
 
-    public JobExecutionService(IServiceProvider serviceProvider)
+    public JobExecutionService(ILogger<JobExecutionService> logger, IServiceProvider serviceProvider)
     {
+        _logger = logger;
         _serviceProvider = serviceProvider;
     }
 
-    public void ExecuteJob(JobModel jobModel, ExecutionReason reason)
+    public virtual void ExecuteJob(JobModel jobModel, ExecutionReason reason)
     {
-        var execName = Utility.CreateExecutionName();
-        var thread = new Thread(() => PerformExecution(execName, jobModel, reason))
+        var execution = ExecutionPersistenceModel.CreateNew(jobModel.Id, reason.ToString());
+        var thread = new Thread(() => PerformExecution(execution, jobModel))
         {
             IsBackground = true
         };
 
         // Register the execution
-        if (!_executions.TryAdd(execName, thread))
+        if (!_executions.TryAdd(execution.GetExecutionName(), thread))
         {
             throw new InvalidOperationException("Unable to execute job: could not register execution");
         }
@@ -38,7 +41,7 @@ public class JobExecutionService
         thread.Start();
     }
 
-    private void PerformExecution(string executionId, JobModel jobModel, ExecutionReason reason)
+    private void PerformExecution(ExecutionPersistenceModel execution, JobModel jobModel)
     {
         var persistence = _serviceProvider.GetRequiredService<JobPersistenceService>();
 
@@ -48,46 +51,84 @@ public class JobExecutionService
         {
             scriptFile = Path.Combine(tempDir, jobModel.ScriptFilePathname.Trim());
         }
-        File.WriteAllText(scriptFile, jobModel.Script);
 
-        var executorFile = jobModel.Executor;
-        var executorArgs = (jobModel.ExecutorArgs ?? "").Trim();
-        if (executorArgs.Contains("{0}"))
+        try
         {
-            executorArgs = string.Format(executorArgs, scriptFile);
-        }
-        else
-        {
-            executorArgs += $" {scriptFile}";
-            executorArgs = executorArgs.Trim();
-        }
-        var startInfo = new ProcessStartInfo
-        {
-            UseShellExecute = false,
-            StandardOutputEncoding = System.Text.Encoding.UTF8,
-            RedirectStandardOutput = true,
-            StandardErrorEncoding = System.Text.Encoding.UTF8,
-            RedirectStandardError = true,
-            CreateNoWindow = true,
-            FileName = executorFile,
-            Arguments = executorArgs,
-        };
-        using var process = new Process();
-        process.StartInfo = startInfo;
-        process.EnableRaisingEvents = true;
-        process.OutputDataReceived += (sender, args) =>
-        {
-            var line = args.Data;
-        };
-        process.ErrorDataReceived += (sender, args) =>
-        {
-            var line = args.Data;
-        };
-        process.Start();
-        process.BeginOutputReadLine();
-        process.BeginErrorReadLine();
-        process.WaitForExit();
+            persistence.SaveExecution(execution);
+            persistence.SaveLatestExecutionForJob(execution);
 
-        // TODO: handle errors, deleting temp file, removing thread from concurrent dictionary, etc.
+            using var stdoutStream = File.Open(persistence.GetExecutionPathName(execution, "out.txt", false), FileMode.Create, FileAccess.Write, FileShare.Read);
+            using var stdoutWriter = new StreamWriter(stdoutStream, leaveOpen: true);
+            using var stderrStream = File.Open(persistence.GetExecutionPathName(execution, "err.txt", false), FileMode.Create, FileAccess.Write, FileShare.Read);
+            using var stderrWriter = new StreamWriter(stderrStream, leaveOpen: true);
+
+            File.WriteAllText(scriptFile, jobModel.Script);
+
+            var executorFile = jobModel.Executor;
+            var executorArgs = (jobModel.ExecutorArgs ?? "").Trim();
+            if (executorArgs.Contains("{0}"))
+            {
+                executorArgs = string.Format(executorArgs, scriptFile);
+            }
+            else
+            {
+                executorArgs += $" {scriptFile}";
+                executorArgs = executorArgs.Trim();
+            }
+            var startInfo = new ProcessStartInfo
+            {
+                UseShellExecute = false,
+                StandardOutputEncoding = System.Text.Encoding.UTF8,
+                RedirectStandardOutput = true,
+                StandardErrorEncoding = System.Text.Encoding.UTF8,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+                FileName = executorFile,
+                Arguments = executorArgs
+            };
+            using var process = new Process();
+            process.StartInfo = startInfo;
+            process.OutputDataReceived += (sender, args) =>
+            {
+                var line = args.Data;
+                if (!string.IsNullOrWhiteSpace(line))
+                {
+                    stdoutWriter.WriteLine($"{DateTimeOffset.UtcNow:yyyy-MM-dd_HH:mm:ss} {line}");
+                }
+            };
+            process.ErrorDataReceived += (sender, args) =>
+            {
+                var line = args.Data;
+                if (!string.IsNullOrWhiteSpace(line))
+                {
+                    stderrWriter.WriteLine($"{DateTimeOffset.UtcNow:yyyy-MM-dd_HH:mm:ss} {line}");
+                }
+            };
+            process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+            process.WaitForExit();
+
+            execution.CompletedOn = DateTimeOffset.UtcNow;
+            execution.ExitCode = process.ExitCode;
+            persistence.SaveExecution(execution);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while executing job '{Name}' ({Id}), execution {ExecName}", jobModel.Name, jobModel.Id, execution.GetExecutionName());
+        }
+        finally
+        {
+            try
+            {
+                File.Delete(scriptFile);
+            }
+            catch (Exception)
+            {
+                // Ignore.
+            }
+
+            _executions.TryRemove(execution.GetExecutionName(), out var _);
+        }
     }
 }
