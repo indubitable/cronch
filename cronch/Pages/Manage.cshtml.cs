@@ -10,19 +10,22 @@ namespace cronch.Pages
         private readonly JobConfigService _jobConfigService;
         private readonly ConfigConverterService _configConverterService;
         private readonly JobExecutionService _jobExecutionService;
+        private readonly JobPersistenceService _jobPersistenceService;
 
         public List<JobViewModel> Jobs { get; set; } = new();
 
-        public ManageModel(JobConfigService jobConfigService, ConfigConverterService configConverterService, JobExecutionService jobExecutionService)
+        public ManageModel(JobConfigService jobConfigService, ConfigConverterService configConverterService, JobExecutionService jobExecutionService, JobPersistenceService jobPersistenceService)
         {
             _jobConfigService = jobConfigService;
             _configConverterService = configConverterService;
             _jobExecutionService = jobExecutionService;
+            _jobPersistenceService = jobPersistenceService;
         }
 
         public void OnGet()
         {
             Jobs = _jobConfigService.GetAllJobs().Select(_configConverterService.ConvertToViewModel).ToList();
+            PostProcessRetrievedJobs();
         }
 
         public IActionResult OnPostDeleteJob(Guid id)
@@ -44,6 +47,14 @@ namespace cronch.Pages
                 //TempData["Message"] = "Could not find job to start!";
             }
             return RedirectToPage("/Manage");
+        }
+
+        private void PostProcessRetrievedJobs()
+        {
+            foreach (var job in Jobs)
+            {
+                job.LatestExecution = _jobPersistenceService.GetLatestExecutionForJob(job.Id);
+            }
         }
     }
 }

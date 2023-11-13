@@ -28,7 +28,7 @@
             <th>Name</th>
             <th>Enabled</th>
             <th class="w-25">Schedule</th>
-            <th class="w-25">Last/Next Run</th>
+            <th class="w-25">Latest/Next Run</th>
             <th class="text-end w-25">Actions</th>
         </tr>
         @foreach (var job in Model.Jobs)
@@ -42,7 +42,7 @@
                     <br />
                     <small><i>@job.GetValidatedCronDescription()</i></small>
                 </td>
-                <td>Last: TODO-2020-01-01 12:40:34<br />Next: TODO-2020-01-01 12:45:34</td>
+                <td>Latest: @(job.LatestExecution?.ToLocalTime().ToString("G") ?? "N/A")<br />Next: @(job.NextExecution?.ToLocalTime().ToString("G") ?? "N/A")</td>
                 <td class="text-end">
                     <a asp-page="/Edit" asp-route-id="@job.Id" class="btn btn-sm btn-outline-secondary">Configure</a>
                     <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-bs-jobid="@job.Id" data-bs-jobname="@job.Name">Delete</button>

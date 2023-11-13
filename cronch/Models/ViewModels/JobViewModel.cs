@@ -9,6 +9,8 @@ public class JobViewModel : IValidatableObject
 {
     public Guid Id { get; set; }
 
+    // Editable fields:
+
     [Required(AllowEmptyStrings = false)]
     [Display(Name = "Name")]
     public string Name { get; set; } = string.Empty;
@@ -56,6 +58,14 @@ public class JobViewModel : IValidatableObject
     [Required(AllowEmptyStrings = false)]
     [Display(Name = "Standard Error processing")]
     public string StdErrProcessing { get; set; } = string.Empty;
+
+    // Reporting-only fields:
+
+    public DateTimeOffset? LatestExecution { get; set; }
+
+    public DateTimeOffset? NextExecution { get; set; }
+
+    // Other:
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {

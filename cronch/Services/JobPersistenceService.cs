@@ -15,6 +15,37 @@ public class JobPersistenceService
         _configuration = configuration;
     }
 
+    public virtual DateTimeOffset? GetLatestExecutionForJob(Guid jobId)
+    {
+        var executionsFile = Path.Combine(GetDataLocation(), jobId.ToString("D"), "executions.csv");
+        if (!File.Exists(executionsFile))
+        {
+            return null;
+        }
+
+        try
+        {
+            using var fileReader = new StreamReader(executionsFile, new FileStreamOptions { Access = FileAccess.Read });
+            var latest = string.Empty;
+            while (true)
+            {
+                var line = fileReader.ReadLine();
+                if (line == null) break;
+                if (line.EndsWith(",False")) continue;
+                latest = line;
+            }
+            if (latest.Length > 0)
+            {
+                return DateTimeOffset.ParseExact(latest.AsSpan(0, 19), "s", null, System.Globalization.DateTimeStyles.AssumeUniversal);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unable to read executions for job {Id}", jobId);
+        }
+        return null;
+    }
+
     public virtual void SaveLatestExecutionForJob(ExecutionPersistenceModel execution, bool considerAsProperExecution)
     {
         try
