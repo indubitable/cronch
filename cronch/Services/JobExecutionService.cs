@@ -13,10 +13,30 @@ public class JobExecutionService
         Manual = 1,
     }
 
+    public enum ExecutionStatus
+    {
+        Unknown,
+        Running,
+        CompletedAsSuccess,
+        CompletedAsIndeterminate,
+        CompletedAsWarning,
+        CompletedAsError,
+    }
+
+    public enum TerminationReason
+    {
+        NoneSpecified,
+        Exited,
+        TimedOut,
+        SkippedForParallelism
+    }
+
+    public readonly record struct ExecutionIdentifier(Guid JobId, DateTimeOffset StartedOn, string RandomComponent);
+
     private readonly ILogger<JobExecutionService> _logger;
     private readonly IServiceProvider _serviceProvider;
 
-    private readonly ConcurrentDictionary<string, Thread> _executions = new();
+    private readonly ConcurrentDictionary<ExecutionIdentifier, Thread> _executions = new();
 
     public JobExecutionService(ILogger<JobExecutionService> logger, IServiceProvider serviceProvider)
     {
@@ -26,14 +46,61 @@ public class JobExecutionService
 
     public virtual void ExecuteJob(JobModel jobModel, ExecutionReason reason)
     {
-        var execution = ExecutionPersistenceModel.CreateNew(jobModel.Id, reason.ToString());
+        var execution = ExecutionPersistenceModel.CreateNew(jobModel.Id, reason.ToString(), ExecutionStatus.Unknown.ToString());
+
+        // Check for parallelism limits
+        if (jobModel.Parallelism.HasValue)
+        {
+            var runningJobCount = _executions.Where(kvp => kvp.Key.JobId == jobModel.Id).Count();
+            if (runningJobCount >= jobModel.Parallelism.Value)
+            {
+                // Execution cannot proceed
+
+                _logger.LogInformation("Parallelism limit exceeded for job '{Name}' ({Id}). Skipping execution.", jobModel.Name, jobModel.Id);
+
+                var persistence = _serviceProvider.GetRequiredService<JobPersistenceService>();
+
+                execution.CompletedOn = execution.StartedOn;
+                execution.TerminationReason = TerminationReason.SkippedForParallelism.ToString();
+
+                try
+                {
+                    switch (jobModel.MarkParallelSkipAs)
+                    {
+                        case JobModel.ParallelSkipProcessing.MarkAsIndeterminate:
+                            execution.ExecutionStatus = ExecutionStatus.CompletedAsIndeterminate.ToString();
+                            persistence.SaveExecution(execution);
+                            persistence.SaveLatestExecutionForJob(execution, false);
+                            break;
+                        case JobModel.ParallelSkipProcessing.MarkAsWarning:
+                            execution.ExecutionStatus = ExecutionStatus.CompletedAsWarning.ToString();
+                            persistence.SaveExecution(execution);
+                            persistence.SaveLatestExecutionForJob(execution, false);
+                            break;
+                        case JobModel.ParallelSkipProcessing.MarkAsError:
+                            execution.ExecutionStatus = ExecutionStatus.CompletedAsError.ToString();
+                            persistence.SaveExecution(execution);
+                            persistence.SaveLatestExecutionForJob(execution, false);
+                            break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Unable to save execution state for job '{Name}' ({Id}), execution {ExecName}", jobModel.Name, jobModel.Id, execution.GetExecutionName());
+                }
+
+                // Leave and never look back
+                return;
+            }
+        }
+
         var thread = new Thread(() => PerformExecution(execution, jobModel))
         {
             IsBackground = true
         };
 
         // Register the execution
-        if (!_executions.TryAdd(execution.GetExecutionName(), thread))
+        if (!_executions.TryAdd(GetExecutionIdentifierFromModel(execution), thread))
         {
             throw new InvalidOperationException("Unable to execute job: could not register execution");
         }
@@ -52,10 +119,13 @@ public class JobExecutionService
             scriptFile = Path.Combine(tempDir, jobModel.ScriptFilePathname.Trim());
         }
 
+        var intermediateExecutionStatus = ExecutionStatus.CompletedAsSuccess;
+
         try
         {
+            execution.ExecutionStatus = ExecutionStatus.Running.ToString();
             persistence.SaveExecution(execution);
-            persistence.SaveLatestExecutionForJob(execution);
+            persistence.SaveLatestExecutionForJob(execution, true);
 
             using var stdoutStream = File.Open(persistence.GetExecutionPathName(execution, "out.txt", false), FileMode.Create, FileAccess.Write, FileShare.Read);
             using var stdoutWriter = new StreamWriter(stdoutStream, leaveOpen: true);
@@ -94,6 +164,7 @@ public class JobExecutionService
                 if (!string.IsNullOrWhiteSpace(line))
                 {
                     stdoutWriter.WriteLine($"{DateTimeOffset.UtcNow:yyyy-MM-dd_HH:mm:ss} {line}");
+                    ProcessLineForStatusUpdate(line, jobModel.Keywords, jobModel.StdOutProcessing, ref intermediateExecutionStatus);
                 }
             };
             process.ErrorDataReceived += (sender, args) =>
@@ -102,6 +173,7 @@ public class JobExecutionService
                 if (!string.IsNullOrWhiteSpace(line))
                 {
                     stderrWriter.WriteLine($"{DateTimeOffset.UtcNow:yyyy-MM-dd_HH:mm:ss} {line}");
+                    ProcessLineForStatusUpdate(line, jobModel.Keywords, jobModel.StdErrProcessing, ref intermediateExecutionStatus);
                 }
             };
             process.Start();
@@ -112,11 +184,12 @@ public class JobExecutionService
             {
                 if (process.WaitForExit(TimeSpan.FromSeconds(jobModel.TimeLimitSecs.Value)))
                 {
-                    execution.TimedOut = false;
+                    execution.TerminationReason = TerminationReason.Exited.ToString();
                 }
                 else
                 {
-                    execution.TimedOut = true;
+                    execution.TerminationReason = TerminationReason.TimedOut.ToString();
+                    execution.ExecutionStatus = ExecutionStatus.CompletedAsError.ToString();
                     persistence.SaveExecution(execution);
                     process.Kill(true);
                     if (!process.WaitForExit(800))
@@ -129,10 +202,25 @@ public class JobExecutionService
             else
             {
                 process.WaitForExit();
+                execution.TerminationReason = TerminationReason.Exited.ToString();
             }
 
             execution.CompletedOn = DateTimeOffset.UtcNow;
             execution.ExitCode = process.ExitCode;
+
+            if (execution.ExecutionStatus.Equals(ExecutionStatus.Running.ToString()))
+            {
+                if (execution.ExitCode != 0)
+                {
+                    // Always mark as error when the exit code is non-zero
+                    execution.ExecutionStatus = ExecutionStatus.CompletedAsError.ToString();
+                }
+                else
+                {
+                    execution.ExecutionStatus = intermediateExecutionStatus.ToString();
+                }
+            }
+
             persistence.SaveExecution(execution);
         }
         catch (Exception ex)
@@ -150,7 +238,53 @@ public class JobExecutionService
                 // Ignore.
             }
 
-            _executions.TryRemove(execution.GetExecutionName(), out var _);
+            _executions.TryRemove(GetExecutionIdentifierFromModel(execution), out var _);
         }
+    }
+
+    private static void ProcessLineForStatusUpdate(string line, List<string> keywords, JobModel.OutputProcessing processingDirective, ref ExecutionStatus intermediateExecutionStatus)
+    {
+        var keywordMatchExists = false;
+        if (processingDirective == JobModel.OutputProcessing.WarningOnMatchingKeywords || processingDirective == JobModel.OutputProcessing.ErrorOnMatchingKeywords)
+        {
+            foreach (var keyword in keywords)
+            {
+                if (line.Contains(keyword, StringComparison.InvariantCulture))
+                {
+                    keywordMatchExists = true;
+                    break;
+                }
+            }
+        }
+
+        switch (processingDirective)
+        {
+            case JobModel.OutputProcessing.WarningOnAnyOutput:
+                if (intermediateExecutionStatus != ExecutionStatus.CompletedAsError)
+                {
+                    intermediateExecutionStatus = ExecutionStatus.CompletedAsWarning;
+                }
+                break;
+            case JobModel.OutputProcessing.ErrorOnAnyOutput:
+                intermediateExecutionStatus = ExecutionStatus.CompletedAsError;
+                break;
+            case JobModel.OutputProcessing.WarningOnMatchingKeywords:
+                if (intermediateExecutionStatus != ExecutionStatus.CompletedAsError && keywordMatchExists)
+                {
+                    intermediateExecutionStatus = ExecutionStatus.CompletedAsWarning;
+                }
+                break;
+            case JobModel.OutputProcessing.ErrorOnMatchingKeywords:
+                if (keywordMatchExists)
+                {
+                    intermediateExecutionStatus = ExecutionStatus.CompletedAsError;
+                }
+                break;
+        }
+    }
+
+    private static ExecutionIdentifier GetExecutionIdentifierFromModel(ExecutionPersistenceModel execution)
+    {
+        return new ExecutionIdentifier(execution.JobId, execution.StartedOn, execution.RandomComponent);
     }
 }

@@ -160,6 +160,32 @@
         <div class="row gx-5">
             <div class="col mb-3 d-flex align-items-center">
                 <div class="flex-fill">
+                    <label bs5-for="Parallelism" class="form-label"></label>
+                    <input bs5-for="Parallelism" class="form-control" />
+                    <span asp-validation-for="Parallelism" class="text-danger"></span>
+
+                    <br /><br />
+
+                    <label asp-for="MarkParallelSkipAs" class="form-label"></label>
+                    <select bs5-for="MarkParallelSkipAs" bs5-items="cronch.Models.ViewModels.JobViewModel.ParallelSkipProcessingOptions" class="form-select"></select>
+                </div>
+            </div>
+            <div class="col mb-3 d-flex align-items-center">
+                <div class="shadow p-3 bg-body-tertiary rounded flex-fill">
+                    Optional - limit the number of parallel executions of this job
+                    <br /><br />
+                    If left empty, no limit will be enforced. Setting this to 1 means that only one execution of this job is allowed at a time.
+                    <br /><br />
+                    The drop-down selection allows for control over how to log (or not log) the skipping of executions due to the parallelism limit.
+                </div>
+            </div>
+        </div>
+        <div class="row gx-5">
+            <hr />
+        </div>
+        <div class="row gx-5">
+            <div class="col mb-3 d-flex align-items-center">
+                <div class="flex-fill">
                     <label bs5-for="Keywords" class="form-label"></label>
                     <input bs5-for="Keywords" class="form-control" />
                     <span asp-validation-for="Keywords" class="text-danger"></span>
@@ -176,25 +202,16 @@
             <div class="col mb-3 d-flex align-items-center">
                 <div class="flex-fill">
                     <label asp-for="StdOutProcessing" class="form-label"></label>
-                    <select bs5-for="StdOutProcessing" bs5-items="cronch.Models.ViewModels.JobViewModel.ProcessingOptions" class="form-select"></select>
-                </div>
-            </div>
-            <div class="col mb-3 d-flex align-items-center">
-                <div class="shadow p-3 bg-body-tertiary rounded flex-fill">How to interpret the contents of stdout after each run</div>
-            </div>
-        </div>
-        <div class="row gx-5">
-            <hr />
-        </div>
-        <div class="row gx-5">
-            <div class="col mb-3 d-flex align-items-center">
-                <div class="flex-fill">
+                    <select bs5-for="StdOutProcessing" bs5-items="cronch.Models.ViewModels.JobViewModel.OutputProcessingOptions" class="form-select"></select>
+
+                    <br /><br />
+
                     <label asp-for="StdErrProcessing" class="form-label"></label>
-                    <select bs5-for="StdErrProcessing" bs5-items="cronch.Models.ViewModels.JobViewModel.ProcessingOptions" class="form-select"></select>
+                    <select bs5-for="StdErrProcessing" bs5-items="cronch.Models.ViewModels.JobViewModel.OutputProcessingOptions" class="form-select"></select>
                 </div>
             </div>
             <div class="col mb-3 d-flex align-items-center">
-                <div class="shadow p-3 bg-body-tertiary rounded flex-fill">How to interpret the contents of stderr after each run</div>
+                <div class="shadow p-3 bg-body-tertiary rounded flex-fill">How to interpret the contents of stdout and stderr after each run</div>
             </div>
         </div>
         <br />

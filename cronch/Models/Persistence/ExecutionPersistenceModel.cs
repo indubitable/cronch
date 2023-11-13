@@ -11,10 +11,13 @@ public class ExecutionPersistenceModel
     public DateTimeOffset StartedOn { get; set; }
 
     [XmlElement]
-    public string Reason { get; set; } = string.Empty;
+    public string LaunchReason { get; set; } = string.Empty;
 
     [XmlElement]
     public string RandomComponent { get; set; } = string.Empty;
+
+    [XmlElement]
+    public string ExecutionStatus {  get; set; } = string.Empty;
 
     [XmlElement(IsNullable = true)]
     public DateTimeOffset? CompletedOn { get; set; }
@@ -23,16 +26,17 @@ public class ExecutionPersistenceModel
     public int? ExitCode { get; set; }
 
     [XmlElement(IsNullable = true)]
-    public bool? TimedOut { get; set; }
+    public string? TerminationReason { get; set; }
 
-    public static ExecutionPersistenceModel CreateNew(Guid jobId, string reason)
+    public static ExecutionPersistenceModel CreateNew(Guid jobId, string launchReason, string executionStatus)
     {
         return new ExecutionPersistenceModel
         {
             JobId = jobId,
             StartedOn = DateTimeOffset.UtcNow,
-            Reason = reason,
+            LaunchReason = launchReason,
             RandomComponent = Path.GetRandomFileName(),
+            ExecutionStatus = executionStatus,
         };
     }
 

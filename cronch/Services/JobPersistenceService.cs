@@ -15,11 +15,11 @@ public class JobPersistenceService
         _configuration = configuration;
     }
 
-    public virtual void SaveLatestExecutionForJob(ExecutionPersistenceModel execution)
+    public virtual void SaveLatestExecutionForJob(ExecutionPersistenceModel execution, bool considerAsProperExecution)
     {
         try
         {
-            File.AppendAllText(Path.Combine(GetDataLocation(), execution.JobId.ToString("D"), "executions.csv"), $"{execution.StartedOn:s},\"{GetJobRelativeExecutionPath(execution)}\"\n");
+            File.AppendAllText(Path.Combine(GetDataLocation(), execution.JobId.ToString("D"), "executions.csv"), $"{execution.StartedOn:s},\"{GetJobRelativeExecutionPath(execution)}\",{considerAsProperExecution}\n");
         }
         catch (Exception ex)
         {

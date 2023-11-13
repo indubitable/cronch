@@ -32,12 +32,18 @@ public class JobPersistenceModel
     [XmlElement(Order = 8, IsNullable = true)]
     public double? TimeLimitSecs { get; set; }
 
-    [XmlArray(Order = 9), XmlArrayItem("Keyword")]
-    public List<string> Keywords { get; set; } = new List<string>();
+    [XmlElement(Order = 9, IsNullable = true)]
+    public int? Parallelism { get; set; }
 
     [XmlElement(Order = 10)]
+    public string MarkParallelSkipAs { get; set; } = string.Empty;
+
+    [XmlArray(Order = 11), XmlArrayItem("Keyword")]
+    public List<string> Keywords { get; set; } = new List<string>();
+
+    [XmlElement(Order = 12)]
     public string StdOutProcessing { get; set; } = string.Empty;
 
-    [XmlElement(Order = 11)]
+    [XmlElement(Order = 13)]
     public string StdErrProcessing { get; set; } = string.Empty;
 }

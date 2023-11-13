@@ -11,6 +11,14 @@ public class JobModel
         ErrorOnMatchingKeywords
     }
 
+    public enum ParallelSkipProcessing
+    {
+        Ignore,
+        MarkAsIndeterminate,
+        MarkAsWarning,
+        MarkAsError
+    }
+
     public Guid Id { get; set; }
 
     public string Name { get; set; } = string.Empty;
@@ -28,6 +36,10 @@ public class JobModel
     public string? ScriptFilePathname { get; set; }
 
     public double? TimeLimitSecs { get; set; }
+
+    public int? Parallelism { get; set; }
+
+    public ParallelSkipProcessing MarkParallelSkipAs { get; set; } = ParallelSkipProcessing.Ignore;
 
     public List<string> Keywords { get; set; } = new List<string>();
 

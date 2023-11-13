@@ -27,9 +27,11 @@ public class ConfigConverterService
             Script = jobPersistenceModel.Script,
             ScriptFilePathname = jobPersistenceModel.ScriptFilePathname,
             TimeLimitSecs = jobPersistenceModel.TimeLimitSecs,
+            Parallelism = jobPersistenceModel.Parallelism,
+            MarkParallelSkipAs = ParseEnumValueWithFallback(jobPersistenceModel.MarkParallelSkipAs, JobModel.ParallelSkipProcessing.Ignore),
             Keywords = new List<string>(jobPersistenceModel.Keywords),
-            StdOutProcessing = Enum.Parse<JobModel.OutputProcessing>(jobPersistenceModel.StdOutProcessing),
-            StdErrProcessing = Enum.Parse<JobModel.OutputProcessing>(jobPersistenceModel.StdErrProcessing),
+            StdOutProcessing = ParseEnumValueWithFallback(jobPersistenceModel.StdOutProcessing, JobModel.OutputProcessing.None),
+            StdErrProcessing = ParseEnumValueWithFallback(jobPersistenceModel.StdErrProcessing, JobModel.OutputProcessing.None),
         };
     }
 
@@ -46,9 +48,11 @@ public class ConfigConverterService
             Script = jobViewModel.Script,
             ScriptFilePathname = jobViewModel.ScriptFilePathname,
             TimeLimitSecs = jobViewModel.TimeLimitSecs,
+            Parallelism = jobViewModel.Parallelism,
+            MarkParallelSkipAs = ParseEnumValueWithFallback(jobViewModel.MarkParallelSkipAs, JobModel.ParallelSkipProcessing.Ignore),
             Keywords = (jobViewModel.Keywords ?? "").Split(',').Select(s => s.Trim()).ToList(),
-            StdOutProcessing = Enum.Parse<JobModel.OutputProcessing>(jobViewModel.StdOutProcessing),
-            StdErrProcessing = Enum.Parse<JobModel.OutputProcessing>(jobViewModel.StdErrProcessing),
+            StdOutProcessing = ParseEnumValueWithFallback(jobViewModel.StdOutProcessing, JobModel.OutputProcessing.None),
+            StdErrProcessing = ParseEnumValueWithFallback(jobViewModel.StdErrProcessing, JobModel.OutputProcessing.None),
         };
     }
 
@@ -73,6 +77,8 @@ public class ConfigConverterService
             Script = jobModel.Script,
             ScriptFilePathname = jobModel.ScriptFilePathname,
             TimeLimitSecs = jobModel.TimeLimitSecs,
+            Parallelism = jobModel.Parallelism,
+            MarkParallelSkipAs = jobModel.MarkParallelSkipAs.ToString(),
             Keywords = new List<string>(jobModel.Keywords),
             StdOutProcessing = jobModel.StdOutProcessing.ToString(),
             StdErrProcessing = jobModel.StdErrProcessing.ToString(),
@@ -92,9 +98,26 @@ public class ConfigConverterService
             Script = jobModel.Script,
             ScriptFilePathname = jobModel.ScriptFilePathname,
             TimeLimitSecs = jobModel.TimeLimitSecs,
+            Parallelism = jobModel.Parallelism,
+            MarkParallelSkipAs = jobModel.MarkParallelSkipAs.ToString(),
             Keywords = string.Join(',', jobModel.Keywords),
             StdOutProcessing = jobModel.StdOutProcessing.ToString(),
             StdErrProcessing = jobModel.StdErrProcessing.ToString(),
         };
+    }
+
+    private static T ParseEnumValueWithFallback<T>(string value, T fallback) where T : Enum
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return fallback;
+        }
+
+        if (Enum.TryParse(typeof(T), value, out var result))
+        {
+            return (T)result;
+        }
+
+        return fallback;
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Cronos;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
+using static cronch.Models.JobModel;
 
 namespace cronch.Models.ViewModels;
 
@@ -17,35 +18,43 @@ public class JobViewModel : IValidatableObject
     public bool Enabled { get; set; }
 
     [Required(AllowEmptyStrings = false)]
-    [Display(Name = "Cron Schedule")]
+    [Display(Name = "Cron schedule")]
     public string CronSchedule { get; set; } = string.Empty;
 
     [Required(AllowEmptyStrings = false)]
     [Display(Name = "Executor")]
     public string Executor { get; set; } = string.Empty;
 
-    [Display(Name = "Executor Arguments")]
+    [Display(Name = "Executor arguments")]
     public string? ExecutorArgs { get; set; }
 
     [Required(AllowEmptyStrings = false)]
     [Display(Name = "Script")]
     public string Script { get; set; } = string.Empty;
 
-    [Display(Name = "Script File", Description = "Optional pathname to use for script contents when they are written and executed")]
+    [Display(Name = "Script file")]
     public string? ScriptFilePathname { get; set; }
 
-    [Display(Name = "Execution Time Limit (Seconds)")]
+    [Display(Name = "Execution time limit (in seconds)")]
     public double? TimeLimitSecs { get; set; }
 
-    [Display(Name = "Keywords", Description = "Comma-separated list of keywords to look for")]
+    [Display(Name = "Parallelism")]
+    [Range(1, 100)]
+    public int? Parallelism { get; set; }
+
+    [Required]
+    [Display(Name = "Parallel execution skip handling")]
+    public string MarkParallelSkipAs { get; set; } = string.Empty;
+
+    [Display(Name = "Keywords")]
     public string? Keywords { get; set; } = string.Empty;
 
     [Required(AllowEmptyStrings = false)]
-    [Display(Name = "Standard Out Processing")]
+    [Display(Name = "Standard Out processing")]
     public string StdOutProcessing { get; set; } = string.Empty;
 
     [Required(AllowEmptyStrings = false)]
-    [Display(Name = "Standard Error Processing")]
+    [Display(Name = "Standard Error processing")]
     public string StdErrProcessing { get; set; } = string.Empty;
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
@@ -83,18 +92,32 @@ public class JobViewModel : IValidatableObject
         }
     }
 
-    public static List<SelectListItem> ProcessingOptions
+    public static List<SelectListItem> OutputProcessingOptions
     {
         get
         {
             return new List<SelectListItem>
             {
-                new SelectListItem("None", "None"),
-				new SelectListItem("Mark as warning on any output", "WarningOnAnyOutput"),
-				new SelectListItem("Mark as error on any output", "ErrorOnAnyOutput"),
-				new SelectListItem("Mark as warning when a keyword matches", "WarningOnMatchingKeywords"),
-				new SelectListItem("Mark as error when a keyword matches", "ErrorOnMatchingKeywords"),
+                new SelectListItem("None", nameof(OutputProcessing.None)),
+				new SelectListItem("Mark as warning on any output", nameof(OutputProcessing.WarningOnAnyOutput)),
+				new SelectListItem("Mark as error on any output", nameof(OutputProcessing.ErrorOnAnyOutput)),
+				new SelectListItem("Mark as warning when a keyword matches", nameof(OutputProcessing.WarningOnMatchingKeywords)),
+				new SelectListItem("Mark as error when a keyword matches", nameof(OutputProcessing.ErrorOnMatchingKeywords)),
 			};
+        }
+    }
+
+    public static List<SelectListItem> ParallelSkipProcessingOptions
+    {
+        get
+        {
+            return new List<SelectListItem>
+            {
+                new SelectListItem("Ignore", nameof(ParallelSkipProcessing.Ignore)),
+                new SelectListItem("Mark as indeterminate", nameof(ParallelSkipProcessing.MarkAsIndeterminate)),
+                new SelectListItem("Mark as warning", nameof(ParallelSkipProcessing.MarkAsWarning)),
+                new SelectListItem("Mark as error", nameof(ParallelSkipProcessing.MarkAsError)),
+            };
         }
     }
 }
