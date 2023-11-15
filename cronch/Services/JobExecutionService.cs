@@ -34,14 +34,21 @@ public class JobExecutionService
     public readonly record struct ExecutionIdentifier(Guid JobId, DateTimeOffset StartedOn, string RandomComponent);
 
     private readonly ILogger<JobExecutionService> _logger;
+    private readonly JobPersistenceService _globalJobPersistenceService;
     private readonly IServiceProvider _serviceProvider;
 
     private readonly ConcurrentDictionary<ExecutionIdentifier, Thread> _executions = new();
 
-    public JobExecutionService(ILogger<JobExecutionService> logger, IServiceProvider serviceProvider)
+    public JobExecutionService(ILogger<JobExecutionService> logger, JobPersistenceService jobPersistenceService, IServiceProvider serviceProvider)
     {
         _logger = logger;
+        _globalJobPersistenceService = jobPersistenceService;
         _serviceProvider = serviceProvider;
+    }
+
+    public virtual DateTimeOffset? GetLatestExecutionForJob(Guid jobId)
+    {
+        return _globalJobPersistenceService.GetLatestExecutionForJob(jobId);
     }
 
     public virtual void ExecuteJob(JobModel jobModel, ExecutionReason reason)
@@ -58,8 +65,6 @@ public class JobExecutionService
 
                 _logger.LogInformation("Parallelism limit exceeded for job '{Name}' ({Id}). Skipping execution.", jobModel.Name, jobModel.Id);
 
-                var persistence = _serviceProvider.GetRequiredService<JobPersistenceService>();
-
                 execution.CompletedOn = execution.StartedOn;
                 execution.TerminationReason = TerminationReason.SkippedForParallelism.ToString();
 
@@ -69,18 +74,18 @@ public class JobExecutionService
                     {
                         case JobModel.ParallelSkipProcessing.MarkAsIndeterminate:
                             execution.ExecutionStatus = ExecutionStatus.CompletedAsIndeterminate.ToString();
-                            persistence.SaveExecution(execution);
-                            persistence.SaveLatestExecutionForJob(execution, false);
+                            _globalJobPersistenceService.SaveExecution(execution);
+                            _globalJobPersistenceService.SaveLatestExecutionForJob(execution, false);
                             break;
                         case JobModel.ParallelSkipProcessing.MarkAsWarning:
                             execution.ExecutionStatus = ExecutionStatus.CompletedAsWarning.ToString();
-                            persistence.SaveExecution(execution);
-                            persistence.SaveLatestExecutionForJob(execution, false);
+                            _globalJobPersistenceService.SaveExecution(execution);
+                            _globalJobPersistenceService.SaveLatestExecutionForJob(execution, false);
                             break;
                         case JobModel.ParallelSkipProcessing.MarkAsError:
                             execution.ExecutionStatus = ExecutionStatus.CompletedAsError.ToString();
-                            persistence.SaveExecution(execution);
-                            persistence.SaveLatestExecutionForJob(execution, false);
+                            _globalJobPersistenceService.SaveExecution(execution);
+                            _globalJobPersistenceService.SaveLatestExecutionForJob(execution, false);
                             break;
                     }
                 }

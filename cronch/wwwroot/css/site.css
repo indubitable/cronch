@@ -54,3 +54,7 @@ body {
 .form-inline {
   display: inline-block;
 }
+
+.toast {
+  background-color: rgba(var(--bs-body-bg-rgb), 1);
+}

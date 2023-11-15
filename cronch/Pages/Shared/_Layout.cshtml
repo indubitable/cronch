@@ -15,6 +15,23 @@
     }
 }
 <body>
+    @if (TempData.ContainsKey("Message"))
+    {
+        var messageType = (TempData.ContainsKey("MessageType") ? TempData["MessageType"] : "info");
+
+        <div aria-live="polite" aria-atomic="true" class="bg-body-secondary position-relative rounded-3">
+            <div class="toast-container p-3 top-0 start-50 translate-middle-x">
+                <div class="toast border-@messageType">
+                    <div class="toast-header text-bg-@messageType">
+                        <strong class="me-auto">Message</strong>
+                    </div>
+                    <div class="toast-body">
+                        @TempData["Message"]
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container">

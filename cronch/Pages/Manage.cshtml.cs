@@ -10,16 +10,14 @@ namespace cronch.Pages
         private readonly JobConfigService _jobConfigService;
         private readonly ConfigConverterService _configConverterService;
         private readonly JobExecutionService _jobExecutionService;
-        private readonly JobPersistenceService _jobPersistenceService;
 
         public List<JobViewModel> Jobs { get; set; } = new();
 
-        public ManageModel(JobConfigService jobConfigService, ConfigConverterService configConverterService, JobExecutionService jobExecutionService, JobPersistenceService jobPersistenceService)
+        public ManageModel(JobConfigService jobConfigService, ConfigConverterService configConverterService, JobExecutionService jobExecutionService)
         {
             _jobConfigService = jobConfigService;
             _configConverterService = configConverterService;
             _jobExecutionService = jobExecutionService;
-            _jobPersistenceService = jobPersistenceService;
         }
 
         public void OnGet()
@@ -40,11 +38,13 @@ namespace cronch.Pages
             if (job != null)
             {
                 _jobExecutionService.ExecuteJob(job, JobExecutionService.ExecutionReason.Manual);
-                //TempData["Message"] = "Job started!";
+                TempData["Message"] = "Job started!";
+                TempData["MessageType"] = "success";
             }
             else
             {
-                //TempData["Message"] = "Could not find job to start!";
+                TempData["Message"] = "Could not find job to start!";
+                TempData["MessageType"] = "danger";
             }
             return RedirectToPage("/Manage");
         }
@@ -53,7 +53,7 @@ namespace cronch.Pages
         {
             foreach (var job in Jobs)
             {
-                job.LatestExecution = _jobPersistenceService.GetLatestExecutionForJob(job.Id);
+                job.LatestExecution = _jobExecutionService.GetLatestExecutionForJob(job.Id);
             }
         }
     }
