@@ -56,5 +56,5 @@ body {
 }
 
 .toast {
-  background-color: rgba(var(--bs-body-bg-rgb), 1);
+  background-color: rgba(var(--bs-body-bg-rgb), 0.9);
 }
