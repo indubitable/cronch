@@ -9,8 +9,9 @@
     <br />
     <div class="text-start">
         <div class="btn-group">
-            <a class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                <input class="form-check-input" type="checkbox" readonly="readonly" checked="checked" disabled="disabled" /> Actions
+            <!-- TODO: multiselect actions -->
+            <a class="btn btn-light dropdown-toggle disabled" data-bs-toggle="dropdown" aria-expanded="false">
+                <input class="form-check-input" type="checkbox" readonly="readonly" checked="checked" disabled="disabled" role="none" /> Actions
             </a>
             <ul class="dropdown-menu">
                 <li><a class="dropdown-item" href="#">Enable</a></li>
@@ -24,7 +25,10 @@
     <br />
     <table class="table table-striped text-start align-middle">
         <tr>
-            <th><input class="form-check-input" type="checkbox" /></th>
+            <th>
+                <!-- TODO: multiselect actions -->
+                <input class="form-check-input" type="checkbox" disabled="disabled" />
+            </th>
             <th>Name</th>
             <th>Enabled</th>
             <th class="w-25">Schedule</th>
@@ -34,9 +38,12 @@
         @foreach (var job in Model.Jobs)
         {
             <tr>
-                <td><input data-id="@job.Id" class="form-check-input" type="checkbox" /></td>
+                <td>
+                    <!-- TODO: multiselect actions -->
+                    <input data-id="@job.Id" class="form-check-input" type="checkbox" disabled="disabled" />
+                </td>
                 <td>@job.Name</td>
-                <td><div class="form-check form-switch"><input class="form-check-input" type="checkbox" @(job.Enabled ? "checked=\"checked\"" : "")></div></td>
+                <td><div class="form-check form-switch"><input class="form-check-input" type="checkbox" disabled="disabled" @(job.Enabled ? "checked=\"checked\"" : "")></div></td>
                 <td>
                     <code>@job.CronSchedule</code>
                     <br />

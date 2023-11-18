@@ -5,19 +5,10 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace cronch.Pages;
 
-public class EditModel : PageModel
+public class EditModel(JobConfigService _jobConfigService, ConfigConverterService _configConverterService) : PageModel
 {
-		private readonly JobConfigService _jobConfigService;
-		private readonly ConfigConverterService _configConverterService;
-
     [BindProperty]
     public JobViewModel JobVM { get; set; } = null!;
-
-    public EditModel(JobConfigService jobConfigService, ConfigConverterService configConverterService)
-    {
-        _jobConfigService = jobConfigService;
-		_configConverterService = configConverterService;
-	}
 
     public void OnGet(Guid id)
     {

@@ -3,58 +3,50 @@ using cronch.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace cronch.Pages
+namespace cronch.Pages;
+
+public class ManageModel(JobConfigService _jobConfigService, ConfigConverterService _configConverterService, JobExecutionService _jobExecutionService) : PageModel
 {
-    public class ManageModel : PageModel
+    public List<JobViewModel> Jobs { get; set; } = [];
+
+    public void OnGet()
     {
-        private readonly JobConfigService _jobConfigService;
-        private readonly ConfigConverterService _configConverterService;
-        private readonly JobExecutionService _jobExecutionService;
+        Jobs = _jobConfigService.GetAllJobs()
+            .Select(_configConverterService.ConvertToViewModel)
+            .OrderByDescending(j => j.Enabled).ThenBy(j => j.Name)
+            .ToList();
 
-        public List<JobViewModel> Jobs { get; set; } = new();
+        PostProcessRetrievedJobs();
+    }
 
-        public ManageModel(JobConfigService jobConfigService, ConfigConverterService configConverterService, JobExecutionService jobExecutionService)
+    public IActionResult OnPostDeleteJob(Guid id)
+    {
+        _jobConfigService.DeleteJob(id);
+        return RedirectToPage("/Manage");
+    }
+
+    public IActionResult OnPostRunJob(Guid id)
+    {
+        var job = _jobConfigService.GetJob(id);
+        if (job != null)
         {
-            _jobConfigService = jobConfigService;
-            _configConverterService = configConverterService;
-            _jobExecutionService = jobExecutionService;
+            _jobExecutionService.ExecuteJob(job, Models.ExecutionModel.ExecutionReason.Manual);
+            TempData["Message"] = "Job started!";
+            TempData["MessageType"] = "success";
         }
-
-        public void OnGet()
+        else
         {
-            Jobs = _jobConfigService.GetAllJobs().Select(_configConverterService.ConvertToViewModel).ToList();
-            PostProcessRetrievedJobs();
+            TempData["Message"] = "Could not find job to start!";
+            TempData["MessageType"] = "danger";
         }
+        return RedirectToPage("/Manage");
+    }
 
-        public IActionResult OnPostDeleteJob(Guid id)
+    private void PostProcessRetrievedJobs()
+    {
+        foreach (var job in Jobs)
         {
-            _jobConfigService.DeleteJob(id);
-            return RedirectToPage("/Manage");
-        }
-
-        public IActionResult OnPostRunJob(Guid id)
-        {
-            var job = _jobConfigService.GetJob(id);
-            if (job != null)
-            {
-                _jobExecutionService.ExecuteJob(job, Models.ExecutionModel.ExecutionReason.Manual);
-                TempData["Message"] = "Job started!";
-                TempData["MessageType"] = "success";
-            }
-            else
-            {
-                TempData["Message"] = "Could not find job to start!";
-                TempData["MessageType"] = "danger";
-            }
-            return RedirectToPage("/Manage");
-        }
-
-        private void PostProcessRetrievedJobs()
-        {
-            foreach (var job in Jobs)
-            {
-                job.LatestExecution = _jobExecutionService.GetLatestExecutionForJob(job.Id);
-            }
+            job.LatestExecution = _jobExecutionService.GetLatestExecutionForJob(job.Id);
         }
     }
 }

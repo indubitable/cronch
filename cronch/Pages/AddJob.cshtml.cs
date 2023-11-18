@@ -2,23 +2,13 @@ using cronch.Models.ViewModels;
 using cronch.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace cronch.Pages;
 
-public class AddJobModel : PageModel
+public class AddJobModel(JobConfigService _jobConfigService, ConfigConverterService _configConverterService) : PageModel
 {
-    private readonly JobConfigService _jobConfigService;
-    private readonly ConfigConverterService _configConverterService;
-
     [BindProperty]
     public JobViewModel? JobVM { get; set; }
-
-    public AddJobModel(JobConfigService jobConfigService, ConfigConverterService configConverterService)
-    {
-        _jobConfigService = jobConfigService;
-        _configConverterService = configConverterService;
-    }
 
     public IActionResult OnGet()
     {
