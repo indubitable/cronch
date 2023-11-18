@@ -3,17 +3,8 @@ using cronch.Models.Persistence;
 
 namespace cronch.Services;
 
-public class JobConfigService
+public class JobConfigService(ConfigPersistenceService _configPersistenceService, ConfigConverterService _configConverterService)
 {
-    private readonly ConfigPersistenceService _configPersistenceService;
-    private readonly ConfigConverterService _configConverterService;
-
-    public JobConfigService(ConfigPersistenceService configPersistenceService, ConfigConverterService configConverterService)
-    {
-        _configPersistenceService = configPersistenceService;
-        _configConverterService = configConverterService;
-    }
-
     public void CreateJob(JobModel jobModel, bool assignNewId)
     {
         var config = _configPersistenceService.Load() ?? new ConfigPersistenceModel();

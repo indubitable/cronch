@@ -4,20 +4,11 @@ using System.Diagnostics;
 
 namespace cronch.Services;
 
-public class JobExecutionService
+public class JobExecutionService(ILogger<JobExecutionService> _logger, IServiceProvider _serviceProvider)
 {
     public readonly record struct ExecutionIdentifier(Guid JobId, Guid ExecutionId, DateTimeOffset StartedOn);
 
-    private readonly ILogger<JobExecutionService> _logger;
-    private readonly IServiceProvider _serviceProvider;
-
     private readonly ConcurrentDictionary<ExecutionIdentifier, Thread> _executions = new();
-
-    public JobExecutionService(ILogger<JobExecutionService> logger, IServiceProvider serviceProvider)
-    {
-        _logger = logger;
-        _serviceProvider = serviceProvider;
-    }
 
     public virtual DateTimeOffset? GetLatestExecutionForJob(Guid jobId)
     {

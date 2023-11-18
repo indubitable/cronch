@@ -2,19 +2,8 @@
 
 namespace cronch.Services;
 
-public class ExecutionPersistenceService
+public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _logger, IConfiguration _configuration, CronchDbContext _dbContext)
 {
-    private readonly ILogger<ExecutionPersistenceService> _logger;
-    private readonly IConfiguration _configuration;
-    private readonly CronchDbContext _dbContext;
-
-    public ExecutionPersistenceService(ILogger<ExecutionPersistenceService> logger, IConfiguration configuration, CronchDbContext dbContext)
-    {
-        _logger = logger;
-        _configuration = configuration;
-        _dbContext = dbContext;
-    }
-
     public virtual DateTimeOffset? GetLatestExecutionForJob(Guid jobId)
     {
         return _dbContext.Executions

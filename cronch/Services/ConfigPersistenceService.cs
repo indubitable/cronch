@@ -3,18 +3,10 @@ using System.Xml.Serialization;
 
 namespace cronch.Services;
 
-public class ConfigPersistenceService
+public class ConfigPersistenceService(ILogger<ConfigPersistenceService> _logger, IConfiguration _configuration)
 {
-    private readonly ILogger<ConfigPersistenceService> _logger;
-    private readonly IConfiguration _configuration;
     private readonly XmlSerializer _serializer = new(typeof(ConfigPersistenceModel));
     private const string CONFIG_FILE = "config.xml";
-
-    public ConfigPersistenceService(ILogger<ConfigPersistenceService> logger, IConfiguration configuration)
-    {
-        _logger = logger;
-        _configuration = configuration;
-    }
 
     public ConfigPersistenceModel? Load()
     {
