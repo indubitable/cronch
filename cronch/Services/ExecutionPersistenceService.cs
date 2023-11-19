@@ -4,6 +4,8 @@ namespace cronch.Services;
 
 public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _logger, IConfiguration _configuration, CronchDbContext _dbContext)
 {
+    public readonly record struct ExecutionStatistics(int Successes, int Errors, int Warnings);
+
     public virtual DateTimeOffset? GetLatestExecutionForJob(Guid jobId)
     {
         return _dbContext.Executions
@@ -11,6 +13,21 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
             .OrderByDescending(e => e.StartedOn)
             .Select(e => (DateTimeOffset?)e.StartedOn)
             .FirstOrDefault();
+    }
+
+    public virtual ExecutionStatistics GetExecutionStatistics(DateTimeOffset from,  DateTimeOffset to)
+    {
+        var statuses = _dbContext.Executions
+            .Where(e => e.StartedOn > from && e.StartedOn <= to)
+            .Select(e => e.Status)
+            .ToList();
+
+        return new ExecutionStatistics
+        {
+            Successes = statuses.Count(s => s == ExecutionModel.ExecutionStatus.CompletedAsSuccess),
+            Errors = statuses.Count(s => s == ExecutionModel.ExecutionStatus.CompletedAsError),
+            Warnings = statuses.Count(s => s == ExecutionModel.ExecutionStatus.CompletedAsWarning),
+        };
     }
 
     public virtual void AddExecution(ExecutionModel execution)

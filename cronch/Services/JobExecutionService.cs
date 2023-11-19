@@ -17,6 +17,18 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, IServiceP
         return executionPersistenceService.GetLatestExecutionForJob(jobId);
     }
 
+    public virtual ExecutionPersistenceService.ExecutionStatistics GetExecutionStatistics(DateTimeOffset from, DateTimeOffset to)
+    {
+        using var scope = _serviceProvider.CreateScope();
+        var executionPersistenceService = scope.ServiceProvider.GetRequiredService<ExecutionPersistenceService>();
+        return executionPersistenceService.GetExecutionStatistics(from, to);
+    }
+
+    public virtual List<ExecutionIdentifier> GetCurrentExecutions()
+    {
+        return _executions.Keys.ToList();
+    }
+
     public virtual void ExecuteJob(JobModel jobModel, ExecutionModel.ExecutionReason reason)
     {
         var execution = ExecutionModel.CreateNew(jobModel.Id, reason, ExecutionModel.ExecutionStatus.Unknown);

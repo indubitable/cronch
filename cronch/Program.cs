@@ -44,6 +44,9 @@ using (var scope = app.Services.CreateScope())
 
     var schedulingService = services.GetRequiredService<JobSchedulingService>();
     schedulingService.StartSchedulingRuns();
+
+    var configService = services.GetRequiredService<JobConfigService>();
+    schedulingService.RefreshSchedules(configService.GetAllJobs());
 }
 
 app.UseStaticFiles();

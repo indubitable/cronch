@@ -3,7 +3,7 @@ using Cronos;
 
 namespace cronch.Services;
 
-public class JobSchedulingService(ILogger<JobSchedulingService> _logger, JobConfigService _jobConfigService, JobExecutionService _jobExecutionService)
+public class JobSchedulingService(ILogger<JobSchedulingService> _logger, JobExecutionService _jobExecutionService)
 {
     private record struct ScheduledRun(DateTimeOffset When, Guid JobId);
     private class EarliestScheduledRun : IComparer<ScheduledRun>
@@ -20,6 +20,7 @@ public class JobSchedulingService(ILogger<JobSchedulingService> _logger, JobConf
 
     private bool _stopRequested;
     private bool _refreshRequested;
+    private List<JobModel> _enabledJobsForRefresh = [];
 
     public virtual void StartSchedulingRuns()
     {
@@ -53,11 +54,12 @@ public class JobSchedulingService(ILogger<JobSchedulingService> _logger, JobConf
         }
     }
 
-    public virtual void RefreshSchedules()
+    public virtual void RefreshSchedules(IEnumerable<JobModel> allJobs)
     {
         lock (_syncLock)
         {
             _refreshRequested = true;
+            _enabledJobsForRefresh = new List<JobModel>(allJobs.Where(j => j.Enabled));
         }
     }
 
@@ -81,7 +83,7 @@ public class JobSchedulingService(ILogger<JobSchedulingService> _logger, JobConf
                 {
                     _refreshRequested = false;
                     lastScheduled = DateTimeOffset.MinValue;
-                    var enabledJobs = _jobConfigService.GetAllJobs().Where(j => j.Enabled).ToList();
+                    var enabledJobs = _enabledJobsForRefresh;
 
                     // Delete any scheduled runs for jobs that have been disabled
                     var newlyDisabledJobs = cachedEnabledJobs.Where(oldJob => !enabledJobs.Any(newJob => newJob.Id == oldJob.Id));

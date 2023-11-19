@@ -18,31 +18,34 @@
             <div class="col border border-bottom-0">
                 <h2><u>Running Jobs</u></h2>
                 <table class="table table-striped text-start">
-                    <tr>
-                        <td>METAR <span class="badge rounded-pill text-bg-dark float-end">00:01</span></td>
-                    </tr>
-                    <tr>
-                        <td>HRRR <span class="badge rounded-pill text-bg-dark float-end">07:23</span></td>
-                    </tr>
-                    <tr>
-                        <td>GFS <span class="badge rounded-pill text-bg-dark float-end">01:12:37</span></td>
-                    </tr>
+                    @foreach (var run in Model.RunningJobs)
+                    {
+                        var durationFormat = "d\\ \\d\\ hh\\:mm\\:ss";
+                        if (run.Duration.TotalMinutes < 1) durationFormat = "s\\ \\s";
+                        else if (run.Duration.TotalHours < 1) durationFormat = "mm\\:ss";
+                        else if (run.Duration.TotalDays < 1) durationFormat = "hh\\:mm\\:ss";
+
+                        <tr>
+                            <td>@run.Name <span class="badge rounded-pill text-bg-dark float-end">@run.Duration.ToString(durationFormat)</span></td>
+                        </tr>
+                    }
                 </table>
             </div>
             <div class="col border border-bottom-0">
-                <h2><u>Failed Jobs</u></h2>
+                <h2><u>Statistics</u></h2>
+                <p>Over the last week</p>
                 <table class="table table-striped">
                     <tr>
-                        <td class="text-start">Last day</td>
-                        <td class="text-end">0</td>
+                        <td class="text-start">Successes</td>
+                        <td class="text-end"><span class="badge text-bg-success">@Model.LastWeekSuccesses</span></td>
                     </tr>
                     <tr>
-                        <td class="text-start">Last week</td>
-                        <td class="text-end">0</td>
+                        <td class="text-start">Errors</td>
+                        <td class="text-end"><span class="badge text-bg-danger">@Model.LastWeekErrors</span></td>
                     </tr>
                     <tr>
-                        <td class="text-start">Last month</td>
-                        <td class="text-end">123</td>
+                        <td class="text-start">Warnings</td>
+                        <td class="text-end"><span class="badge text-bg-warning">@Model.LastWeekWarnings</span></td>
                     </tr>
                 </table>
             </div>
@@ -52,7 +55,7 @@
                 <p><a asp-page="Manage" class="btn btn-outline-dark">Manage Jobs</a></p>
             </div>
             <div class="col border border-top-0">
-                <p><a asp-page="Manage" class="btn btn-outline-dark">See All 5</a></p>
+                <p><a asp-page="History" class="btn btn-outline-dark">View All</a></p>
             </div>
             <div class="col border border-top-0">
                 <p><a asp-page="History" class="btn btn-outline-dark">View Details</a></p>

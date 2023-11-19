@@ -3,7 +3,7 @@ using cronch.Models.Persistence;
 
 namespace cronch.Services;
 
-public class JobConfigService(ConfigPersistenceService _configPersistenceService, ConfigConverterService _configConverterService)
+public class JobConfigService(ConfigPersistenceService _configPersistenceService, ConfigConverterService _configConverterService, JobSchedulingService _jobSchedulingService)
 {
     public void CreateJob(JobModel jobModel, bool assignNewId)
     {
@@ -22,6 +22,8 @@ public class JobConfigService(ConfigPersistenceService _configPersistenceService
         var newPersistenceJob = _configConverterService.ConvertToPersistence(jobModel);
         persistenceJobs.Add(newPersistenceJob);
         _configPersistenceService.Save(config);
+
+        _jobSchedulingService.RefreshSchedules(GetAllJobs());
     }
 
     public void UpdateJob(JobModel jobModel)
@@ -33,6 +35,8 @@ public class JobConfigService(ConfigPersistenceService _configPersistenceService
         persistenceJobs.Remove(oldPersistenceJob);
         persistenceJobs.Add(_configConverterService.ConvertToPersistence(jobModel));
         _configPersistenceService.Save(config);
+
+        _jobSchedulingService.RefreshSchedules(GetAllJobs());
     }
 
     public void DeleteJob(Guid id)
@@ -43,6 +47,8 @@ public class JobConfigService(ConfigPersistenceService _configPersistenceService
         var oldPersistenceJob = persistenceJobs.SingleOrDefault(j => j.Id == id) ?? throw new InvalidOperationException("Cannot delete nonexistent job");
         persistenceJobs.Remove(oldPersistenceJob);
         _configPersistenceService.Save(config);
+
+        _jobSchedulingService.RefreshSchedules(GetAllJobs());
     }
 
     public List<JobModel> GetAllJobs()
