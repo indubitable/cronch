@@ -30,8 +30,20 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, IServiceP
         using var scope = _serviceProvider.CreateScope();
         var executionPersistenceService = scope.ServiceProvider.GetRequiredService<ExecutionPersistenceService>();
 
-        // TODO...
-        throw new NotImplementedException();
+        var currentExecutions = _executions.Keys.ToList();
+        ExecutionStatus fixOutdatedRunningStatus(Guid execId, ExecutionStatus es) => (es == ExecutionStatus.Running && !currentExecutions.Any(ce => ce.ExecutionId == execId)) ? ExecutionStatus.Unknown : es;
+
+        return executionPersistenceService.GetRecentExecutions(maxCount)
+            .Select(em => new ExecutionViewModel
+            {
+                JobId = em.JobId,
+                ExecutionId = em.Id,
+                JobName = em.JobName,
+                StartedOn = em.StartedOn,
+                CompletedOn = em.CompletedOn,
+                Status = fixOutdatedRunningStatus(em.Id, em.Status),
+            })
+            .ToList();
     }
 
     public virtual List<ExecutionIdentifier> GetCurrentExecutions()

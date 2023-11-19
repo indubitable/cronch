@@ -20,7 +20,8 @@ public class JobSchedulingService(ILogger<JobSchedulingService> _logger, JobExec
 
     private bool _stopRequested;
     private bool _refreshRequested;
-    private List<JobModel> _enabledJobsForRefresh = [];
+    private List<JobModel> _rawEnabledJobs = [];
+    private IEnumerable<JobModel> _cachedEnabledJobs = [];
 
     public virtual void StartSchedulingRuns()
     {
@@ -59,8 +60,23 @@ public class JobSchedulingService(ILogger<JobSchedulingService> _logger, JobExec
         lock (_syncLock)
         {
             _refreshRequested = true;
-            _enabledJobsForRefresh = new List<JobModel>(allJobs.Where(j => j.Enabled));
+            _rawEnabledJobs = new List<JobModel>(allJobs.Where(j => j.Enabled));
         }
+    }
+
+    public virtual DateTimeOffset? GetNextExecution(Guid jobId)
+    {
+        string? cron;
+        lock (_syncLock)
+        {
+            // Use the raw enabled jobs because we don't need to wait for processing in this (informational) case
+            cron = _rawEnabledJobs.FirstOrDefault(j => j.Id == jobId)?.CronSchedule;
+        }
+        if (!string.IsNullOrWhiteSpace(cron))
+        {
+            return CronExpression.Parse(cron, CronFormat.IncludeSeconds).GetNextOccurrence(DateTimeOffset.Now, TimeZoneInfo.Local);
+        }
+        return null;
     }
 
     private void RunScheduling()
@@ -68,7 +84,6 @@ public class JobSchedulingService(ILogger<JobSchedulingService> _logger, JobExec
         const int scheduleFutureSeconds = 10;
         const int addToScheduleAfterSeconds = 5;
 
-        IEnumerable<JobModel> cachedEnabledJobs = [];
         var scheduleQueue = new SortedSet<ScheduledRun>(new EarliestScheduledRun());
         var lastScheduled = DateTimeOffset.MinValue;
 
@@ -83,25 +98,24 @@ public class JobSchedulingService(ILogger<JobSchedulingService> _logger, JobExec
                 {
                     _refreshRequested = false;
                     lastScheduled = DateTimeOffset.MinValue;
-                    var enabledJobs = _enabledJobsForRefresh;
 
                     // Delete any scheduled runs for jobs that have been disabled
-                    var newlyDisabledJobs = cachedEnabledJobs.Where(oldJob => !enabledJobs.Any(newJob => newJob.Id == oldJob.Id));
+                    var newlyDisabledJobs = _cachedEnabledJobs.Where(oldJob => !_rawEnabledJobs.Any(newJob => newJob.Id == oldJob.Id));
                     newlyDisabledJobs.ToList().ForEach(disabledJob => scheduleQueue.RemoveWhere(q => q.JobId == disabledJob.Id));
 
                     // Delete any scheduled runs for jobs that have new schedules
-                    var rescheduledJobs = cachedEnabledJobs.Where(oldJob => !enabledJobs.FirstOrDefault(newJob => newJob.Id == oldJob.Id)?.CronSchedule.Equals(oldJob.CronSchedule, StringComparison.InvariantCulture) ?? false);
+                    var rescheduledJobs = _cachedEnabledJobs.Where(oldJob => !_rawEnabledJobs.FirstOrDefault(newJob => newJob.Id == oldJob.Id)?.CronSchedule.Equals(oldJob.CronSchedule, StringComparison.InvariantCulture) ?? false);
                     rescheduledJobs.ToList().ForEach(rescheduledJob => scheduleQueue.RemoveWhere(q => q.JobId == rescheduledJob.Id));
 
                     // Update the cache
-                    cachedEnabledJobs = enabledJobs;
+                    _cachedEnabledJobs = new List<JobModel>(_rawEnabledJobs);
                 }
             }
 
             if (DateTimeOffset.UtcNow > lastScheduled.AddSeconds(addToScheduleAfterSeconds))
             {
                 // Add schedules for all enabled jobs... duplicates are ignored by the SortedSet<T>
-                foreach (var job in cachedEnabledJobs)
+                foreach (var job in _cachedEnabledJobs)
                 {
                     try
                     {
@@ -129,7 +143,7 @@ public class JobSchedulingService(ILogger<JobSchedulingService> _logger, JobExec
                     _logger.LogWarning("Skipping apparent duplicate scheduled execution for job {Id}", exec.JobId);
                     continue;
                 }
-                var job = cachedEnabledJobs.FirstOrDefault(j => j.Id == exec.JobId);
+                var job = _cachedEnabledJobs.FirstOrDefault(j => j.Id == exec.JobId);
                 if (job != null)
                 {
                     _jobExecutionService.ExecuteJob(job, ExecutionReason.Scheduled);

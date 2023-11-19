@@ -30,6 +30,14 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
         };
     }
 
+    public virtual List<ExecutionModel> GetRecentExecutions(int maxCount)
+    {
+        return _dbContext.Executions
+            .OrderByDescending(e => e.StartedOn)
+            .Take(maxCount)
+            .ToList();
+    }
+
     public virtual void AddExecution(ExecutionModel execution)
     {
         try

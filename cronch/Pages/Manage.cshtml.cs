@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace cronch.Pages;
 
-public class ManageModel(JobConfigService _jobConfigService, ConfigConverterService _configConverterService, JobExecutionService _jobExecutionService) : PageModel
+public class ManageModel(JobConfigService _jobConfigService, ConfigConverterService _configConverterService, JobExecutionService _jobExecutionService, JobSchedulingService _jobSchedulingService) : PageModel
 {
     public List<JobViewModel> Jobs { get; set; } = [];
 
@@ -47,6 +47,7 @@ public class ManageModel(JobConfigService _jobConfigService, ConfigConverterServ
         foreach (var job in Jobs)
         {
             job.LatestExecution = _jobExecutionService.GetLatestExecutionForJob(job.Id);
+            job.NextExecution = (job.Enabled ? _jobSchedulingService.GetNextExecution(job.Id) : null);
         }
     }
 }

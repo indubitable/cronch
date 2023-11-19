@@ -30,14 +30,9 @@
                 <table class="table table-striped">
                     @foreach (var run in Model.RunningJobs)
                     {
-                        var durationFormat = "d\\ \\d\\ hh\\:mm\\:ss";
-                        if (run.Duration.TotalMinutes < 1) durationFormat = "s\\ \\s";
-                        else if (run.Duration.TotalHours < 1) durationFormat = "mm\\:ss";
-                        else if (run.Duration.TotalDays < 1) durationFormat = "hh\\:mm\\:ss";
-
                         <tr>
                             <td class="text-start">@run.JobName</td>
-                            <td class="text-end"><span class="badge rounded-pill text-bg-dark">@run.Duration.ToString(durationFormat)</span></td>
+                            <td class="text-end"><span class="badge rounded-pill text-bg-dark">@run.FormattedDuration</span></td>
                         </tr>
                     }
                 </table>
