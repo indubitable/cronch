@@ -41,6 +41,9 @@ using (var scope = app.Services.CreateScope())
     var dbContext = services.GetRequiredService<CronchDbContext>();
     dbContext.Database.Migrate();
     dbContext.Database.ExecuteSqlRaw("PRAGMA journal_mode=DELETE;");
+
+    var schedulingService = services.GetRequiredService<JobSchedulingService>();
+    schedulingService.StartSchedulingRuns();
 }
 
 app.UseStaticFiles();
