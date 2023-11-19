@@ -63,8 +63,12 @@ public class JobSchedulingService(ILogger<JobSchedulingService> _logger, JobConf
 
     private void RunScheduling()
     {
+        const int scheduleFutureSeconds = 10;
+        const int addToScheduleAfterSeconds = 5;
+
         IEnumerable<JobModel> cachedEnabledJobs = [];
         var scheduleQueue = new SortedSet<ScheduledRun>(new EarliestScheduledRun());
+        var lastScheduled = DateTimeOffset.MinValue;
 
         while (true)
         {
@@ -76,6 +80,7 @@ public class JobSchedulingService(ILogger<JobSchedulingService> _logger, JobConf
                 if (_refreshRequested)
                 {
                     _refreshRequested = false;
+                    lastScheduled = DateTimeOffset.MinValue;
                     var enabledJobs = _jobConfigService.GetAllJobs().Where(j => j.Enabled).ToList();
 
                     // Delete any scheduled runs for jobs that have been disabled
@@ -86,30 +91,42 @@ public class JobSchedulingService(ILogger<JobSchedulingService> _logger, JobConf
                     var rescheduledJobs = cachedEnabledJobs.Where(oldJob => !enabledJobs.FirstOrDefault(newJob => newJob.Id == oldJob.Id)?.CronSchedule.Equals(oldJob.CronSchedule, StringComparison.InvariantCulture) ?? false);
                     rescheduledJobs.ToList().ForEach(rescheduledJob => scheduleQueue.RemoveWhere(q => q.JobId == rescheduledJob.Id));
 
-                    // Add schedules for all enabled jobs... duplicates are ignored by the SortedSet<T>
-                    foreach (var job in enabledJobs)
-                    {
-                        try
-                        {
-                            var cron = CronExpression.Parse(job.CronSchedule, CronFormat.IncludeSeconds);
-                            cron.GetOccurrences(DateTimeOffset.Now, DateTimeOffset.Now.AddSeconds(10), TimeZoneInfo.Local)
-                                .ToList()
-                                .ForEach(occurrence => scheduleQueue.Add(new ScheduledRun(occurrence, job.Id)));
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "Unable to schedule job '{Name}' ({Id})", job.Name, job.Id);
-                        }
-                    }
-
                     // Update the cache
                     cachedEnabledJobs = enabledJobs;
                 }
             }
 
+            if (DateTimeOffset.UtcNow > lastScheduled.AddSeconds(addToScheduleAfterSeconds))
+            {
+                // Add schedules for all enabled jobs... duplicates are ignored by the SortedSet<T>
+                foreach (var job in cachedEnabledJobs)
+                {
+                    try
+                    {
+                        var cron = CronExpression.Parse(job.CronSchedule, CronFormat.IncludeSeconds);
+                        cron.GetOccurrences(DateTimeOffset.Now, DateTimeOffset.Now.AddSeconds(scheduleFutureSeconds), TimeZoneInfo.Local)
+                            .ToList()
+                            .ForEach(occurrence => scheduleQueue.Add(new ScheduledRun(occurrence, job.Id)));
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Unable to schedule job '{Name}' ({Id})", job.Name, job.Id);
+                    }
+                }
+
+                lastScheduled = DateTimeOffset.UtcNow;
+            }
+
+            List<Guid> executedJobs = [];
             while (scheduleQueue.Count > 0 && scheduleQueue.First().When <= DateTimeOffset.Now)
             {
                 var exec = scheduleQueue.First();
+                if (executedJobs.Contains(exec.JobId))
+                {
+                    // This really shouldn't happen except when debugging or possibly under unreasonable load
+                    _logger.LogWarning("Skipping apparent duplicate scheduled execution for job {Id}", exec.JobId);
+                    continue;
+                }
                 var job = cachedEnabledJobs.FirstOrDefault(j => j.Id == exec.JobId);
                 if (job != null)
                 {
