@@ -11,7 +11,7 @@ using cronch;
 namespace cronch.Migrations
 {
     [DbContext(typeof(CronchDbContext))]
-    [Migration("20231117043524_Initial")]
+    [Migration("20231119195945_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -33,6 +33,10 @@ namespace cronch.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<Guid>("JobId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("JobName")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("StartReason")

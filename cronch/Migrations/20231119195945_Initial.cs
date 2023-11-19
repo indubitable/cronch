@@ -17,6 +17,7 @@ namespace cronch.Migrations
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     JobId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    JobName = table.Column<string>(type: "TEXT", nullable: false),
                     StartedOn = table.Column<DateTime>(type: "TEXT", nullable: false),
                     StartReason = table.Column<string>(type: "TEXT", nullable: false),
                     Status = table.Column<string>(type: "TEXT", nullable: false),

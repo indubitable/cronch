@@ -9,6 +9,8 @@ public class ExecutionModel
 
     public Guid JobId { get; set; }
 
+    public string JobName { get; set; } = string.Empty;
+
     public DateTimeOffset StartedOn { get; set; }
 
     public ExecutionReason StartReason { get; set; } = ExecutionReason.Scheduled;
@@ -21,12 +23,13 @@ public class ExecutionModel
 
     public TerminationReason? StopReason { get; set; }
 
-    public static ExecutionModel CreateNew(Guid jobId, ExecutionReason startReason, ExecutionStatus status)
+    public static ExecutionModel CreateNew(Guid jobId, string jobName, ExecutionReason startReason, ExecutionStatus status)
     {
         return new ExecutionModel
         {
             Id = Guid.NewGuid(),
             JobId = jobId,
+            JobName = jobName,
             StartedOn = DateTimeOffset.UtcNow,
             StartReason = startReason,
             Status = status,

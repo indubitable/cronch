@@ -1,4 +1,5 @@
 ﻿using cronch.Models;
+using cronch.Models.ViewModels;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 
@@ -24,6 +25,15 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, IServiceP
         return executionPersistenceService.GetExecutionStatistics(from, to);
     }
 
+    public virtual List<ExecutionViewModel> GetRecentExecutions(int maxCount)
+    {
+        using var scope = _serviceProvider.CreateScope();
+        var executionPersistenceService = scope.ServiceProvider.GetRequiredService<ExecutionPersistenceService>();
+
+        // TODO...
+        throw new NotImplementedException();
+    }
+
     public virtual List<ExecutionIdentifier> GetCurrentExecutions()
     {
         return _executions.Keys.ToList();
@@ -31,7 +41,7 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, IServiceP
 
     public virtual void ExecuteJob(JobModel jobModel, ExecutionReason reason)
     {
-        var execution = ExecutionModel.CreateNew(jobModel.Id, reason, ExecutionStatus.Unknown);
+        var execution = ExecutionModel.CreateNew(jobModel.Id, jobModel.Name, reason, ExecutionStatus.Unknown);
 
         // Check for parallelism limits
         if (jobModel.Parallelism.HasValue)

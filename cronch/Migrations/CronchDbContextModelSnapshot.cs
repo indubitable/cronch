@@ -32,6 +32,10 @@ namespace cronch.Migrations
                     b.Property<Guid>("JobId")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("JobName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("StartReason")
                         .IsRequired()
                         .HasColumnType("TEXT");
