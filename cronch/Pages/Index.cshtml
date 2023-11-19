@@ -12,12 +12,22 @@
         <div class="row">
             <div class="col border border-bottom-0">
                 <h2><u>All Jobs</u></h2>
-                <p class="fs-4">@Model.EnabledJobCount enabled</p>
-                <p class="fs-4">@Model.TotalJobCount total</p>
+                <p>&nbsp;</p>
+                <table class="table table-striped">
+                    <tr>
+                        <td class="text-start">Enabled</td>
+                        <td class="text-end"><span class="badge rounded-pill text-bg-secondary">@Model.EnabledJobCount</span></td>
+                    </tr>
+                    <tr>
+                        <td class="text-start">Total</td>
+                        <td class="text-end"><span class="badge rounded-pill text-bg-secondary">@Model.TotalJobCount</span></td>
+                    </tr>
+                </table>
             </div>
             <div class="col border border-bottom-0">
                 <h2><u>Running Jobs</u></h2>
-                <table class="table table-striped text-start">
+                <p>&nbsp;</p>
+                <table class="table table-striped">
                     @foreach (var run in Model.RunningJobs)
                     {
                         var durationFormat = "d\\ \\d\\ hh\\:mm\\:ss";
@@ -26,7 +36,8 @@
                         else if (run.Duration.TotalDays < 1) durationFormat = "hh\\:mm\\:ss";
 
                         <tr>
-                            <td>@run.Name <span class="badge rounded-pill text-bg-dark float-end">@run.Duration.ToString(durationFormat)</span></td>
+                            <td class="text-start">@run.JobName</td>
+                            <td class="text-end"><span class="badge rounded-pill text-bg-dark">@run.Duration.ToString(durationFormat)</span></td>
                         </tr>
                     }
                 </table>
@@ -37,15 +48,15 @@
                 <table class="table table-striped">
                     <tr>
                         <td class="text-start">Successes</td>
-                        <td class="text-end"><span class="badge text-bg-success">@Model.LastWeekSuccesses</span></td>
+                        <td class="text-end"><span class="badge rounded-pill text-bg-success">@Model.LastWeekSuccesses</span></td>
                     </tr>
                     <tr>
                         <td class="text-start">Errors</td>
-                        <td class="text-end"><span class="badge text-bg-danger">@Model.LastWeekErrors</span></td>
+                        <td class="text-end"><span class="badge rounded-pill text-bg-danger">@Model.LastWeekErrors</span></td>
                     </tr>
                     <tr>
                         <td class="text-start">Warnings</td>
-                        <td class="text-end"><span class="badge text-bg-warning">@Model.LastWeekWarnings</span></td>
+                        <td class="text-end"><span class="badge rounded-pill text-bg-warning">@Model.LastWeekWarnings</span></td>
                     </tr>
                 </table>
             </div>
@@ -63,6 +74,6 @@
         </div>
     </div>
     <br />
-    <h2>Recent jobs</h2>
-    <partial name="_JobListPartial" />
+    <h2>Recent job executions</h2>
+    <partial name="_ExecutionListPartial" model="Model.RecentExecutions" />
 </div>

@@ -24,9 +24,9 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
 
         return new ExecutionStatistics
         {
-            Successes = statuses.Count(s => s == ExecutionModel.ExecutionStatus.CompletedAsSuccess),
-            Errors = statuses.Count(s => s == ExecutionModel.ExecutionStatus.CompletedAsError),
-            Warnings = statuses.Count(s => s == ExecutionModel.ExecutionStatus.CompletedAsWarning),
+            Successes = statuses.Count(s => s == ExecutionStatus.CompletedAsSuccess),
+            Errors = statuses.Count(s => s == ExecutionStatus.CompletedAsError),
+            Warnings = statuses.Count(s => s == ExecutionStatus.CompletedAsWarning),
         };
     }
 

@@ -29,9 +29,9 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, IServiceP
         return _executions.Keys.ToList();
     }
 
-    public virtual void ExecuteJob(JobModel jobModel, ExecutionModel.ExecutionReason reason)
+    public virtual void ExecuteJob(JobModel jobModel, ExecutionReason reason)
     {
-        var execution = ExecutionModel.CreateNew(jobModel.Id, reason, ExecutionModel.ExecutionStatus.Unknown);
+        var execution = ExecutionModel.CreateNew(jobModel.Id, reason, ExecutionStatus.Unknown);
 
         // Check for parallelism limits
         if (jobModel.Parallelism.HasValue)
@@ -44,7 +44,7 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, IServiceP
                 _logger.LogInformation("Parallelism limit exceeded for job '{Name}' ({Id}). Skipping execution.", jobModel.Name, jobModel.Id);
 
                 execution.CompletedOn = execution.StartedOn;
-                execution.StopReason = ExecutionModel.TerminationReason.SkippedForParallelism;
+                execution.StopReason = TerminationReason.SkippedForParallelism;
 
                 using var scope = _serviceProvider.CreateScope();
                 var executionPersistenceService = scope.ServiceProvider.GetRequiredService<ExecutionPersistenceService>();
@@ -54,15 +54,15 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, IServiceP
                     switch (jobModel.MarkParallelSkipAs)
                     {
                         case JobModel.ParallelSkipProcessing.MarkAsIndeterminate:
-                            execution.Status = ExecutionModel.ExecutionStatus.CompletedAsIndeterminate;
+                            execution.Status = ExecutionStatus.CompletedAsIndeterminate;
                             executionPersistenceService.AddExecution(execution);
                             break;
                         case JobModel.ParallelSkipProcessing.MarkAsWarning:
-                            execution.Status = ExecutionModel.ExecutionStatus.CompletedAsWarning;
+                            execution.Status = ExecutionStatus.CompletedAsWarning;
                             executionPersistenceService.AddExecution(execution);
                             break;
                         case JobModel.ParallelSkipProcessing.MarkAsError:
-                            execution.Status = ExecutionModel.ExecutionStatus.CompletedAsError;
+                            execution.Status = ExecutionStatus.CompletedAsError;
                             executionPersistenceService.AddExecution(execution);
                             break;
                     }
@@ -103,11 +103,11 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, IServiceP
             scriptFile = Path.Combine(tempDir, jobModel.ScriptFilePathname.Trim());
         }
 
-        var intermediateExecutionStatus = ExecutionModel.ExecutionStatus.CompletedAsSuccess;
+        var intermediateExecutionStatus = ExecutionStatus.CompletedAsSuccess;
 
         try
         {
-            execution.Status = ExecutionModel.ExecutionStatus.Running;
+            execution.Status = ExecutionStatus.Running;
             persistence.AddExecution(execution);
             persistence.GetExecutionPathName(execution, "", true);
 
@@ -168,12 +168,12 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, IServiceP
             {
                 if (process.WaitForExit(TimeSpan.FromSeconds(jobModel.TimeLimitSecs.Value)))
                 {
-                    execution.StopReason = ExecutionModel.TerminationReason.Exited;
+                    execution.StopReason = TerminationReason.Exited;
                 }
                 else
                 {
-                    execution.StopReason = ExecutionModel.TerminationReason.TimedOut;
-                    execution.Status = ExecutionModel.ExecutionStatus.CompletedAsError;
+                    execution.StopReason = TerminationReason.TimedOut;
+                    execution.Status = ExecutionStatus.CompletedAsError;
                     persistence.UpdateExecution(execution);
                     process.Kill(true);
                     if (!process.WaitForExit(800))
@@ -186,18 +186,18 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, IServiceP
             else
             {
                 process.WaitForExit();
-                execution.StopReason = ExecutionModel.TerminationReason.Exited;
+                execution.StopReason = TerminationReason.Exited;
             }
 
             execution.CompletedOn = DateTimeOffset.UtcNow;
             execution.ExitCode = process.ExitCode;
 
-            if (execution.Status == ExecutionModel.ExecutionStatus.Running)
+            if (execution.Status == ExecutionStatus.Running)
             {
                 if (execution.ExitCode != 0)
                 {
                     // Always mark as error when the exit code is non-zero
-                    execution.Status = ExecutionModel.ExecutionStatus.CompletedAsError;
+                    execution.Status = ExecutionStatus.CompletedAsError;
                 }
                 else
                 {
@@ -226,7 +226,7 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, IServiceP
         }
     }
 
-    private static void ProcessLineForStatusUpdate(string line, List<string> keywords, JobModel.OutputProcessing processingDirective, ref ExecutionModel.ExecutionStatus intermediateExecutionStatus)
+    private static void ProcessLineForStatusUpdate(string line, List<string> keywords, JobModel.OutputProcessing processingDirective, ref ExecutionStatus intermediateExecutionStatus)
     {
         var keywordMatchExists = false;
         if (processingDirective == JobModel.OutputProcessing.WarningOnMatchingKeywords || processingDirective == JobModel.OutputProcessing.ErrorOnMatchingKeywords)
@@ -244,24 +244,24 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, IServiceP
         switch (processingDirective)
         {
             case JobModel.OutputProcessing.WarningOnAnyOutput:
-                if (intermediateExecutionStatus != ExecutionModel.ExecutionStatus.CompletedAsError)
+                if (intermediateExecutionStatus != ExecutionStatus.CompletedAsError)
                 {
-                    intermediateExecutionStatus = ExecutionModel.ExecutionStatus.CompletedAsWarning;
+                    intermediateExecutionStatus = ExecutionStatus.CompletedAsWarning;
                 }
                 break;
             case JobModel.OutputProcessing.ErrorOnAnyOutput:
-                intermediateExecutionStatus = ExecutionModel.ExecutionStatus.CompletedAsError;
+                intermediateExecutionStatus = ExecutionStatus.CompletedAsError;
                 break;
             case JobModel.OutputProcessing.WarningOnMatchingKeywords:
-                if (intermediateExecutionStatus != ExecutionModel.ExecutionStatus.CompletedAsError && keywordMatchExists)
+                if (intermediateExecutionStatus != ExecutionStatus.CompletedAsError && keywordMatchExists)
                 {
-                    intermediateExecutionStatus = ExecutionModel.ExecutionStatus.CompletedAsWarning;
+                    intermediateExecutionStatus = ExecutionStatus.CompletedAsWarning;
                 }
                 break;
             case JobModel.OutputProcessing.ErrorOnMatchingKeywords:
                 if (keywordMatchExists)
                 {
-                    intermediateExecutionStatus = ExecutionModel.ExecutionStatus.CompletedAsError;
+                    intermediateExecutionStatus = ExecutionStatus.CompletedAsError;
                 }
                 break;
         }

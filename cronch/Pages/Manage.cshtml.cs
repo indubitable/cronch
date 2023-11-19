@@ -30,7 +30,7 @@ public class ManageModel(JobConfigService _jobConfigService, ConfigConverterServ
         var job = _jobConfigService.GetJob(id);
         if (job != null)
         {
-            _jobExecutionService.ExecuteJob(job, Models.ExecutionModel.ExecutionReason.Manual);
+            _jobExecutionService.ExecuteJob(job, Models.ExecutionReason.Manual);
             TempData["Message"] = "Job started!";
             TempData["MessageType"] = "success";
         }

@@ -132,7 +132,7 @@ public class JobSchedulingService(ILogger<JobSchedulingService> _logger, JobExec
                 var job = cachedEnabledJobs.FirstOrDefault(j => j.Id == exec.JobId);
                 if (job != null)
                 {
-                    _jobExecutionService.ExecuteJob(job, ExecutionModel.ExecutionReason.Scheduled);
+                    _jobExecutionService.ExecuteJob(job, ExecutionReason.Scheduled);
                 }
                 else
                 {

@@ -1,34 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace cronch.Models;
 
 public class ExecutionModel
 {
-    public enum ExecutionReason
-    {
-        Scheduled = 0,
-        Manual = 1,
-    }
-
-    public enum ExecutionStatus
-    {
-        Unknown,
-        Running,
-        CompletedAsSuccess,
-        CompletedAsIndeterminate,
-        CompletedAsWarning,
-        CompletedAsError,
-    }
-
-    public enum TerminationReason
-    {
-        NoneSpecified,
-        Exited,
-        TimedOut,
-        SkippedForParallelism
-    }
-
     [Key]
     public Guid Id { get; set; }
 
