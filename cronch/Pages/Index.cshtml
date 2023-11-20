@@ -26,9 +26,9 @@
             </div>
             <div class="col border border-bottom-0">
                 <h2><u>Running Jobs</u></h2>
-                <p>&nbsp;</p>
+                <p>@Model.RunningJobs.Count total</p>
                 <table class="table table-striped">
-                    @foreach (var run in Model.RunningJobs)
+                    @foreach (var run in Model.RunningJobs.Take(3))
                     {
                         <tr>
                             <td class="text-start">@run.JobName</td>

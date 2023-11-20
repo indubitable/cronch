@@ -11,6 +11,9 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, IServiceP
 
     private readonly ConcurrentDictionary<ExecutionIdentifier, Thread> _executions = new();
 
+    private const string STDOUT_FILENAME = "out.txt";
+    private const string STDERR_FILENAME = "err.txt";
+
     public virtual DateTimeOffset? GetLatestExecutionForJob(Guid jobId)
     {
         using var scope = _serviceProvider.CreateScope();
@@ -25,28 +28,48 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, IServiceP
         return executionPersistenceService.GetExecutionStatistics(from, to);
     }
 
+    public virtual ExecutionViewModel GetExecution(Guid executionId)
+    {
+        using var scope = _serviceProvider.CreateScope();
+        var executionPersistenceService = scope.ServiceProvider.GetRequiredService<ExecutionPersistenceService>();
+
+        return ConvertExecutionModelToViewModel(executionPersistenceService.GetExecution(executionId));
+    }
+
+    public virtual (string, string) GetStdOutAndStdErrForExecution(Guid executionId)
+    {
+        using var scope = _serviceProvider.CreateScope();
+        var executionPersistenceService = scope.ServiceProvider.GetRequiredService<ExecutionPersistenceService>();
+
+        var execution = executionPersistenceService.GetExecution(executionId);
+        var stdOutPathname = executionPersistenceService.GetExecutionPathName(execution, STDOUT_FILENAME, false);
+        var stdErrPathname = executionPersistenceService.GetExecutionPathName(execution, STDERR_FILENAME, false);
+
+        var stdOutContents = string.Empty;
+        var stdErrContents = string.Empty;
+        try
+        {
+            if (File.Exists(stdOutPathname)) stdOutContents = File.ReadAllText(stdOutPathname);
+            if (File.Exists(stdErrPathname)) stdErrContents = File.ReadAllText(stdErrPathname);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Unable to read stdout/stderr for execution {Id}", executionId);
+        }
+        return (stdOutContents, stdErrContents);
+    }
+
     public virtual List<ExecutionViewModel> GetRecentExecutions(int maxCount)
     {
         using var scope = _serviceProvider.CreateScope();
         var executionPersistenceService = scope.ServiceProvider.GetRequiredService<ExecutionPersistenceService>();
 
-        var currentExecutions = _executions.Keys.ToList();
-        ExecutionStatus fixOutdatedRunningStatus(Guid execId, ExecutionStatus es) => (es == ExecutionStatus.Running && !currentExecutions.Any(ce => ce.ExecutionId == execId)) ? ExecutionStatus.Unknown : es;
-
         return executionPersistenceService.GetRecentExecutions(maxCount)
-            .Select(em => new ExecutionViewModel
-            {
-                JobId = em.JobId,
-                ExecutionId = em.Id,
-                JobName = em.JobName,
-                StartedOn = em.StartedOn,
-                CompletedOn = em.CompletedOn,
-                Status = fixOutdatedRunningStatus(em.Id, em.Status),
-            })
+            .Select(ConvertExecutionModelToViewModel)
             .ToList();
     }
 
-    public virtual List<ExecutionIdentifier> GetCurrentExecutions()
+    public virtual List<ExecutionIdentifier> GetAllCurrentExecutions()
     {
         return _executions.Keys.ToList();
     }
@@ -113,6 +136,24 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, IServiceP
         thread.Start();
     }
 
+    private ExecutionViewModel ConvertExecutionModelToViewModel(ExecutionModel model)
+    {
+        var currentExecutions = _executions.Keys.ToList();
+        ExecutionStatus fixOutdatedRunningStatus(Guid execId, ExecutionStatus es) => (es == ExecutionStatus.Running && !currentExecutions.Any(ce => ce.ExecutionId == execId)) ? ExecutionStatus.Unknown : es;
+
+        return new ExecutionViewModel
+        {
+            JobId = model.JobId,
+            ExecutionId = model.Id,
+            JobName = model.JobName,
+            StartedOn = model.StartedOn,
+            CompletedOn = model.CompletedOn,
+            Status = fixOutdatedRunningStatus(model.Id, model.Status),
+            StartReason = model.StartReason,
+            StopReason = model.StopReason,
+        };
+    }
+
     private void PerformExecution(ExecutionModel execution, JobModel jobModel)
     {
         using var scope = _serviceProvider.CreateScope();
@@ -133,9 +174,9 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, IServiceP
             persistence.AddExecution(execution);
             persistence.GetExecutionPathName(execution, "", true);
 
-            using var stdoutStream = File.Open(persistence.GetExecutionPathName(execution, "out.txt", false), FileMode.Create, FileAccess.Write, FileShare.Read);
+            using var stdoutStream = File.Open(persistence.GetExecutionPathName(execution, STDOUT_FILENAME, false), FileMode.Create, FileAccess.Write, FileShare.Read);
             using var stdoutWriter = new StreamWriter(stdoutStream, leaveOpen: true);
-            using var stderrStream = File.Open(persistence.GetExecutionPathName(execution, "err.txt", false), FileMode.Create, FileAccess.Write, FileShare.Read);
+            using var stderrStream = File.Open(persistence.GetExecutionPathName(execution, STDERR_FILENAME, false), FileMode.Create, FileAccess.Write, FileShare.Read);
             using var stderrWriter = new StreamWriter(stderrStream, leaveOpen: true);
 
             File.WriteAllText(scriptFile, jobModel.Script);

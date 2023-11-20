@@ -24,43 +24,47 @@
     </div>
     <br />
     <table class="table table-striped text-start align-middle">
-        <tr>
-            <th>
-                <!-- TODO: multiselect actions -->
-                <input class="form-check-input" type="checkbox" disabled="disabled" />
-            </th>
-            <th>Name</th>
-            <th>Enabled</th>
-            <th class="w-25">Schedule</th>
-            <th class="w-25">Latest/Next Run</th>
-            <th class="text-end w-25">Actions</th>
-        </tr>
-        @foreach (var job in Model.Jobs)
-        {
+        <thead>
             <tr>
-                <td>
+                <th>
                     <!-- TODO: multiselect actions -->
-                    <input data-id="@job.Id" class="form-check-input" type="checkbox" disabled="disabled" />
-                </td>
-                <td>@job.Name</td>
-                <td><div class="form-check form-switch"><input class="form-check-input" type="checkbox" disabled="disabled" @(job.Enabled ? "checked=\"checked\"" : "")></div></td>
-                <td>
-                    <code>@job.CronSchedule</code>
-                    <br />
-                    <small><i>@job.GetValidatedCronDescription()</i></small>
-                </td>
-                <td>Latest: @(job.LatestExecution?.ToLocalTime().ToString("G") ?? "N/A")<br />Next: @(job.NextExecution?.ToLocalTime().ToString("G") ?? "N/A")</td>
-                <td class="text-end">
-                    <a asp-page="/Edit" asp-route-id="@job.Id" class="btn btn-sm btn-outline-secondary">Configure</a>
-                    <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-bs-jobid="@job.Id" data-bs-jobname="@job.Name">Delete</button>
-                    <button class="btn btn-sm btn-outline-secondary">View Runs</button>
-                    <form class="form-inline" method="post" asp-page-handler="RunJob">
-                        <input type="hidden" name="id" value="@job.Id" />
-                        <button class="btn btn-sm btn-success">Run</button>
-                    </form>
-                </td>
+                    <input class="form-check-input" type="checkbox" disabled="disabled" />
+                </th>
+                <th>Name</th>
+                <th>Enabled</th>
+                <th class="w-25">Schedule</th>
+                <th class="w-25">Latest/Next Run</th>
+                <th class="text-end w-25">Actions</th>
             </tr>
-        }
+        </thead>
+        <tbody>
+            @foreach (var job in Model.Jobs)
+            {
+                <tr>
+                    <td>
+                        <!-- TODO: multiselect actions -->
+                        <input data-id="@job.Id" class="form-check-input" type="checkbox" disabled="disabled" />
+                    </td>
+                    <td>@job.Name</td>
+                    <td><div class="form-check form-switch"><input class="form-check-input" type="checkbox" disabled="disabled" @(job.Enabled ? "checked=\"checked\"" : "")></div></td>
+                    <td>
+                        <code>@job.CronSchedule</code>
+                        <br />
+                        <small><i>@job.GetValidatedCronDescription()</i></small>
+                    </td>
+                    <td>Latest: @(job.LatestExecution?.ToLocalTime().ToString("G") ?? "N/A")<br />Next: @(job.NextExecution?.ToLocalTime().ToString("G") ?? "N/A")</td>
+                    <td class="text-end">
+                        <a asp-page="/Edit" asp-route-id="@job.Id" class="btn btn-sm btn-outline-secondary">Configure</a>
+                        <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-bs-jobid="@job.Id" data-bs-jobname="@job.Name">Delete</button>
+                        <button class="btn btn-sm btn-outline-secondary">View Runs</button>
+                        <form class="form-inline" method="post" asp-page-handler="RunJob">
+                            <input type="hidden" name="id" value="@job.Id" />
+                            <button class="btn btn-sm btn-success">Run</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
     </table>
     <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">

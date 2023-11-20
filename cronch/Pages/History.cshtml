@@ -6,6 +6,7 @@
 }
 <div class="text-center">
     <h1 class="display-4">Job Execution History</h1>
+    <p>Showing a maximum of @Model.MaxResults results</p>
     <br />
-    <partial name="_ExecutionListPartial" />
+    <partial name="_ExecutionListPartial" model="Model.Executions" />
 </div>

@@ -1,6 +1,6 @@
 ﻿namespace cronch.Models.ViewModels;
 
-public readonly record struct ExecutionViewModel(Guid JobId, Guid ExecutionId, string JobName, DateTimeOffset StartedOn, DateTimeOffset? CompletedOn, ExecutionStatus Status)
+public readonly record struct ExecutionViewModel(Guid JobId, Guid ExecutionId, string JobName, DateTimeOffset StartedOn, DateTimeOffset? CompletedOn, ExecutionStatus Status, ExecutionReason? StartReason, TerminationReason? StopReason)
 {
     public TimeSpan Duration
     {

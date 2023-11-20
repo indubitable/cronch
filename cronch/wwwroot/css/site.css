@@ -60,5 +60,9 @@ body {
 }
 
 .form-switch input[type="checkbox"] {
-    cursor: pointer;
+  cursor: pointer;
+}
+
+table tr.clickable-row {
+  cursor: pointer;
 }
