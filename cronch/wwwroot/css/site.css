@@ -66,3 +66,11 @@ body {
 table tr.clickable-row {
   cursor: pointer;
 }
+
+.vh-50 {
+    height: 50vh;
+}
+
+.container.job-output {
+    overflow: auto;
+}

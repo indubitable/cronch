@@ -6,5 +6,32 @@
 <div class="text-center">
     <h1 class="display-4">Job Execution Details</h1>
     <br />
-    <p>@Model.Execution.JobName</p>
+    <div class="container">
+        <table class="table table-striped text-start">
+            <tbody>
+                <tr>
+                    <th>Job name</th>
+                    <td>@(Model.Job?.Name ?? Model.Execution.JobName)</td>
+                    <th>Status</th>
+                    <td>@Model.Execution.Status.ToUserString()</td>
+                </tr>
+                <tr>
+                    <th>Launch date/time</th>
+                    <td>@Model.Execution.StartedOn.ToLocalTime().ToString("G")</td>
+                    <th>Termination reason</th>
+                    <td>@Model.Execution.StopReason.ToUserString()</td>
+                </tr>
+                <tr>
+                    <th>Termination date/time</th>
+                    <td>@(Model.Execution.CompletedOn.HasValue ? Model.Execution.CompletedOn.Value.ToString("G") : "Unknown")</td>
+                    <th>Run duration</th>
+                    <td>@(Model.Execution.CompletedOn.HasValue || Model.Execution.Status == Models.ExecutionStatus.Running ? Model.Execution.FormattedDuration : "Unknown")</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <h4 class="text-start">Output:</h4>
+    <div class="container w-100 vh-50 text-bg-dark text-start job-output">
+        <pre class="w-100 h-100 m-0"><code>@Model.StdOut</code></pre>
+    </div>
 </div>
