@@ -73,20 +73,15 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
         }
     }
 
-    public virtual string GetExecutionPathName(ExecutionModel execution, string relativeFileName, bool createParentDirectory)
+    public virtual string GetOutputPathName(ExecutionModel execution, bool createParentDirectory)
     {
-        var directory = Path.Combine(GetDataLocation(), execution.JobId.ToString("D"), GetJobRelativeExecutionPath(execution));
+        var directory = Path.Combine(GetDataLocation(), execution.JobId.ToString("D"), execution.StartedOn.ToString("yyyy-MM"));
         if (createParentDirectory)
         {
             Directory.CreateDirectory(directory);
         }
 
-        return Path.Combine(directory, relativeFileName);
-    }
-
-    private static string GetJobRelativeExecutionPath(ExecutionModel execution)
-    {
-        return Path.Combine(execution.StartedOn.ToString("yyyy-MM"), execution.GetExecutionName());
+        return Path.Combine(directory, execution.GetExecutionName() + ".txt");
     }
 
     private string GetDataLocation()

@@ -68,9 +68,17 @@ table tr.clickable-row {
 }
 
 .vh-50 {
-    height: 50vh;
+  height: 50vh;
+}
+
+.unselectable {
+  user-select: none;
 }
 
 .container.job-output {
-    overflow: auto;
+  overflow: auto;
+}
+
+.container.job-output code .stderr {
+  color: var(--bs-danger);
 }

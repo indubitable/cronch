@@ -31,7 +31,7 @@
         </table>
     </div>
     <h4 class="text-start">Output:</h4>
-    <div class="container w-100 vh-50 text-bg-dark text-start job-output">
-        <pre class="w-100 h-100 m-0"><code>@Model.StdOut</code></pre>
+    <div class="container w-100 vh-50 pt-2 pb-2 text-bg-dark text-start job-output">
+        <pre class="w-100 h-100 m-0"><code id="jobOutput">@Html.Raw(Model.JobOutputProcessed)</code></pre>
     </div>
 </div>

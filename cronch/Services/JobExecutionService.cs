@@ -11,9 +11,6 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, IServiceP
 
     private readonly ConcurrentDictionary<ExecutionIdentifier, Thread> _executions = new();
 
-    private const string STDOUT_FILENAME = "out.txt";
-    private const string STDERR_FILENAME = "err.txt";
-
     public virtual DateTimeOffset? GetLatestExecutionForJob(Guid jobId)
     {
         using var scope = _serviceProvider.CreateScope();
@@ -36,27 +33,24 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, IServiceP
         return ConvertExecutionModelToViewModel(executionPersistenceService.GetExecution(executionId));
     }
 
-    public virtual (string, string) GetStdOutAndStdErrForExecution(Guid executionId)
+    public virtual string GetOutputForExecution(Guid executionId)
     {
         using var scope = _serviceProvider.CreateScope();
         var executionPersistenceService = scope.ServiceProvider.GetRequiredService<ExecutionPersistenceService>();
 
         var execution = executionPersistenceService.GetExecution(executionId);
-        var stdOutPathname = executionPersistenceService.GetExecutionPathName(execution, STDOUT_FILENAME, false);
-        var stdErrPathname = executionPersistenceService.GetExecutionPathName(execution, STDERR_FILENAME, false);
+        var outputPathname = executionPersistenceService.GetOutputPathName(execution, false);
 
-        var stdOutContents = string.Empty;
-        var stdErrContents = string.Empty;
+        var outputContents = string.Empty;
         try
         {
-            if (File.Exists(stdOutPathname)) stdOutContents = File.ReadAllText(stdOutPathname);
-            if (File.Exists(stdErrPathname)) stdErrContents = File.ReadAllText(stdErrPathname);
+            if (File.Exists(outputPathname)) outputContents = File.ReadAllText(outputPathname);
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Unable to read stdout/stderr for execution {Id}", executionId);
         }
-        return (stdOutContents, stdErrContents);
+        return outputContents;
     }
 
     public virtual List<ExecutionViewModel> GetRecentExecutions(int maxCount)
@@ -172,12 +166,9 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, IServiceP
         {
             execution.Status = ExecutionStatus.Running;
             persistence.AddExecution(execution);
-            persistence.GetExecutionPathName(execution, "", true);
 
-            using var stdoutStream = File.Open(persistence.GetExecutionPathName(execution, STDOUT_FILENAME, false), FileMode.Create, FileAccess.Write, FileShare.Read);
-            using var stdoutWriter = new StreamWriter(stdoutStream, leaveOpen: true);
-            using var stderrStream = File.Open(persistence.GetExecutionPathName(execution, STDERR_FILENAME, false), FileMode.Create, FileAccess.Write, FileShare.Read);
-            using var stderrWriter = new StreamWriter(stderrStream, leaveOpen: true);
+            using var outputStream = File.Open(persistence.GetOutputPathName(execution, true), FileMode.Create, FileAccess.Write, FileShare.Read);
+            using var outputWriter = new StreamWriter(outputStream, leaveOpen: true);
 
             File.WriteAllText(scriptFile, jobModel.Script);
 
@@ -210,7 +201,7 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, IServiceP
                 var line = args.Data;
                 if (!string.IsNullOrWhiteSpace(line))
                 {
-                    stdoutWriter.WriteLine($"{DateTimeOffset.UtcNow:yyyy-MM-dd_HH:mm:ss} {line}");
+                    outputWriter.WriteLine($"O {DateTimeOffset.UtcNow:yyyyMMdd HHmmss} {line}");
                     ProcessLineForStatusUpdate(line, jobModel.Keywords, jobModel.StdOutProcessing, ref intermediateExecutionStatus);
                 }
             };
@@ -219,7 +210,7 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, IServiceP
                 var line = args.Data;
                 if (!string.IsNullOrWhiteSpace(line))
                 {
-                    stderrWriter.WriteLine($"{DateTimeOffset.UtcNow:yyyy-MM-dd_HH:mm:ss} {line}");
+                    outputWriter.WriteLine($"E {DateTimeOffset.UtcNow:yyyyMMdd HHmmss} {line}");
                     ProcessLineForStatusUpdate(line, jobModel.Keywords, jobModel.StdErrProcessing, ref intermediateExecutionStatus);
                 }
             };
