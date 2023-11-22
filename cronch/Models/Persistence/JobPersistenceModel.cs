@@ -39,7 +39,7 @@ public class JobPersistenceModel
     public string MarkParallelSkipAs { get; set; } = string.Empty;
 
     [XmlArray(Order = 11), XmlArrayItem("Keyword")]
-    public List<string> Keywords { get; set; } = new List<string>();
+    public List<string> Keywords { get; set; } = [];
 
     [XmlElement(Order = 12)]
     public string StdOutProcessing { get; set; } = string.Empty;

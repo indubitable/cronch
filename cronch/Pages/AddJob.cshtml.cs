@@ -1,11 +1,12 @@
 using cronch.Models.ViewModels;
 using cronch.Services;
+using cronch.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace cronch.Pages;
 
-public class AddJobModel(JobConfigService _jobConfigService, ConfigConverterService _configConverterService) : PageModel
+public class AddJobModel(JobConfigService _jobConfigService) : PageModel
 {
     [BindProperty]
     public JobViewModel? JobVM { get; set; }
@@ -22,7 +23,7 @@ public class AddJobModel(JobConfigService _jobConfigService, ConfigConverterServ
             return Page();
         }
 
-        _jobConfigService.CreateJob(_configConverterService.ConvertToModel(JobVM), true);
+        _jobConfigService.CreateJob(JobVM.ToModel(), true);
 
         return RedirectToPage("/Manage");
     }

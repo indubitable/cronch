@@ -1,8 +1,8 @@
 ﻿using cronch.Models;
 
-namespace cronch;
+namespace cronch.Utilities;
 
-public static class Utility
+public static class StringUtility
 {
     public static string ToUserString(this ExecutionReason reason)
     {
@@ -16,7 +16,7 @@ public static class Utility
 
     public static string ToUserString(this ExecutionReason? reason)
     {
-        return (reason.HasValue ? reason.Value.ToUserString() : "Unknown");
+        return reason.HasValue ? reason.Value.ToUserString() : "Unknown";
     }
 
     public static string ToUserString(this TerminationReason reason)
@@ -33,7 +33,7 @@ public static class Utility
 
     public static string ToUserString(this TerminationReason? reason)
     {
-        return (reason.HasValue ? reason.Value.ToUserString() : "Unknown");
+        return reason.HasValue ? reason.Value.ToUserString() : "Unknown";
     }
 
     public static string ToUserString(this ExecutionStatus status)
@@ -52,6 +52,6 @@ public static class Utility
 
     public static string ToUserString(this ExecutionStatus? status)
     {
-        return (status.HasValue ? status.Value.ToUserString() : "Unknown");
+        return status.HasValue ? status.Value.ToUserString() : "Unknown";
     }
 }

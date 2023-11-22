@@ -1,12 +1,13 @@
 using cronch.Models.ViewModels;
 using cronch.Services;
+using cronch.Utilities;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Text;
 using System.Text.Encodings.Web;
 
 namespace cronch.Pages;
 
-public class ExecutionModel(JobExecutionService _jobExecutionService, JobConfigService _jobConfigService, ConfigConverterService _configConverterService, HtmlEncoder _htmlEncoder) : PageModel
+public class ExecutionModel(JobExecutionService _jobExecutionService, JobConfigService _jobConfigService, HtmlEncoder _htmlEncoder) : PageModel
 {
     public ExecutionViewModel Execution { get; set; }
     public JobViewModel? Job { get; set; }
@@ -19,8 +20,7 @@ public class ExecutionModel(JobExecutionService _jobExecutionService, JobConfigS
 
         try
         {
-            var jobModel = _jobConfigService.GetJob(Execution.JobId);
-            Job = _configConverterService.ConvertToViewModel(jobModel);
+            Job = _jobConfigService.GetJob(Execution.JobId).ToViewModel();
         }
         catch (Exception)
         {

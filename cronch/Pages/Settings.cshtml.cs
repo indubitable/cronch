@@ -1,19 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using cronch.Models.ViewModels;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace cronch.Pages
+namespace cronch.Pages;
+
+public class SettingsModel : PageModel
 {
-    public class SettingsModel : PageModel
+    [BindProperty]
+    public SettingsViewModel SettingsVM { get; set; } = null!;
+
+    public void OnGet()
     {
-        private readonly ILogger<SettingsModel> _logger;
-
-        public SettingsModel(ILogger<SettingsModel> logger)
-        {
-            _logger = logger;
-        }
-
-        public void OnGet()
-        {
-        }
     }
 }

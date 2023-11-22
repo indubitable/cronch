@@ -1,9 +1,10 @@
 ﻿using cronch.Models;
 using cronch.Models.Persistence;
+using cronch.Utilities;
 
 namespace cronch.Services;
 
-public class JobConfigService(ConfigPersistenceService _configPersistenceService, ConfigConverterService _configConverterService, JobSchedulingService _jobSchedulingService)
+public class JobConfigService(ConfigPersistenceService _configPersistenceService, JobSchedulingService _jobSchedulingService)
 {
     public void CreateJob(JobModel jobModel, bool assignNewId)
     {
@@ -19,7 +20,7 @@ public class JobConfigService(ConfigPersistenceService _configPersistenceService
             throw new InvalidOperationException("Cannot create job with duplicate Id");
         }
 
-        var newPersistenceJob = _configConverterService.ConvertToPersistence(jobModel);
+        var newPersistenceJob = jobModel.ToPersistence();
         persistenceJobs.Add(newPersistenceJob);
         _configPersistenceService.Save(config);
 
@@ -33,7 +34,7 @@ public class JobConfigService(ConfigPersistenceService _configPersistenceService
 
         var oldPersistenceJob = persistenceJobs.SingleOrDefault(j => j.Id == jobModel.Id) ?? throw new InvalidOperationException("Cannot update nonexistent job");
         persistenceJobs.Remove(oldPersistenceJob);
-        persistenceJobs.Add(_configConverterService.ConvertToPersistence(jobModel));
+        persistenceJobs.Add(jobModel.ToPersistence());
         _configPersistenceService.Save(config);
 
         _jobSchedulingService.RefreshSchedules(GetAllJobs());
@@ -56,9 +57,9 @@ public class JobConfigService(ConfigPersistenceService _configPersistenceService
         var config = _configPersistenceService.Load();
         if (config == null)
         {
-            return new List<JobModel>();
+            return [];
         }
-        return _configConverterService.ConvertToModel(config).Jobs;
+        return config.Jobs.Select(ConversionUtility.ToModel).ToList();
     }
 
 	public JobModel GetJob(Guid id)

@@ -13,7 +13,6 @@ var dbFile = Path.GetFullPath(Path.Combine(dataLocation, "executions.db"));
 builder.Services.AddDbContext<CronchDbContext>(options => options.UseSqlite($"Data Source={dbFile}"));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddSingleton<ConfigConverterService>();
 builder.Services.AddSingleton<JobConfigService>();
 builder.Services.AddSingleton<ConfigPersistenceService>();
 builder.Services.AddSingleton<JobExecutionService>();

@@ -1,18 +1,19 @@
 using cronch.Models.ViewModels;
 using cronch.Services;
+using cronch.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace cronch.Pages;
 
-public class EditModel(JobConfigService _jobConfigService, ConfigConverterService _configConverterService) : PageModel
+public class EditModel(JobConfigService _jobConfigService) : PageModel
 {
     [BindProperty]
     public JobViewModel JobVM { get; set; } = null!;
 
     public void OnGet(Guid id)
     {
-        JobVM = _configConverterService.ConvertToViewModel(_jobConfigService.GetJob(id));
+        JobVM = _jobConfigService.GetJob(id).ToViewModel();
     }
 
     public IActionResult OnPost(Guid id)
@@ -22,7 +23,7 @@ public class EditModel(JobConfigService _jobConfigService, ConfigConverterServic
             return Page();
         }
 
-        var model = _configConverterService.ConvertToModel(JobVM);
+        var model = JobVM.ToModel();
         model.Id = id;
         _jobConfigService.UpdateJob(model);
 

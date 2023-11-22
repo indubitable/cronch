@@ -1,18 +1,19 @@
 using cronch.Models.ViewModels;
 using cronch.Services;
+using cronch.Utilities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace cronch.Pages;
 
-public class ManageModel(JobConfigService _jobConfigService, ConfigConverterService _configConverterService, JobExecutionService _jobExecutionService, JobSchedulingService _jobSchedulingService) : PageModel
+public class ManageModel(JobConfigService _jobConfigService, JobExecutionService _jobExecutionService, JobSchedulingService _jobSchedulingService) : PageModel
 {
     public List<JobViewModel> Jobs { get; set; } = [];
 
     public void OnGet()
     {
         Jobs = _jobConfigService.GetAllJobs()
-            .Select(_configConverterService.ConvertToViewModel)
+            .Select(ConversionUtility.ToViewModel)
             .OrderByDescending(j => j.Enabled).ThenBy(j => j.Name)
             .ToList();
 

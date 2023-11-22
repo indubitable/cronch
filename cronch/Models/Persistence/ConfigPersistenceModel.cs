@@ -6,5 +6,14 @@ namespace cronch.Models.Persistence;
 public class ConfigPersistenceModel
 {
     [XmlArray(Order = 0), XmlArrayItem("Job")]
-    public List<JobPersistenceModel> Jobs { get; set; } = new();
+    public List<JobPersistenceModel> Jobs { get; set; } = [];
+
+    [XmlElement(Order = 1, IsNullable = true)]
+    public int? MaxHistoryItemsShown { get; set; }
+
+    [XmlElement(Order = 2, IsNullable = true)]
+    public int? DeleteHistoricalRunsAfterCount { get; set; }
+
+    [XmlElement(Order = 3, IsNullable = true)]
+    public int? DeleteHistoricalRunsAfterDays { get; set; }
 }
