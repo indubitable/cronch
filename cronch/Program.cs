@@ -17,6 +17,7 @@ builder.Services.AddSingleton<JobConfigService>();
 builder.Services.AddSingleton<ConfigPersistenceService>();
 builder.Services.AddSingleton<JobExecutionService>();
 builder.Services.AddSingleton<JobSchedulingService>();
+builder.Services.AddSingleton<SettingsService>();
 
 builder.Services.AddTransient<ExecutionPersistenceService>();
 

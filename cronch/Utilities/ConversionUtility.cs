@@ -48,6 +48,16 @@ public static class ConversionUtility
         };
     }
 
+    public static SettingsModel ToModel(this SettingsViewModel settingsViewModel)
+    {
+        return new SettingsModel
+        {
+            MaxHistoryItemsShown = settingsViewModel.MaxHistoryItemsShown,
+            DeleteHistoricalRunsAfterCount = settingsViewModel.DeleteHistoricalRunsAfterCount,
+            DeleteHistoricalRunsAfterDays = settingsViewModel.DeleteHistoricalRunsAfterDays,
+        };
+    }
+
     public static JobPersistenceModel ToPersistence(this JobModel jobModel)
     {
         return new JobPersistenceModel
@@ -87,6 +97,16 @@ public static class ConversionUtility
             Keywords = string.Join(',', jobModel.Keywords),
             StdOutProcessing = jobModel.StdOutProcessing.ToString(),
             StdErrProcessing = jobModel.StdErrProcessing.ToString(),
+        };
+    }
+
+    public static SettingsViewModel ToViewModel(this SettingsModel settingsModel)
+    {
+        return new SettingsViewModel
+        {
+            MaxHistoryItemsShown = settingsModel.MaxHistoryItemsShown,
+            DeleteHistoricalRunsAfterCount = settingsModel.DeleteHistoricalRunsAfterCount,
+            DeleteHistoricalRunsAfterDays = settingsModel.DeleteHistoricalRunsAfterDays,
         };
     }
 
