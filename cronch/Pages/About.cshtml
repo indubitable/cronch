@@ -6,10 +6,16 @@
 }
 <div class="text-center">
     <h1 class="display-4">About <span class="styled-logo-text">CRONCH!</span></h1>
+    <h4>Version @Model.AppVersion</h4>
     <br />
-    Information about the project...
-    <br />
-    <div class="text-start">
-        <pre><code>@Model.OutputData</code></pre>
+    <div class="text-start text-bg-dark rounded-4 p-3">
+        <p>Full version: @Model.AppFullVersion</p>
+        <p>Current configuration:</p>
+        <div class="ms-4">
+		    ConfigLocation: <code>@Model.ConfigLocation</code><br />
+            &nbsp;&nbsp;&nbsp;&nbsp;↳ resolves to: <code>@Model.ConfigLocationResolved</code><br />
+		    DataLocation: <code>@Model.DataLocation</code><br />
+            &nbsp;&nbsp;&nbsp;&nbsp;↳ resolves to: <code>@Model.DataLocationResolved</code>
+        </div>
     </div>
 </div>
