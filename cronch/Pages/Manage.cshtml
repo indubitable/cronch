@@ -73,8 +73,10 @@
                     <h1 class="modal-title fs-5" id="confirmDeleteModalLabel">Delete?</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body text-start">
                     Are you sure you want to delete the job "<code id="confirmDeleteModalJobName"></code>"?
+                    <br /><br />
+                    All of its historical executions will be deleted as well.
                 </div>
                 <div class="modal-footer">
                     <form method="post" asp-page-handler="DeleteJob">
