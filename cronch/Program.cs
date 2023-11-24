@@ -18,6 +18,7 @@ builder.Services.AddSingleton<ConfigPersistenceService>();
 builder.Services.AddSingleton<JobExecutionService>();
 builder.Services.AddSingleton<JobSchedulingService>();
 builder.Services.AddSingleton<SettingsService>();
+builder.Services.AddSingleton<CleanupService>();
 
 builder.Services.AddTransient<ExecutionPersistenceService>();
 
@@ -41,6 +42,10 @@ using (var scope = app.Services.CreateScope())
     var dbContext = services.GetRequiredService<CronchDbContext>();
     dbContext.Database.Migrate();
     dbContext.Database.ExecuteSqlRaw("PRAGMA journal_mode=DELETE;");
+
+    // Initialize the cleanup service before the scheduling service.
+    var cleanupService = services.GetRequiredService<CleanupService>();
+    cleanupService.Initialize();
 
     var schedulingService = services.GetRequiredService<JobSchedulingService>();
     schedulingService.StartSchedulingRuns();

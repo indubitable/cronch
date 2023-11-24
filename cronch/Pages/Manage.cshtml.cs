@@ -45,9 +45,10 @@ public class ManageModel(JobConfigService _jobConfigService, JobExecutionService
 
     private void PostProcessRetrievedJobs()
     {
+        var latestExecutionsPerJob = _jobExecutionService.GetLatestExecutions();
         foreach (var job in Jobs)
         {
-            job.LatestExecution = _jobExecutionService.GetLatestExecutionForJob(job.Id);
+            job.LatestExecution = (latestExecutionsPerJob.ContainsKey(job.Id) ? latestExecutionsPerJob[job.Id] : null);
             job.NextExecution = (job.Enabled ? _jobSchedulingService.GetNextExecution(job.Id) : null);
         }
     }

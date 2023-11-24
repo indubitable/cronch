@@ -1,4 +1,5 @@
 ﻿using cronch.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace cronch.Services;
 
@@ -6,18 +7,18 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
 {
     public readonly record struct ExecutionStatistics(int Successes, int Errors, int Warnings);
 
-    public virtual DateTimeOffset? GetLatestExecutionForJob(Guid jobId)
+    public virtual Dictionary<Guid, DateTimeOffset> GetLatestExecutions()
     {
         return _dbContext.Executions
-            .Where(e => e.JobId == jobId)
-            .OrderByDescending(e => e.StartedOn)
-            .Select(e => (DateTimeOffset?)e.StartedOn)
-            .FirstOrDefault();
+            .AsNoTracking()
+            .Select(e => KeyValuePair.Create(e.Id, e.StartedOn))
+            .ToDictionary();
     }
 
     public virtual ExecutionStatistics GetExecutionStatistics(DateTimeOffset from,  DateTimeOffset to)
     {
         var statuses = _dbContext.Executions
+            .AsNoTracking()
             .Where(e => e.StartedOn > from && e.StartedOn <= to)
             .Select(e => e.Status)
             .ToList();
@@ -33,6 +34,7 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
     public virtual ExecutionModel GetExecution(Guid id)
     {
         return _dbContext.Executions
+            .AsNoTracking()
             .Where(e => e.Id == id)
             .Single();
     }
@@ -40,6 +42,7 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
     public virtual List<ExecutionModel> GetRecentExecutions(int maxCount)
     {
         return _dbContext.Executions
+            .AsNoTracking()
             .OrderByDescending(e => e.StartedOn)
             .Take(maxCount)
             .ToList();
@@ -84,6 +87,57 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
         return Path.Combine(directory, execution.GetExecutionName() + ".txt");
     }
 
+    public virtual List<string> GetAllDataSubdirectories()
+    {
+        return Directory.EnumerateDirectories(GetDataLocation())
+            .Select(d => d.EndsWith(Path.DirectorySeparatorChar) ? d[0..^1] : d)
+            .Where(d => Guid.TryParseExact(Path.GetFileName(d), "D", out var _))
+            .ToList();
+    }
+
+    public virtual void RemoveAllDatabaseRecordsForJobId(Guid id)
+    {
+        _dbContext.Executions
+            .Where(e => e.JobId == id)
+            .ExecuteDelete();
+    }
+
+    public List<ExecutionModel> GetOldestExecutionsAfterCount(Guid jobId, int skipCount)
+    {
+        // Order by most recent, then skip as many as required. The rest should be returned.
+        return _dbContext.Executions
+            .Where(e => e.JobId == jobId)
+            .OrderByDescending(e => e.StartedOn)
+            .Skip(skipCount)
+            .ToList();
+    }
+
+    public void DeleteExecution(ExecutionModel execution)
+    {
+        // First, delete the applicable filesystem entries
+        var filePathname = GetOutputPathName(execution, false);
+        File.Delete(filePathname);
+
+        // Next, delete the parent year-month directory if it's empty
+        var yearMonthDir = Path.GetDirectoryName(filePathname);
+        if (!string.IsNullOrWhiteSpace(yearMonthDir) && Directory.GetFileSystemEntries(yearMonthDir).Length == 0)
+        {
+            Directory.Delete(yearMonthDir, false);
+        }
+
+        // Now, delete the DB entry
+        _dbContext.Executions
+            .Where(e => e.Id == execution.Id)
+            .ExecuteDelete();
+    }
+
+    public List<ExecutionModel> GetExecutionsOlderThan(DateTimeOffset startedOn)
+    {
+        return _dbContext.Executions
+            .Where(e => e.StartedOn < startedOn)
+            .ToList();
+    }
+
     private string GetDataLocation()
     {
         var location = _configuration["DataLocation"];
@@ -92,6 +146,6 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
             _logger.LogError("Cannot determine location of execution data: DataLocation is not set");
             throw new InvalidOperationException();
         }
-        return location;
+        return Path.GetFullPath(location);
     }
 }
