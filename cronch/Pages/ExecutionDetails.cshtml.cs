@@ -7,7 +7,7 @@ using System.Text.Encodings.Web;
 
 namespace cronch.Pages;
 
-public class ExecutionModel(JobExecutionService _jobExecutionService, JobConfigService _jobConfigService, HtmlEncoder _htmlEncoder) : PageModel
+public class ExecutionDetailsModel(JobExecutionService _jobExecutionService, JobConfigService _jobConfigService, HtmlEncoder _htmlEncoder) : PageModel
 {
     public ExecutionViewModel Execution { get; set; }
     public JobViewModel? Job { get; set; }
