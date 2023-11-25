@@ -39,10 +39,11 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
             .Single();
     }
 
-    public virtual List<ExecutionModel> GetRecentExecutions(int maxCount)
+    public virtual List<ExecutionModel> GetRecentExecutions(int maxCount, Guid? jobId)
     {
         return _dbContext.Executions
             .AsNoTracking()
+            .Where(e => (!jobId.HasValue || e.JobId == jobId))
             .OrderByDescending(e => e.StartedOn)
             .Take(maxCount)
             .ToList();

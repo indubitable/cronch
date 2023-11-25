@@ -53,12 +53,12 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, IServiceP
         return outputContents;
     }
 
-    public virtual List<ExecutionViewModel> GetRecentExecutions(int maxCount)
+    public virtual List<ExecutionViewModel> GetRecentExecutions(int maxCount, Guid? jobId)
     {
         using var scope = _serviceProvider.CreateScope();
         var executionPersistenceService = scope.ServiceProvider.GetRequiredService<ExecutionPersistenceService>();
 
-        return executionPersistenceService.GetRecentExecutions(maxCount)
+        return executionPersistenceService.GetRecentExecutions(maxCount, jobId)
             .Select(ConvertExecutionModelToViewModel)
             .ToList();
     }
