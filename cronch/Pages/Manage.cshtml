@@ -9,15 +9,12 @@
     <br />
     <div class="text-start">
         <div class="btn-group">
-            <!-- TODO: multiselect actions -->
-            <a class="btn btn-light dropdown-toggle disabled" data-bs-toggle="dropdown" aria-expanded="false">
+            <a class="btn btn-light dropdown-toggle disabled" id="actions-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
                 <input class="form-check-input" type="checkbox" readonly="readonly" checked="checked" disabled="disabled" role="none" /> Actions
             </a>
             <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="#">Enable</a></li>
-                <li><a class="dropdown-item" href="#">Disable</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item text-danger" href="#">Delete</a></li>
+                <li><button class="dropdown-item" type="button" onclick="onMultiEnable(event)">Enable</button></li>
+                <li><button class="dropdown-item" type="button" onclick="onMultiDisable(event)">Disable</button></li>
             </ul>
         </div>
         <a asp-page="/AddJob" class="btn btn-outline-primary ms-3">Add Job</a>
@@ -27,8 +24,7 @@
         <thead>
             <tr>
                 <th>
-                    <!-- TODO: multiselect actions -->
-                    <input class="form-check-input" type="checkbox" disabled="disabled" />
+                    <input class="form-check-input" id="job-select-all-checkbox" type="checkbox" onchange="onJobSelectAll(event)" />
                 </th>
                 <th>Name</th>
                 <th>Enabled</th>
@@ -42,8 +38,7 @@
             {
                 <tr>
                     <td>
-                        <!-- TODO: multiselect actions -->
-                        <input data-id="@job.Id" class="form-check-input" type="checkbox" disabled="disabled" />
+                        <input data-id="@job.Id" class="form-check-input job-multi-select-checkbox" type="checkbox" onchange="onJobMultiSelect(event)" />
                     </td>
                     <td>@job.Name</td>
                     <td><div class="form-check form-switch"><input class="form-check-input" type="checkbox" disabled="disabled" @(job.Enabled ? "checked=\"checked\"" : "")></div></td>
@@ -66,6 +61,7 @@
             }
         </tbody>
     </table>
+
     <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -89,11 +85,68 @@
             </div>
         </div>
     </div>
+
+    <form id="multi-select-form" class="d-none" method="post" asp-page-handler="MultiSelectAction">
+        <!-- note, this form includes an auto-generated CSRF field -->
+        <input type="hidden" name="action" />
+    </form>
+
     <script type="text/javascript">
         document.getElementById('confirmDeleteModal').addEventListener('show.bs.modal', event => {
             const button = event.relatedTarget;
             document.getElementById('confirmDeleteModalJobName').innerText = button.getAttribute('data-bs-jobname');
             document.getElementById('confirmDeleteModalJobId').value = button.getAttribute('data-bs-jobid');
         });
+
+        function onJobMultiSelect(event) {
+            const total = document.querySelectorAll('.job-multi-select-checkbox').length;
+            const checked = document.querySelectorAll('.job-multi-select-checkbox:checked').length;
+
+            document.querySelector('#job-select-all-checkbox').checked = (total > 0 && total === checked);
+
+            if (checked > 0) {
+                document.querySelector('#actions-dropdown').classList.remove('disabled');
+            } else {
+                document.querySelector('#actions-dropdown').classList.add('disabled');
+            }
+        }
+
+        function onJobSelectAll(event) {
+            const checked = document.querySelector('#job-select-all-checkbox').checked;
+
+            document.querySelectorAll('.job-multi-select-checkbox').forEach(el => {
+                el.checked = checked;
+            });
+
+            if (checked) {
+                document.querySelector('#actions-dropdown').classList.remove('disabled');
+            } else {
+                document.querySelector('#actions-dropdown').classList.add('disabled');
+            }
+        }
+
+        function populateMultiSelectForm(actionName) {
+            const formEl = document.querySelector('#multi-select-form');
+            document.querySelectorAll('#multi-select-form input[name="jobIds"]').forEach(el => el.remove());
+
+            document.querySelector('#multi-select-form input[name="action"]').value = actionName;
+            document.querySelectorAll('.job-multi-select-checkbox:checked').forEach(el => {
+                let jobEl = document.createElement('input');
+                jobEl.type = 'hidden';
+                jobEl.name = 'jobIds';
+                jobEl.value = el.getAttribute('data-id');
+                formEl.append(jobEl);
+            });
+        }
+
+        function onMultiEnable(event) {
+            populateMultiSelectForm('enable');
+            document.querySelector('#multi-select-form').submit();
+        }
+
+        function onMultiDisable(event) {
+            populateMultiSelectForm('disable');
+            document.querySelector('#multi-select-form').submit();
+        }
     </script>
 </div>

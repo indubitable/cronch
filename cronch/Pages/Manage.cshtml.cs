@@ -43,6 +43,38 @@ public class ManageModel(JobConfigService _jobConfigService, JobExecutionService
         return RedirectToPage("/Manage");
     }
 
+    public IActionResult OnPostMultiSelectAction([FromForm] string action, [FromForm] List<Guid> jobIds)
+    {
+        var verb = string.Empty;
+        foreach (var jobId in jobIds)
+        {
+            var job = _jobConfigService.GetJob(jobId);
+
+            if (action.Equals("enable"))
+            {
+                job.Enabled = true;
+                verb = "enabled";
+            }
+            else if (action.Equals("disable"))
+            {
+                job.Enabled = false;
+                verb = "disabled";
+            }
+            else
+            {
+                TempData["Message"] = "Unable to perform unknown action!";
+                TempData["MessageType"] = "danger";
+                return RedirectToPage("/Manage");
+            }
+
+            _jobConfigService.UpdateJob(job);
+        }
+
+        TempData["Message"] = $"Successfully {verb} {jobIds.Count} job(s)";
+        TempData["MessageType"] = "success";
+        return RedirectToPage("/Manage");
+    }
+
     private void PostProcessRetrievedJobs()
     {
         var latestExecutionsPerJob = _jobExecutionService.GetLatestExecutions();
