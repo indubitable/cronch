@@ -64,6 +64,126 @@
                     </div>
                 </div>
             </div>
+            <div class="row gx-5">
+                <hr />
+            </div>
+            <div class="row gx-5">
+                <div class="col mb-3 d-flex align-items-center">
+                    <div class="flex-fill">
+                        <label bs5-for="SettingsVM.CompletionScriptExecutor" class="form-label"></label>
+                        <input bs5-for="SettingsVM.CompletionScriptExecutor" class="form-control executor-input" />
+                        <span asp-validation-for="SettingsVM.CompletionScriptExecutor" class="text-danger"></span>
+
+                        <br /><br />
+
+                        <label bs5-for="SettingsVM.CompletionScriptExecutorArgs" class="form-label"></label>
+                        <input bs5-for="SettingsVM.CompletionScriptExecutorArgs" class="form-control executor-args-input" />
+                        <span asp-validation-for="SettingsVM.CompletionScriptExecutorArgs" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col mb-3 d-flex align-items-center">
+                    <div class="shadow p-3 bg-body-tertiary rounded flex-fill">
+                        <partial name="_ExecutorFormHelpPartial" />
+                    </div>
+                </div>
+            </div>
+            <div class="row gx-5">
+                <hr />
+            </div>
+            <div class="row gx-5">
+                <div class="col mb-3 d-flex align-items-center">
+                    <div class="flex-fill">
+                        <label bs5-for="SettingsVM.CompletionScript" class="form-label"></label>
+                        <textarea bs5-for="SettingsVM.CompletionScript" rows="5" class="form-control"></textarea>
+                        <span asp-validation-for="SettingsVM.CompletionScript" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col mb-3 d-flex align-items-center">
+                    <div class="shadow p-3 bg-body-tertiary rounded flex-fill">
+                        Optional - script to execute upon completion of job executions
+                        <br /><br />
+                        In order for the script to be able to run, an executor must be selected (see above) and at least one job execution status must be enabled (see below).
+                        <br /><br />
+                        The following environment variables are available:
+                        <br />
+                        <ul>
+                            <li><code>CRONCH_JOB_ID</code> - job ID</li>
+                            <li><code>CRONCH_JOB_NAME</code> - job name</li>
+                            <li><code>CRONCH_EXECUTION_ID</code> - execution ID</li>
+                            <li><code>CRONCH_EXECUTION_STARTED_ON</code> - Unix Epoch start time (in seconds, UTC)</li>
+                            <li><code>CRONCH_EXECUTION_COMPLETED_ON</code> - Unix Epoch stop time (in seconds, UTC)</li>
+                            <li><code>CRONCH_EXECUTION_EXIT_CODE</code> - numeric exit code</li>
+                            <li>
+                                <code>CRONCH_EXECUTION_STATUS</code> - one of the following:
+                                <ul>
+                                    <li><code>@(Models.ExecutionStatus.Unknown)</code></li>
+                                    <li><code>@(Models.ExecutionStatus.CompletedAsSuccess)</code></li>
+                                    <li><code>@(Models.ExecutionStatus.CompletedAsIndeterminate)</code></li>
+                                    <li><code>@(Models.ExecutionStatus.CompletedAsWarning)</code></li>
+                                    <li><code>@(Models.ExecutionStatus.CompletedAsError)</code></li>
+                                </ul>
+                            </li>
+                            <li>
+                                <code>CRONCH_EXECUTION_STOP_REASON</code> - one of the following:
+                                <ul>
+                                    <li><code>@(Models.TerminationReason.NoneSpecified)</code></li>
+                                    <li><code>@(Models.TerminationReason.Exited)</code></li>
+                                    <li><code>@(Models.TerminationReason.TimedOut)</code></li>
+                                    <li><code>@(Models.TerminationReason.SkippedForParallelism)</code></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="row gx-5">
+                <hr />
+            </div>
+            <div class="row gx-5">
+                <div class="col mb-3 d-flex align-items-center">
+                    <div class="flex-fill">
+                        <p>Run completion script job execution statuses</p>
+                        <div class="form-check form-switch">
+                            <input bs5-for="SettingsVM.RunCompletionScriptOnSuccess" type="checkbox" class="form-check-input" autocomplete="off">
+                            <label asp-for="SettingsVM.RunCompletionScriptOnSuccess" class="form-check-label"></label>
+                            <br />
+                            <input bs5-for="SettingsVM.RunCompletionScriptOnIndeterminate" type="checkbox" class="form-check-input" autocomplete="off">
+                            <label asp-for="SettingsVM.RunCompletionScriptOnIndeterminate" class="form-check-label"></label>
+                            <br />
+                            <input bs5-for="SettingsVM.RunCompletionScriptOnWarning" type="checkbox" class="form-check-input" autocomplete="off">
+                            <label asp-for="SettingsVM.RunCompletionScriptOnWarning" class="form-check-label"></label>
+                            <br />
+                            <input bs5-for="SettingsVM.RunCompletionScriptOnError" type="checkbox" class="form-check-input" autocomplete="off">
+                            <label asp-for="SettingsVM.RunCompletionScriptOnError" class="form-check-label"></label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col mb-3 d-flex align-items-center">
+                    <div class="shadow p-3 bg-body-tertiary rounded flex-fill">
+                        Optional - status(es) for which to run the completion script (see above)
+                        <br /><br />
+                        If no statuses are selected, the completion script will never run.
+                    </div>
+                </div>
+            </div>
+            <div class="row gx-5">
+                <hr />
+            </div>
+            <div class="row gx-5">
+                <div class="col mb-3 d-flex align-items-center">
+                    <div class="form-check flex-fill">
+                        <input bs5-for="SettingsVM.MakeOutputAvailableToScript" class="form-check-input" />
+                        <label asp-for="SettingsVM.MakeOutputAvailableToScript" class="form-check-label"></label>
+                    </div>
+                </div>
+                <div class="col mb-3 d-flex align-items-center">
+                    <div class="shadow p-3 bg-body-tertiary rounded flex-fill">
+                        Whether to make standard out and standard error data available to the run completion script
+                        <br /><br />
+                        If enabled, <code>out.txt</code> and <code>err.txt</code> will be in the same directory as the script while executing. Note, this requires processing of the saved output data and may increase overall load.
+                    </div>
+                </div>
+            </div>
             <br />
             <button type="submit" class="btn btn-primary">Save</button>
             <br /><br />

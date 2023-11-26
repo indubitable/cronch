@@ -55,6 +55,14 @@ public static class ConversionUtility
             MaxHistoryItemsShown = settingsViewModel.MaxHistoryItemsShown,
             DeleteHistoricalRunsAfterCount = settingsViewModel.DeleteHistoricalRunsAfterCount,
             DeleteHistoricalRunsAfterDays = settingsViewModel.DeleteHistoricalRunsAfterDays,
+            CompletionScriptExecutor = settingsViewModel.CompletionScriptExecutor,
+            CompletionScriptExecutorArgs = settingsViewModel.CompletionScriptExecutorArgs,
+            CompletionScript = settingsViewModel.CompletionScript,
+            RunCompletionScriptOnSuccess = settingsViewModel.RunCompletionScriptOnSuccess,
+            RunCompletionScriptOnIndeterminate = settingsViewModel.RunCompletionScriptOnIndeterminate,
+            RunCompletionScriptOnWarning = settingsViewModel.RunCompletionScriptOnWarning,
+            RunCompletionScriptOnError = settingsViewModel.RunCompletionScriptOnError,
+            MakeOutputAvailableToScript = settingsViewModel.MakeOutputAvailableToScript,
         };
     }
 
@@ -107,6 +115,14 @@ public static class ConversionUtility
             MaxHistoryItemsShown = settingsModel.MaxHistoryItemsShown,
             DeleteHistoricalRunsAfterCount = settingsModel.DeleteHistoricalRunsAfterCount,
             DeleteHistoricalRunsAfterDays = settingsModel.DeleteHistoricalRunsAfterDays,
+            CompletionScriptExecutor = settingsModel.CompletionScriptExecutor,
+            CompletionScriptExecutorArgs = settingsModel.CompletionScriptExecutorArgs,
+            CompletionScript = settingsModel.CompletionScript,
+            RunCompletionScriptOnSuccess = settingsModel.RunCompletionScriptOnSuccess,
+            RunCompletionScriptOnIndeterminate = settingsModel.RunCompletionScriptOnIndeterminate,
+            RunCompletionScriptOnWarning = settingsModel.RunCompletionScriptOnWarning,
+            RunCompletionScriptOnError = settingsModel.RunCompletionScriptOnError,
+            MakeOutputAvailableToScript = settingsModel.MakeOutputAvailableToScript,
         };
     }
 

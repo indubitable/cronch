@@ -72,32 +72,7 @@
             </div>
             <div class="col mb-3 d-flex align-items-center">
                 <div class="shadow p-3 bg-body-tertiary rounded flex-fill">
-                    <script type="text/javascript">
-                        function setExecutor(execFile, execArgs) {
-                            document.querySelector('.executor-input').value = execFile;
-                            document.querySelector('.executor-args-input').value = execArgs;
-                            return false;
-                        }
-                    </script>
-                    The command that executes your script
-                    <br /><br />
-                    The command must have at least a <a target="_blank" href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.processstartinfo.filename">filename</a>, and optionally some <a target="_blank" href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.processstartinfo.arguments">arguments</a>.
-                    <br /><br />
-                    If <code>{0}</code> is present in the Arguments field, it is replaced with the script location. Otherwise, the script location is appended at the end.
-                    <br /><br />
-                    Quick choices:
-                    <a href="#" onclick="return setExecutor('/usr/bin/env', 'bash -c');">Bash</a>
-                    |
-                    <a href="#" onclick="return setExecutor('/usr/bin/env', 'bash -l -c');">Bash (login shell)</a>
-                    |
-                    <a href="#" onclick="return setExecutor('/usr/bin/env', 'pwsh -NonInteractive -f');">PowerShell (Core)</a>
-                    <br />
-                    Windows only:
-                    <a href="#" onclick="return setExecutor('C:\\Program Files\\Git\\bin\\bash.exe', '-c &quot;exec $(cygpath -u \'{0}\')&quot;');">Git Bash</a>
-                    |
-                    <a href="#" onclick="return setExecutor('cmd.exe', '/C');">cmd.exe</a>
-                    |
-                    <a href="#" onclick="return setExecutor('powershell.exe', '-NonInteractive -f');">Windows PowerShell</a>
+                    <partial name="_ExecutorFormHelpPartial" />
                 </div>
             </div>
         </div>

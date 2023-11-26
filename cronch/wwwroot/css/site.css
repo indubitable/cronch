@@ -59,7 +59,7 @@ body {
   background-color: rgba(var(--bs-body-bg-rgb), 0.9);
 }
 
-.form-switch input[type="checkbox"] {
+.form-switch .form-check-input, .form-switch .form-check-label {
   cursor: pointer;
 }
 
