@@ -166,7 +166,7 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
             using var outputStream = File.Open(persistence.GetOutputPathName(execution, true), FileMode.Create, FileAccess.Write, FileShare.Read);
             execution.Status = ExecutionStatus.Running;
             persistence.AddExecution(execution);
-            engine.PerformExecution(execution, jobModel, scriptFilePathname, outputStream, []);
+            engine.PerformExecution(execution, jobModel, scriptFilePathname, outputStream, true, []);
             persistence.UpdateExecution(execution);
         }
         catch (Exception ex)
@@ -209,7 +209,7 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
             };
             var runCompletionExecution = ExecutionModel.CreateNew(runCompletionJob.Id, runCompletionJob.Name, ExecutionReason.Scheduled, ExecutionStatus.Unknown);
             var envVars = GetRunCompletionEnvVars(execution, jobModel, executionPersistenceService.GetOutputPathName(execution, false));
-            executionEngine.PerformExecution(runCompletionExecution, runCompletionJob, Path.Combine(GetDefaultScriptLocation(settings), Path.GetRandomFileName()), outputStream, envVars);
+            executionEngine.PerformExecution(runCompletionExecution, runCompletionJob, Path.Combine(GetDefaultScriptLocation(settings), Path.GetRandomFileName()), outputStream, false, envVars);
 
             if (runCompletionExecution.StopReason != TerminationReason.Exited || runCompletionExecution.ExitCode != 0)
             {
@@ -236,7 +236,7 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
             { "CRONCH_EXECUTION_STATUS", execution.Status.ToString() },
             { "CRONCH_EXECUTION_STOP_REASON", execution.StopReason?.ToString() ?? string.Empty },
             { "CRONCH_EXECUTION_INTERNAL_OUTPUT_FILE", outputFilePathname},
-    };
+        };
     }
 
     private static ExecutionIdentifier GetExecutionIdentifierFromModel(ExecutionModel execution)

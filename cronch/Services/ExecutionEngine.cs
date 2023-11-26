@@ -5,7 +5,7 @@ namespace cronch.Services;
 
 public class ExecutionEngine(ILogger<ExecutionEngine> _logger)
 {
-    public void PerformExecution(ExecutionModel execution, JobModel jobModel, string targetScriptFile, Stream outputStream, Dictionary<string, string> environmentVars)
+    public void PerformExecution(ExecutionModel execution, JobModel jobModel, string targetScriptFile, Stream outputStream, bool formatOutput, Dictionary<string, string> environmentVars)
     {
         var intermediateExecutionStatus = ExecutionStatus.CompletedAsSuccess;
 
@@ -45,7 +45,7 @@ public class ExecutionEngine(ILogger<ExecutionEngine> _logger)
                 var line = args.Data;
                 if (!string.IsNullOrWhiteSpace(line))
                 {
-                    outputWriter.WriteLine($"O {DateTimeOffset.UtcNow:yyyyMMdd HHmmss} {line}");
+                    outputWriter.WriteLine(formatOutput ? $"O {DateTimeOffset.UtcNow:yyyyMMdd HHmmss} {line}" : line);
                     ProcessLineForStatusUpdate(line, jobModel.Keywords, jobModel.StdOutProcessing, ref intermediateExecutionStatus);
                 }
             };
@@ -54,7 +54,7 @@ public class ExecutionEngine(ILogger<ExecutionEngine> _logger)
                 var line = args.Data;
                 if (!string.IsNullOrWhiteSpace(line))
                 {
-                    outputWriter.WriteLine($"E {DateTimeOffset.UtcNow:yyyyMMdd HHmmss} {line}");
+                    outputWriter.WriteLine(formatOutput ? $"E {DateTimeOffset.UtcNow:yyyyMMdd HHmmss} {line}" : line);
                     ProcessLineForStatusUpdate(line, jobModel.Keywords, jobModel.StdErrProcessing, ref intermediateExecutionStatus);
                 }
             };
