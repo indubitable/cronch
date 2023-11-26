@@ -6,6 +6,7 @@ namespace cronch.Services;
 public class SettingsService(ConfigPersistenceService _configPersistenceService)
 {
     public const int DefaultMaxHistoryItemsShown = 250;
+    public const int MaxCompletionScriptRuntimeSeconds = 20;
 
     public void SaveSettings(SettingsModel settingsModel)
     {
@@ -25,6 +26,7 @@ public class SettingsService(ConfigPersistenceService _configPersistenceService)
         persistenceModel.MaxHistoryItemsShown = settingsModel.MaxHistoryItemsShown;
         persistenceModel.DeleteHistoricalRunsAfterCount = settingsModel.DeleteHistoricalRunsAfterCount;
         persistenceModel.DeleteHistoricalRunsAfterDays = settingsModel.DeleteHistoricalRunsAfterDays;
+        persistenceModel.DefaultScriptFileLocation = settingsModel.DefaultScriptFileLocation;
 
         persistenceModel.CompletionScriptExecutor = settingsModel.CompletionScriptExecutor;
         persistenceModel.CompletionScriptExecutorArgs = settingsModel.CompletionScriptExecutorArgs;
@@ -35,8 +37,6 @@ public class SettingsService(ConfigPersistenceService _configPersistenceService)
         if (settingsModel.RunCompletionScriptOnIndeterminate) persistenceModel.RunCompletionScriptOn.Add("Indeterminate");
         if (settingsModel.RunCompletionScriptOnWarning) persistenceModel.RunCompletionScriptOn.Add("Warning");
         if (settingsModel.RunCompletionScriptOnError) persistenceModel.RunCompletionScriptOn.Add("Error");
-
-        persistenceModel.MakeOutputAvailableToScript = settingsModel.MakeOutputAvailableToScript;
     }
 
     private static SettingsModel CreateSettingsModelFromPersistenceModel(ConfigPersistenceModel persistenceModel)
@@ -46,6 +46,7 @@ public class SettingsService(ConfigPersistenceService _configPersistenceService)
             MaxHistoryItemsShown = persistenceModel.MaxHistoryItemsShown,
             DeleteHistoricalRunsAfterCount = persistenceModel.DeleteHistoricalRunsAfterCount,
             DeleteHistoricalRunsAfterDays = persistenceModel.DeleteHistoricalRunsAfterDays,
+            DefaultScriptFileLocation = persistenceModel.DefaultScriptFileLocation,
 
             CompletionScriptExecutor = persistenceModel.CompletionScriptExecutor,
             CompletionScriptExecutorArgs = persistenceModel.CompletionScriptExecutorArgs,
@@ -55,8 +56,6 @@ public class SettingsService(ConfigPersistenceService _configPersistenceService)
             RunCompletionScriptOnIndeterminate = persistenceModel.RunCompletionScriptOn.Contains("Indeterminate"),
             RunCompletionScriptOnWarning = persistenceModel.RunCompletionScriptOn.Contains("Warning"),
             RunCompletionScriptOnError = persistenceModel.RunCompletionScriptOn.Contains("Error"),
-
-            MakeOutputAvailableToScript = persistenceModel.MakeOutputAvailableToScript,
         };
     }
 }

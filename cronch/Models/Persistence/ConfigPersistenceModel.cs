@@ -18,17 +18,17 @@ public class ConfigPersistenceModel
     public int? DeleteHistoricalRunsAfterDays { get; set; }
 
     [XmlElement(Order = 4, IsNullable = true)]
-    public string? CompletionScriptExecutor { get; set; }
+    public string? DefaultScriptFileLocation { get; set; }
 
     [XmlElement(Order = 5, IsNullable = true)]
-    public string? CompletionScriptExecutorArgs { get; set; }
+    public string? CompletionScriptExecutor { get; set; }
 
     [XmlElement(Order = 6, IsNullable = true)]
+    public string? CompletionScriptExecutorArgs { get; set; }
+
+    [XmlElement(Order = 7, IsNullable = true)]
     public string? CompletionScript { get; set; }
 
-    [XmlArray(Order = 7), XmlArrayItem("Status")]
+    [XmlArray(Order = 8), XmlArrayItem("Status")]
     public List<string> RunCompletionScriptOn { get; set; } = [];
-
-    [XmlElement(Order = 8)]
-    public bool MakeOutputAvailableToScript { get; set; }
 }

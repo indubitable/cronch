@@ -55,6 +55,7 @@ public static class ConversionUtility
             MaxHistoryItemsShown = settingsViewModel.MaxHistoryItemsShown,
             DeleteHistoricalRunsAfterCount = settingsViewModel.DeleteHistoricalRunsAfterCount,
             DeleteHistoricalRunsAfterDays = settingsViewModel.DeleteHistoricalRunsAfterDays,
+            DefaultScriptFileLocation = settingsViewModel.DefaultScriptFileLocation,
             CompletionScriptExecutor = settingsViewModel.CompletionScriptExecutor,
             CompletionScriptExecutorArgs = settingsViewModel.CompletionScriptExecutorArgs,
             CompletionScript = settingsViewModel.CompletionScript,
@@ -62,7 +63,6 @@ public static class ConversionUtility
             RunCompletionScriptOnIndeterminate = settingsViewModel.RunCompletionScriptOnIndeterminate,
             RunCompletionScriptOnWarning = settingsViewModel.RunCompletionScriptOnWarning,
             RunCompletionScriptOnError = settingsViewModel.RunCompletionScriptOnError,
-            MakeOutputAvailableToScript = settingsViewModel.MakeOutputAvailableToScript,
         };
     }
 
@@ -115,6 +115,7 @@ public static class ConversionUtility
             MaxHistoryItemsShown = settingsModel.MaxHistoryItemsShown,
             DeleteHistoricalRunsAfterCount = settingsModel.DeleteHistoricalRunsAfterCount,
             DeleteHistoricalRunsAfterDays = settingsModel.DeleteHistoricalRunsAfterDays,
+            DefaultScriptFileLocation = settingsModel.DefaultScriptFileLocation,
             CompletionScriptExecutor = settingsModel.CompletionScriptExecutor,
             CompletionScriptExecutorArgs = settingsModel.CompletionScriptExecutorArgs,
             CompletionScript = settingsModel.CompletionScript,
@@ -122,7 +123,6 @@ public static class ConversionUtility
             RunCompletionScriptOnIndeterminate = settingsModel.RunCompletionScriptOnIndeterminate,
             RunCompletionScriptOnWarning = settingsModel.RunCompletionScriptOnWarning,
             RunCompletionScriptOnError = settingsModel.RunCompletionScriptOnError,
-            MakeOutputAvailableToScript = settingsModel.MakeOutputAvailableToScript,
         };
     }
 

@@ -14,6 +14,7 @@ public class CleanupService(ILogger<CleanupService> _logger, JobConfigService _j
         _runThread = new Thread(RunCleanupThread)
         {
             IsBackground = true,
+            Priority = ThreadPriority.BelowNormal,
         };
         _runThread.Start();
     }

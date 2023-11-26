@@ -1,11 +1,10 @@
 ﻿using cronch.Models;
 using cronch.Models.ViewModels;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 
 namespace cronch.Services;
 
-public class JobExecutionService(ILogger<JobExecutionService> _logger, IServiceProvider _serviceProvider)
+public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsService _settingsService, IServiceProvider _serviceProvider)
 {
     public readonly record struct ExecutionIdentifier(Guid JobId, Guid ExecutionId, DateTimeOffset StartedOn);
 
@@ -152,113 +151,22 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, IServiceP
     {
         using var scope = _serviceProvider.CreateScope();
         var persistence = scope.ServiceProvider.GetRequiredService<ExecutionPersistenceService>();
-
-        var tempDir = Path.GetTempPath();
-        var scriptFile = Path.Combine(tempDir, Path.GetRandomFileName());
-        if (!string.IsNullOrWhiteSpace(jobModel.ScriptFilePathname))
-        {
-            scriptFile = Path.Combine(tempDir, jobModel.ScriptFilePathname.Trim());
-        }
-
-        var intermediateExecutionStatus = ExecutionStatus.CompletedAsSuccess;
+        var engine = scope.ServiceProvider.GetRequiredService<ExecutionEngine>();
+        var settings = _settingsService.LoadSettings();
 
         try
         {
-            execution.Status = ExecutionStatus.Running;
-            persistence.AddExecution(execution);
+            var scriptDefaultDir = GetDefaultScriptLocation(settings);
+            var scriptFilePathname = Path.Combine(scriptDefaultDir, Path.GetRandomFileName());
+            if (!string.IsNullOrWhiteSpace(jobModel.ScriptFilePathname))
+            {
+                scriptFilePathname = Path.Combine(scriptDefaultDir, jobModel.ScriptFilePathname.Trim());
+            }
 
             using var outputStream = File.Open(persistence.GetOutputPathName(execution, true), FileMode.Create, FileAccess.Write, FileShare.Read);
-            using var outputWriter = new StreamWriter(outputStream, leaveOpen: true);
-
-            File.WriteAllText(scriptFile, jobModel.Script);
-
-            var executorFile = jobModel.Executor;
-            var executorArgs = (jobModel.ExecutorArgs ?? "").Trim();
-            if (executorArgs.Contains("{0}"))
-            {
-                executorArgs = string.Format(executorArgs, scriptFile);
-            }
-            else
-            {
-                executorArgs += $" {scriptFile}";
-                executorArgs = executorArgs.Trim();
-            }
-            var startInfo = new ProcessStartInfo
-            {
-                UseShellExecute = false,
-                StandardOutputEncoding = System.Text.Encoding.UTF8,
-                RedirectStandardOutput = true,
-                StandardErrorEncoding = System.Text.Encoding.UTF8,
-                RedirectStandardError = true,
-                CreateNoWindow = true,
-                FileName = executorFile,
-                Arguments = executorArgs
-            };
-            using var process = new Process();
-            process.StartInfo = startInfo;
-            process.OutputDataReceived += (sender, args) =>
-            {
-                var line = args.Data;
-                if (!string.IsNullOrWhiteSpace(line))
-                {
-                    outputWriter.WriteLine($"O {DateTimeOffset.UtcNow:yyyyMMdd HHmmss} {line}");
-                    ProcessLineForStatusUpdate(line, jobModel.Keywords, jobModel.StdOutProcessing, ref intermediateExecutionStatus);
-                }
-            };
-            process.ErrorDataReceived += (sender, args) =>
-            {
-                var line = args.Data;
-                if (!string.IsNullOrWhiteSpace(line))
-                {
-                    outputWriter.WriteLine($"E {DateTimeOffset.UtcNow:yyyyMMdd HHmmss} {line}");
-                    ProcessLineForStatusUpdate(line, jobModel.Keywords, jobModel.StdErrProcessing, ref intermediateExecutionStatus);
-                }
-            };
-            process.Start();
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
-
-            if (jobModel.TimeLimitSecs.HasValue)
-            {
-                if (process.WaitForExit(TimeSpan.FromSeconds(jobModel.TimeLimitSecs.Value)))
-                {
-                    execution.StopReason = TerminationReason.Exited;
-                }
-                else
-                {
-                    execution.StopReason = TerminationReason.TimedOut;
-                    execution.Status = ExecutionStatus.CompletedAsError;
-                    persistence.UpdateExecution(execution);
-                    process.Kill(true);
-                    if (!process.WaitForExit(800))
-                    {
-                        _logger.LogWarning("Job '{Name}' ({Id}), execution {ExecName}, timed out and could not be fully killed in a reasonable amount of time", jobModel.Name, jobModel.Id, execution.GetExecutionName());
-                        throw new TimeoutException();
-                    }
-                }
-            }
-            else
-            {
-                process.WaitForExit();
-                execution.StopReason = TerminationReason.Exited;
-            }
-
-            execution.CompletedOn = DateTimeOffset.UtcNow;
-            execution.ExitCode = process.ExitCode;
-
-            if (execution.Status == ExecutionStatus.Running)
-            {
-                if (execution.ExitCode != 0)
-                {
-                    // Always mark as error when the exit code is non-zero
-                    execution.Status = ExecutionStatus.CompletedAsError;
-                }
-                else
-                {
-                    execution.Status = intermediateExecutionStatus;
-                }
-            }
-
+            execution.Status = ExecutionStatus.Running;
+            persistence.AddExecution(execution);
+            engine.PerformExecution(execution, jobModel, scriptFilePathname, outputStream, []);
             persistence.UpdateExecution(execution);
         }
         catch (Exception ex)
@@ -267,62 +175,77 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, IServiceP
         }
         finally
         {
-            try
-            {
-                File.Delete(scriptFile);
-            }
-            catch (Exception)
-            {
-                // Ignore.
-            }
-
             _executions.TryRemove(GetExecutionIdentifierFromModel(execution), out var _);
+        }
+
+        ExecuteRunCompletionScript(execution, jobModel, settings, engine, persistence);
+    }
+
+    private void ExecuteRunCompletionScript(ExecutionModel execution, JobModel jobModel, SettingsModel settings, ExecutionEngine executionEngine, ExecutionPersistenceService executionPersistenceService)
+    {
+        if (
+            string.IsNullOrWhiteSpace(settings.CompletionScript) ||
+            string.IsNullOrWhiteSpace(settings.CompletionScriptExecutor) ||
+            (execution.Status == ExecutionStatus.CompletedAsSuccess && !settings.RunCompletionScriptOnSuccess) ||
+            (execution.Status == ExecutionStatus.CompletedAsIndeterminate && !settings.RunCompletionScriptOnIndeterminate) ||
+            (execution.Status == ExecutionStatus.CompletedAsWarning && !settings.RunCompletionScriptOnWarning) ||
+            (execution.Status == ExecutionStatus.CompletedAsError && !settings.RunCompletionScriptOnError)
+        )
+        {
+            return;
+        }
+
+        using var outputStream = new MemoryStream();
+        try
+        {
+            var runCompletionJob = new JobModel
+            {
+                Id = Guid.Empty,
+                Name = "Run Completion",
+                Executor = settings.CompletionScriptExecutor,
+                ExecutorArgs = settings.CompletionScriptExecutorArgs,
+                Script = settings.CompletionScript,
+                TimeLimitSecs = SettingsService.MaxCompletionScriptRuntimeSeconds,
+            };
+            var runCompletionExecution = ExecutionModel.CreateNew(runCompletionJob.Id, runCompletionJob.Name, ExecutionReason.Scheduled, ExecutionStatus.Unknown);
+            var envVars = GetRunCompletionEnvVars(execution, jobModel, executionPersistenceService.GetOutputPathName(execution, false));
+            executionEngine.PerformExecution(runCompletionExecution, runCompletionJob, Path.Combine(GetDefaultScriptLocation(settings), Path.GetRandomFileName()), outputStream, envVars);
+
+            if (runCompletionExecution.StopReason != TerminationReason.Exited || runCompletionExecution.ExitCode != 0)
+            {
+                outputStream.Position = 0;
+                using var reader = new StreamReader(outputStream, leaveOpen: true);
+                _logger.LogWarning("Run completion script did not execute successfully for job '{Name}' ({Id}), execution {ExecName}. Script output:\n{Output}", jobModel.Name, jobModel.Id, execution.GetExecutionName(), reader.ReadToEnd());
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while executing run completion script for job '{Name}' ({Id}), execution {ExecName}", jobModel.Name, jobModel.Id, execution.GetExecutionName());
         }
     }
 
-    private static void ProcessLineForStatusUpdate(string line, List<string> keywords, JobModel.OutputProcessing processingDirective, ref ExecutionStatus intermediateExecutionStatus)
+    private static Dictionary<string, string> GetRunCompletionEnvVars(ExecutionModel execution, JobModel jobModel, string outputFilePathname)
     {
-        var keywordMatchExists = false;
-        if (processingDirective == JobModel.OutputProcessing.WarningOnMatchingKeywords || processingDirective == JobModel.OutputProcessing.ErrorOnMatchingKeywords)
-        {
-            foreach (var keyword in keywords)
-            {
-                if (line.Contains(keyword, StringComparison.InvariantCulture))
-                {
-                    keywordMatchExists = true;
-                    break;
-                }
-            }
-        }
-
-        switch (processingDirective)
-        {
-            case JobModel.OutputProcessing.WarningOnAnyOutput:
-                if (intermediateExecutionStatus != ExecutionStatus.CompletedAsError)
-                {
-                    intermediateExecutionStatus = ExecutionStatus.CompletedAsWarning;
-                }
-                break;
-            case JobModel.OutputProcessing.ErrorOnAnyOutput:
-                intermediateExecutionStatus = ExecutionStatus.CompletedAsError;
-                break;
-            case JobModel.OutputProcessing.WarningOnMatchingKeywords:
-                if (intermediateExecutionStatus != ExecutionStatus.CompletedAsError && keywordMatchExists)
-                {
-                    intermediateExecutionStatus = ExecutionStatus.CompletedAsWarning;
-                }
-                break;
-            case JobModel.OutputProcessing.ErrorOnMatchingKeywords:
-                if (keywordMatchExists)
-                {
-                    intermediateExecutionStatus = ExecutionStatus.CompletedAsError;
-                }
-                break;
-        }
+        return new Dictionary<string, string> {
+            { "CRONCH_JOB_ID", jobModel.Id.ToString("D") },
+            { "CRONCH_JOB_NAME", jobModel.Name },
+            { "CRONCH_EXECUTION_ID", execution.Id.ToString("D") },
+            { "CRONCH_EXECUTION_STARTED_ON", execution.StartedOn.ToUnixTimeSeconds().ToString() },
+            { "CRONCH_EXECUTION_COMPLETED_ON", execution.CompletedOn?.ToUnixTimeSeconds().ToString() ?? string.Empty },
+            { "CRONCH_EXECUTION_EXIT_CODE", execution.ExitCode.HasValue ? execution.ExitCode.Value.ToString() : string.Empty },
+            { "CRONCH_EXECUTION_STATUS", execution.Status.ToString() },
+            { "CRONCH_EXECUTION_STOP_REASON", execution.StopReason?.ToString() ?? string.Empty },
+            { "CRONCH_EXECUTION_INTERNAL_OUTPUT_FILE", outputFilePathname},
+    };
     }
 
     private static ExecutionIdentifier GetExecutionIdentifierFromModel(ExecutionModel execution)
     {
         return new ExecutionIdentifier(execution.JobId, execution.Id, execution.StartedOn);
+    }
+
+    private static string GetDefaultScriptLocation(SettingsModel settings)
+    {
+        return string.IsNullOrWhiteSpace(settings.DefaultScriptFileLocation) ? Path.GetTempPath() : settings.DefaultScriptFileLocation;
     }
 }

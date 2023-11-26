@@ -16,6 +16,9 @@ public class SettingsViewModel
     [Range(1, 5000)]
     public int? DeleteHistoricalRunsAfterDays { get; set; }
 
+    [Display(Name = "Default script file location")]
+    public string? DefaultScriptFileLocation { get; set; }
+
     [Display(Name = "Run completion script executor")]
     public string? CompletionScriptExecutor { get; set; }
 
@@ -40,8 +43,4 @@ public class SettingsViewModel
     [Required(AllowEmptyStrings = false)]
     [Display(Name = "Error", Description = "Run completion script on error")]
     public bool RunCompletionScriptOnError { get; set; }
-
-    [Required(AllowEmptyStrings = false)]
-    [Display(Name = "Make job output available to script")]
-    public bool MakeOutputAvailableToScript { get; set; }
 }

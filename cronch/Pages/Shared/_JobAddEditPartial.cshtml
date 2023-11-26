@@ -59,6 +59,21 @@
         <div class="row gx-5">
             <div class="col mb-3 d-flex align-items-center">
                 <div class="flex-fill">
+                    <label bs5-for="Script" class="form-label"></label>
+                    <textarea bs5-for="Script" rows="5" class="form-control"></textarea>
+                    <span asp-validation-for="Script" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="col mb-3 d-flex align-items-center">
+                <div class="shadow p-3 bg-body-tertiary rounded flex-fill">The script to run, executed by the executor (see below)</div>
+            </div>
+        </div>
+        <div class="row gx-5">
+            <hr />
+        </div>
+        <div class="row gx-5">
+            <div class="col mb-3 d-flex align-items-center">
+                <div class="flex-fill">
                     <label bs5-for="Executor" class="form-label"></label>
                     <input bs5-for="Executor" class="form-control executor-input" />
                     <span asp-validation-for="Executor" class="text-danger"></span>
@@ -74,21 +89,6 @@
                 <div class="shadow p-3 bg-body-tertiary rounded flex-fill">
                     <partial name="_ExecutorFormHelpPartial" />
                 </div>
-            </div>
-        </div>
-        <div class="row gx-5">
-            <hr />
-        </div>
-        <div class="row gx-5">
-            <div class="col mb-3 d-flex align-items-center">
-                <div class="flex-fill">
-                    <label bs5-for="Script" class="form-label"></label>
-                    <textarea bs5-for="Script" rows="5" class="form-control"></textarea>
-                    <span asp-validation-for="Script" class="text-danger"></span>
-                </div>
-            </div>
-            <div class="col mb-3 d-flex align-items-center">
-                <div class="shadow p-3 bg-body-tertiary rounded flex-fill">The script executed by the executor (see above)</div>
             </div>
         </div>
         <div class="row gx-5">

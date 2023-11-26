@@ -41,7 +41,7 @@ public class JobModel
 
     public ParallelSkipProcessing MarkParallelSkipAs { get; set; } = ParallelSkipProcessing.Ignore;
 
-    public List<string> Keywords { get; set; } = new List<string>();
+    public List<string> Keywords { get; set; } = [];
 
     public OutputProcessing StdOutProcessing { get; set; } = OutputProcessing.None;
 

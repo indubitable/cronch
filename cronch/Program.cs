@@ -21,6 +21,7 @@ builder.Services.AddSingleton<SettingsService>();
 builder.Services.AddSingleton<CleanupService>();
 
 builder.Services.AddTransient<ExecutionPersistenceService>();
+builder.Services.AddTransient<ExecutionEngine>();
 
 var app = builder.Build();
 
@@ -43,7 +44,6 @@ using (var scope = app.Services.CreateScope())
     dbContext.Database.Migrate();
     dbContext.Database.ExecuteSqlRaw("PRAGMA journal_mode=DELETE;");
 
-    // Initialize the cleanup service before the scheduling service.
     var cleanupService = services.GetRequiredService<CleanupService>();
     cleanupService.Initialize();
 
