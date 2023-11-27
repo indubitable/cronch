@@ -5,6 +5,9 @@
 		<VersionPrefix>0.0.1</VersionPrefix>
 		<VersionSuffix>$([System.DateTime]::UtcNow.ToString(`yyyyMMdd-HHmm`))</VersionSuffix>
 		<IncludeSourceRevisionInInformationalVersion>true</IncludeSourceRevisionInInformationalVersion>
+		<OutputType>exe</OutputType>
+		<PublishSingleFile Condition="'$(Configuration)' == 'Release'">true</PublishSingleFile>
+		<DebugType>embedded</DebugType>
 	</PropertyGroup>
 
 	<PropertyGroup>
