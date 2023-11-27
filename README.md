@@ -7,13 +7,13 @@
 - live job insights such as stdout/stderr views
 - saving of run histories with full output and timestamps
   - configurable removal of old histories to free up space: time- and/or count-based
-- customizable notifications
-  - email, Slack, Discord, other webhooks?
-  - could notify on: success, failure, warning, parallelism limit, more?
+- customizable post-run actions
+  - custom script can ingest run metadata and act on it
+  - script could notify via email, Slack, Discord, other webhooks, etc.
 - configurable job parallelism
 - configuration and history export/import capability
-  - configuration is diff-friendly (TBD whether it's always so or just on export)
-  - TBD whether history is plaintext, compressed, SQLite, or something else
+  - configuration is a diff-friendly XML file
+  - history is SQLite, with stdout/stderr as minimally formatted text
 - native support for containerization
 
 ## Non-features, i.e., things explicitly avoided (at least for MVP)
