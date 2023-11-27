@@ -14,6 +14,10 @@ public class ExecutionEngine(ILogger<ExecutionEngine> _logger)
             using var outputWriter = new StreamWriter(outputStream, leaveOpen: true);
 
             File.WriteAllText(targetScriptFile, jobModel.Script);
+            if (!OperatingSystem.IsWindows())
+            {
+                try { File.SetUnixFileMode(targetScriptFile, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute | UnixFileMode.GroupRead); } catch { }
+            }
 
             var executorFile = jobModel.Executor;
             var executorArgs = (jobModel.ExecutorArgs ?? "").Trim();
