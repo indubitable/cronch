@@ -6,7 +6,6 @@ defaults:
 
 env:
   TAG_NAME: ghcr.io/indubitable/cronch
-  BUILDX_NO_DEFAULT_ATTESTATIONS: 1
 
 on:
   workflow_dispatch:
@@ -70,6 +69,7 @@ jobs:
           platforms: ${{ github.event.inputs.target_platforms }}
           push: true
           tags: ${{ steps.set_tags.outputs.all-tags }}
+          provenance: false
           build-args: |
             DOTNET_SDK_PLATFORM=-amd64
             CRONCH_VERSION=${{ github.event.inputs.tagged_version }}
