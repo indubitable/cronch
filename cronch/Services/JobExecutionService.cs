@@ -43,7 +43,11 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
         var outputContents = string.Empty;
         try
         {
-            if (File.Exists(outputPathname)) outputContents = File.ReadAllText(outputPathname);
+            if (File.Exists(outputPathname))
+            {
+                using var reader = new StreamReader(outputPathname, new FileStreamOptions { Access = FileAccess.Read, Mode = FileMode.Open, Share = FileShare.ReadWrite });
+                outputContents = reader.ReadToEnd();
+            }
         }
         catch (Exception ex)
         {

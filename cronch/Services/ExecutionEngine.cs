@@ -50,6 +50,7 @@ public class ExecutionEngine(ILogger<ExecutionEngine> _logger)
                 if (!string.IsNullOrWhiteSpace(line))
                 {
                     outputWriter.WriteLine(formatOutput ? $"O {DateTimeOffset.UtcNow:yyyyMMdd HHmmss} {line}" : line);
+                    outputWriter.Flush();
                     ProcessLineForStatusUpdate(line, jobModel.Keywords, jobModel.StdOutProcessing, ref intermediateExecutionStatus);
                 }
             };
@@ -59,6 +60,7 @@ public class ExecutionEngine(ILogger<ExecutionEngine> _logger)
                 if (!string.IsNullOrWhiteSpace(line))
                 {
                     outputWriter.WriteLine(formatOutput ? $"E {DateTimeOffset.UtcNow:yyyyMMdd HHmmss} {line}" : line);
+                    outputWriter.Flush();
                     ProcessLineForStatusUpdate(line, jobModel.Keywords, jobModel.StdErrProcessing, ref intermediateExecutionStatus);
                 }
             };
