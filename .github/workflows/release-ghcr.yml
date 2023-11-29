@@ -69,6 +69,6 @@ jobs:
           platforms: ${{ github.event.inputs.target_platforms }}
           push: true
           tags: ${{ steps.set_tags.outputs.all-tags }}
-          build-args:
-            - DOTNET_SDK_PLATFORM=-amd64
-            - CRONCH_VERSION=${{ github.event.inputs.tagged_version }}
+          build-args: |
+            DOTNET_SDK_PLATFORM=-amd64
+            CRONCH_VERSION=${{ github.event.inputs.tagged_version }}
