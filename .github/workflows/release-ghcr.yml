@@ -6,6 +6,7 @@ defaults:
 
 env:
   TAG_NAME: ghcr.io/indubitable/cronch
+  BUILDX_NO_DEFAULT_ATTESTATIONS: 1
 
 on:
   workflow_dispatch:
