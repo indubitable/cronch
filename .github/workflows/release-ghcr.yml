@@ -1,0 +1,74 @@
+name: Release to GHCR
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  TAG_NAME: ghcr.io/indubitable/cronch
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_platforms:
+        description: Target platform(s)
+        required: true
+        type: choice
+        options:
+          - linux/amd64,linux/arm64,linux/arm/v7
+          - linux/amd64
+          - linux/arm64
+          - linux/arm/v7
+        default: 'linux/amd64,linux/arm64,linux/arm/v7'
+      tagged_version:
+        description: Tagged and compiled version
+        default: '0.0.1'
+        required: true
+      is_latest:
+        type: boolean
+        description: Add "latest" tag
+      is_test:
+        type: boolean
+        description: Add "test" tag
+
+jobs:
+  release_docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set tags
+        id: set_tags
+        run: |
+          export ALL_TAGS="$TAG_NAME:${{ github.event.inputs.tagged_version }}"
+          echo ${{ github.event.inputs.is_latest }}
+          echo ${{ github.event.inputs.is_test }}
+          [ "${{ github.event.inputs.is_latest }}" = "true" ] && export ALL_TAGS="$ALL_TAGS,$TAG_NAME:latest"
+          [ "${{ github.event.inputs.is_test }}" = "true" ] && export ALL_TAGS="$ALL_TAGS,$TAG_NAME:test"
+          echo Setting tags to: $ALL_TAGS
+          echo "all-tags=$ALL_TAGS" > $GITHUB_OUTPUT
+
+      - uses: actions/checkout@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: ${{ github.event.inputs.target_platforms }}
+          push: true
+          tags: ${{ steps.set_tags.outputs.all-tags }}
+          build-args:
+            - DOTNET_SDK_PLATFORM=-amd64
+            - CRONCH_VERSION=${{ github.event.inputs.tagged_version }}
