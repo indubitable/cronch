@@ -1,13 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 	<PropertyGroup>
+		<CRONCH_VERSION Condition=" '$(CRONCH_VERSION)' == '' ">0.0.1</CRONCH_VERSION>
+	</PropertyGroup>
+
+	<PropertyGroup>
 		<Company>Indubitable Software</Company>
 		<Copyright>Copyright © Indubitable Software</Copyright>
-		<VersionPrefix>0.0.1</VersionPrefix>
+		<VersionPrefix>$(CRONCH_VERSION)</VersionPrefix>
 		<VersionSuffix>$([System.DateTime]::UtcNow.ToString(`yyyyMMdd-HHmm`))</VersionSuffix>
 		<IncludeSourceRevisionInInformationalVersion>true</IncludeSourceRevisionInInformationalVersion>
-		<OutputType>exe</OutputType>
-		<PublishSingleFile Condition="'$(Configuration)' == 'Release'">true</PublishSingleFile>
-		<DebugType>embedded</DebugType>
 	</PropertyGroup>
 
 	<PropertyGroup>
