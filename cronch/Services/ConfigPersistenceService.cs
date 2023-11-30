@@ -21,7 +21,7 @@ public class ConfigPersistenceService(ILogger<ConfigPersistenceService> _logger,
 
         if (!File.Exists(filePathname))
         {
-            _logger.LogWarning("Cannot load configuration: no such file exists");
+            _logger.LogDebug("Cannot load configuration: no such file exists");
             return null;
         }
 
