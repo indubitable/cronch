@@ -17,9 +17,9 @@ RUN cd cronch && dotnet publish -o out /p:MvcRazorCompileOnPublish=true
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-bookworm-slim
 WORKDIR /opt/cronch
 RUN apt update \
- && apt install -y curl wget
+ && apt install -y curl wget tini
 COPY --from=build-env /build/cronch/out .
-ENTRYPOINT ["dotnet", "cronch.dll"]
+ENTRYPOINT ["/usr/bin/tini", "--", "dotnet", "cronch.dll"]
 
 # ------ CONFIGURATION:
 
@@ -33,5 +33,5 @@ VOLUME /opt/cronch/cronchdata
 ENV ASPNETCORE_FORWARDEDHEADERS_ENABLED=false
 
 # Change this to bind to a specific interface or different port, if needed:
-ENV ASPNETCORE_URLS="http://*:8080"
+ENV ASPNETCORE_HTTP_PORTS="8080"
 EXPOSE 8080
