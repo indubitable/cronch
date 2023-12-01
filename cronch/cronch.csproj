@@ -8,7 +8,8 @@
 		<Copyright>Copyright © Indubitable Software</Copyright>
 		<VersionPrefix>$(CRONCH_VERSION)</VersionPrefix>
 		<VersionSuffix>$([System.DateTime]::UtcNow.ToString(`yyyyMMdd-HHmm`))</VersionSuffix>
-		<IncludeSourceRevisionInInformationalVersion>true</IncludeSourceRevisionInInformationalVersion>
+		<IncludeSourceRevisionInInformationalVersion Condition="'$(Configuration)' == 'Release'">true</IncludeSourceRevisionInInformationalVersion>
+		<IncludeSourceRevisionInInformationalVersion Condition="'$(Configuration)' != 'Release'">false</IncludeSourceRevisionInInformationalVersion>
 	</PropertyGroup>
 
 	<PropertyGroup>
