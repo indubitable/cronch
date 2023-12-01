@@ -5,7 +5,7 @@
     ViewData["active"] = "overview";
 }
 
-<div class="text-center">
+<div class="text-center" id="content-root" hx-get="/" hx-trigger="every 3s" hx-select="#content-root" hx-swap="outerHTML">
     <h1 class="display-4">Welcome to <span class="styled-logo-text">CRONCH!</span></h1>
     <br />
     <div class="container text-center">

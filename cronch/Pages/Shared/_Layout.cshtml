@@ -7,6 +7,12 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/cronch.styles.css" asp-append-version="true" />
+    <environment include="Development">
+        <script type="text/javascript" src="~/lib/htmx/dist/htmx.js"></script>
+    </environment>
+    <environment exclude="Development">
+        <script type="text/javascript" src="~/lib/htmx/dist/htmx.min.js"></script>
+    </environment>
 </head>
 @functions {
     public string GetActive(string name)
