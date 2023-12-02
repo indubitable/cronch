@@ -30,7 +30,7 @@
                 <table class="table table-striped">
                     @foreach (var run in Model.RunningJobs.Take(3))
                     {
-                        <tr>
+                        <tr class="clickable-row" onclick="navigateToExecution('@run.ExecutionId')">
                             <td class="text-start">@run.JobName</td>
                             <td class="text-end"><span class="badge rounded-pill text-bg-dark">@run.FormattedDuration</span></td>
                         </tr>

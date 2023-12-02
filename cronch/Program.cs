@@ -59,6 +59,8 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseResponseCaching();
+
 app.UseAuthorization();
 
 app.MapRazorPages();
