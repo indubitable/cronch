@@ -1,4 +1,6 @@
-# CRONCH! - A web-based job scheduler
+![CRONCH!](https://github.com/indubitable/cronch/assets/344911/e091490d-fa64-423f-8153-585bd259dab3)
+
+# A web-based job scheduler
 
 ## Current status
 
