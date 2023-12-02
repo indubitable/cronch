@@ -78,3 +78,13 @@ jobs:
           build-args: |
             DOTNET_SDK_PLATFORM=-amd64
             CRONCH_VERSION=${{ github.event.inputs.tagged_version }}
+
+      - uses: ncipollo/release-action@v1
+        with:
+          commit: ${{ github.sha }}
+          tag: ${{ github.event.inputs.tagged_version }}
+          allowUpdates: true
+          body: |
+            A container image for this release is located here:
+
+            https://github.com/indubitable/cronch/pkgs/container/cronch
