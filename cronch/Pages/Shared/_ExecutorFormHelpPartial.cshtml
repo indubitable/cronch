@@ -9,7 +9,7 @@ The command that executes your script
 <br /><br />
 The command must have at least a <a target="_blank" href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.processstartinfo.filename">filename</a>, and optionally some <a target="_blank" href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.processstartinfo.arguments">arguments</a>.
 <br /><br />
-If <code>{0}</code> is present in the Arguments field, it is replaced with the script location. Otherwise, the script location is appended at the end.
+If <code>{0}</code> is present in the executor arguments field, it is replaced with the script location. Otherwise, the script location is appended at the end.
 <br /><br />
 Quick choices:
 <a href="#" onclick="return setExecutor('/usr/bin/env', 'bash -c');">Bash</a>

@@ -104,9 +104,11 @@
             </div>
             <div class="col mb-3 d-flex align-items-center">
                 <div class="shadow p-3 bg-body-tertiary rounded flex-fill">
-                    Optional - the relative or absolute name of the script file that will be executed by the executor specified above and will contain the script contents specified above
+                    <strong>[DANGEROUS!]</strong> Optional - the relative or absolute name of the script file that will be executed by the executor (above) and will contain the script contents (above)
                     <br /><br />
-                    If left empty, a randomly generated filename will be created in the system temporary directory.
+                    If specified, the same filename will be used for every execution of this job. Parallel executions could, then, result in the script file being unexpectedly deleted or overwritten during a previous execution, leading to errors.
+                    <br /><br />
+                    If left empty, a randomly generated filename will be created in the default script file location, as configured in Settings.
                 </div>
             </div>
         </div>
