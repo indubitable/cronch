@@ -27,9 +27,14 @@ on:
       is_latest:
         type: boolean
         description: Add "latest" tag
+        default: true
       is_test:
         type: boolean
         description: Add "test" tag
+      add_gh_release:
+        type: boolean
+        description: Create GitHub release pointing to this image
+        default: true
 
 jobs:
   release_docker:
