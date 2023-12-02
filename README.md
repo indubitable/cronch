@@ -38,3 +38,13 @@ Next steps:
   - a job could still be written to execute anywhere using external resources
 - audit logs
   - no point without logins
+
+## Screenshots
+
+Home page:
+
+![Home page](https://github.com/indubitable/cronch/assets/344911/fe7326c5-f94b-429d-b5c2-8ae98e5d7f2a "Home page")
+
+Execution details page:
+
+![Execution details page](https://github.com/indubitable/cronch/assets/344911/66cb6858-98c4-410d-94b5-cbccbc93da2e "Execution details page")
