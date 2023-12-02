@@ -3,10 +3,32 @@
 @{
     ViewData["Title"] = "Job Execution Details";
 }
-<div class="text-center">
+
+<script type="text/javascript">
+    var autoScroll = true;
+    document.body.addEventListener('htmx:afterSwap', function (evt) {
+        const newLines = document.querySelectorAll('#live-refresh-helper>span');
+
+        if (newLines.length > 0) {
+            const jobOutputParent = document.querySelector('.job-output code');
+            newLines.forEach(el => jobOutputParent.appendChild(el));
+
+            if (autoScroll) {
+                document.querySelector('.job-output code>span:last-child').scrollIntoView({ block: 'end', behavior: 'smooth' });
+            }
+        }
+
+        if (document.querySelector('#live-refresh-helper').dataset.isRunning !== 'true') {
+            document.getElementById('auto-scroll')?.remove();
+            document.getElementById('auto-scroll-label')?.remove();
+        }
+    });
+</script>
+
+<div class="text-center" id="content-root">
     <h1 class="display-4">Job Execution Details</h1>
     <br />
-    <div class="container">
+    <div class="container" id="job-metadata" hx-get="@(HttpContext.Request.Path)?lastLineCount=@Model.JobOutputProcessedLines" hx-trigger="@(Model.Execution.Status == Models.ExecutionStatus.Running ? "every 3s" : "never")" hx-swap="outerHTML" hx-select="#job-metadata">
         <table class="table table-striped text-start">
             <tbody>
                 <tr>
@@ -19,19 +41,45 @@
                     <th>Launch date/time</th>
                     <td>@Model.Execution.StartedOn.ToLocalTime().ToString("G")</td>
                     <th>Termination reason</th>
-                    <td>@Model.Execution.StopReason.ToUserString()</td>
+                    @if (Model.Execution.Status == Models.ExecutionStatus.Running)
+                    {
+                        <td>N/A</td>
+                    }
+                    else
+                    {
+                        <td>@Model.Execution.StopReason.ToUserString()</td>
+                    }
                 </tr>
                 <tr>
                     <th>Termination date/time</th>
-                    <td>@(Model.Execution.CompletedOn.HasValue ? Model.Execution.CompletedOn.Value.ToString("G") : "Unknown")</td>
+                    @if (Model.Execution.Status == Models.ExecutionStatus.Running)
+                    {
+                        <td>N/A</td>
+                    }
+                    else
+                    {
+                        <td>@(Model.Execution.CompletedOn.HasValue ? Model.Execution.CompletedOn.Value.ToString("G") : "Unknown")</td>
+                    }
                     <th>Run duration</th>
                     <td>@(Model.Execution.CompletedOn.HasValue || Model.Execution.Status == Models.ExecutionStatus.Running ? Model.Execution.FormattedDuration : "Unknown")</td>
                 </tr>
             </tbody>
         </table>
+        <div id="live-refresh-helper" class="d-none" data-is-running="@(Model.Execution.Status == Models.ExecutionStatus.Running ? "true" : "false")">
+            @Html.Raw(Model.JobOutputProcessed)
+        </div>
     </div>
-    <h4 class="text-start">Output:</h4>
-    <div class="container w-100 vh-50 pt-2 pb-2 text-bg-dark text-start job-output">
-        <pre class="w-100 h-100 m-0"><code id="jobOutput">@Html.Raw(Model.JobOutputProcessed)</code></pre>
+    <div class="text-start mb-1">
+        <span class="h4">Output:</span>
+        @if (Model.Execution.Status == Models.ExecutionStatus.Running)
+        {
+            <input type="checkbox" class="form-check-inline ms-5 me-0" id="auto-scroll" checked="checked" onchange="autoScroll=this.checked;" />
+            <label for="auto-scroll" class="form-check-label" id="auto-scroll-label">Automatically scroll to new output</label>
+        }
+    </div>
+    <div class="container p-2 w-100 vh-50 text-bg-dark text-start overflow-hidden job-output">
+        <div class="h-100 overflow-auto">
+            <pre class="overflow-visible"><code>@Html.Raw(Model.JobOutputProcessed)</code></pre>
+        </div>
     </div>
 </div>
