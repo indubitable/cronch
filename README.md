@@ -6,9 +6,10 @@ MVP achieved! It still shouldn't be considered stable, however. [Container image
 
 Next steps:
 
-- further testing/bugfixing
-- polishing UI; improving UX
-- introducing HTMX for live refresh capabilities
+- further testing/bugfixing (ongoing)
+- polishing UI; improving UX (ongoing)
+- introducing HTMX for live refresh capabilities (partially completed)
+- caching to reduce overall load when retrieving filesystem data
 
 ## Features
 
