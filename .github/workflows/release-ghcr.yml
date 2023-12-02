@@ -78,8 +78,10 @@ jobs:
           build-args: |
             DOTNET_SDK_PLATFORM=-amd64
             CRONCH_VERSION=${{ github.event.inputs.tagged_version }}
+          outputs: type=image,name=${{ env.TAG_NAME }},annotation-index.org.opencontainers.image.source=https://github.com/indubitable/cronch,annotation-index.org.opencontainers.image.description=https://github.com/indubitable/cronch/releases/tag/${{ github.event.inputs.tagged_version }},annotation-index.org.opencontainers.image.licenses=BSD-2-Clause
 
       - uses: ncipollo/release-action@v1
+        if: ${{ github.event.inputs.add_gh_release == 'true' }}
         with:
           commit: ${{ github.sha }}
           tag: ${{ github.event.inputs.tagged_version }}
