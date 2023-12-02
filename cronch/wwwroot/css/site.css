@@ -75,10 +75,14 @@ table tr.clickable-row {
   user-select: none;
 }
 
-.container.job-output {
-  overflow: auto;
+.container.job-output code .stdout .timestamp {
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .container.job-output code .stderr {
   color: var(--bs-danger);
+}
+
+.container.job-output code .stderr .timestamp {
+  color: rgba(var(--bs-danger-rgb), 0.6);
 }
