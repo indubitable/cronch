@@ -6,6 +6,7 @@ defaults:
 
 env:
   TAG_NAME: ghcr.io/indubitable/cronch
+  TAG_NAME_EXTRA: ghcr.io/indubitable/cronch-extra
 
 on:
   workflow_dispatch:
@@ -31,6 +32,10 @@ on:
       is_test:
         type: boolean
         description: Add "test" tag
+      generate_extra:
+        type: boolean
+        description: Also generate "extra" images with more scripting options
+        default: true
       add_gh_release:
         type: boolean
         description: Create GitHub release pointing to this image
@@ -45,12 +50,14 @@ jobs:
         id: set_tags
         run: |
           export ALL_TAGS="$TAG_NAME:${{ github.event.inputs.tagged_version }}"
-          echo ${{ github.event.inputs.is_latest }}
-          echo ${{ github.event.inputs.is_test }}
           [ "${{ github.event.inputs.is_latest }}" = "true" ] && export ALL_TAGS="$ALL_TAGS,$TAG_NAME:latest"
           [ "${{ github.event.inputs.is_test }}" = "true" ] && export ALL_TAGS="$ALL_TAGS,$TAG_NAME:test"
-          echo Setting tags to: $ALL_TAGS
           echo "all-tags=$ALL_TAGS" > $GITHUB_OUTPUT
+
+          export ALL_TAGS_EXTRA="$TAG_NAME_EXTRA:${{ github.event.inputs.tagged_version }}"
+          [ "${{ github.event.inputs.is_latest }}" = "true" ] && export ALL_TAGS_EXTRA="$ALL_TAGS_EXTRA,$TAG_NAME_EXTRA:latest"
+          [ "${{ github.event.inputs.is_test }}" = "true" ] && export ALL_TAGS_EXTRA="$ALL_TAGS_EXTRA,$TAG_NAME_EXTRA:test"
+          echo "all-tags-extra=$ALL_TAGS_EXTRA" > $GITHUB_OUTPUT
 
       - uses: actions/checkout@v3
 
@@ -80,6 +87,21 @@ jobs:
             CRONCH_VERSION=${{ github.event.inputs.tagged_version }}
           outputs: type=image,name=${{ env.TAG_NAME }},annotation-index.org.opencontainers.image.source=https://github.com/indubitable/cronch,annotation-index.org.opencontainers.image.description=https://github.com/indubitable/cronch/releases/tag/${{ github.event.inputs.tagged_version }},annotation-index.org.opencontainers.image.licenses=BSD-2-Clause
 
+      - name: Build and push (extra)
+        uses: docker/build-push-action@v5
+        if: ${{ github.event.inputs.generate_extra == 'true' }}
+        with:
+          context: .
+          file: Dockerfile.extra
+          platforms: ${{ github.event.inputs.target_platforms }}
+          push: true
+          tags: ${{ steps.set_tags.outputs.all-tags-extra }}
+          provenance: false
+          build-args: |
+            DOTNET_SDK_PLATFORM=-amd64
+            CRONCH_VERSION=${{ github.event.inputs.tagged_version }}
+          outputs: type=image,name=${{ env.TAG_NAME_EXTRA }},annotation-index.org.opencontainers.image.source=https://github.com/indubitable/cronch,annotation-index.org.opencontainers.image.description=https://github.com/indubitable/cronch/releases/tag/${{ github.event.inputs.tagged_version }},annotation-index.org.opencontainers.image.licenses=BSD-2-Clause
+
       - uses: ncipollo/release-action@v1
         if: ${{ github.event.inputs.add_gh_release == 'true' }}
         with:
@@ -87,6 +109,4 @@ jobs:
           tag: ${{ github.event.inputs.tagged_version }}
           allowUpdates: true
           body: |
-            A container image for this release is located here:
-
-            https://github.com/indubitable/cronch/pkgs/container/cronch
+            Container images for this release are located at https://github.com/orgs/indubitable/packages?repo_name=cronch
