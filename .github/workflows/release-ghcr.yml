@@ -52,12 +52,12 @@ jobs:
           export ALL_TAGS="$TAG_NAME:${{ github.event.inputs.tagged_version }}"
           [ "${{ github.event.inputs.is_latest }}" = "true" ] && export ALL_TAGS="$ALL_TAGS,$TAG_NAME:latest"
           [ "${{ github.event.inputs.is_test }}" = "true" ] && export ALL_TAGS="$ALL_TAGS,$TAG_NAME:test"
-          echo "all-tags=$ALL_TAGS" > $GITHUB_OUTPUT
+          echo "all-tags=$ALL_TAGS" >> $GITHUB_OUTPUT
 
           export ALL_TAGS_EXTRA="$TAG_NAME_EXTRA:${{ github.event.inputs.tagged_version }}"
           [ "${{ github.event.inputs.is_latest }}" = "true" ] && export ALL_TAGS_EXTRA="$ALL_TAGS_EXTRA,$TAG_NAME_EXTRA:latest"
           [ "${{ github.event.inputs.is_test }}" = "true" ] && export ALL_TAGS_EXTRA="$ALL_TAGS_EXTRA,$TAG_NAME_EXTRA:test"
-          echo "all-tags-extra=$ALL_TAGS_EXTRA" > $GITHUB_OUTPUT
+          echo "all-tags-extra=$ALL_TAGS_EXTRA" >> $GITHUB_OUTPUT
 
       - uses: actions/checkout@v3
 
