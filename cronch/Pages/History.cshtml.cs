@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace cronch.Pages;
 
+[ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
 public class HistoryModel(JobExecutionService _jobExecutionService, SettingsService _settingsService) : PageModel
 {
     public int MaxResults { get; set; }

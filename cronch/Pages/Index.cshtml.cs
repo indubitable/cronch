@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace cronch.Pages;
 
-[ResponseCache(NoStore = true)]
+[ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
 public class IndexModel(JobConfigService _jobConfigService, JobExecutionService _jobExecutionService) : PageModel
 {
     public int EnabledJobCount { get; set; }

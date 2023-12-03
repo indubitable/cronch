@@ -4,7 +4,7 @@
     ViewData["Title"] = "History";
     ViewData["active"] = "history";
 }
-<div class="text-center">
+<div class="text-center" id="content-root" hx-get="@(HttpContext.Request.Path + HttpContext.Request.QueryString)" hx-trigger="every 12s" hx-select="#content-root" hx-swap="outerHTML">
     <h1 class="display-4">Job Execution History</h1>
     <p>Showing a maximum of @Model.MaxResults results @(Model.IsDataFiltered ? "based on filters" : "")</p>
     <br />

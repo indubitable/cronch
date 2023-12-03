@@ -8,7 +8,7 @@ using System.Text.Encodings.Web;
 
 namespace cronch.Pages;
 
-[ResponseCache(NoStore = true)]
+[ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
 public class ExecutionDetailsModel(JobExecutionService _jobExecutionService, JobConfigService _jobConfigService, HtmlEncoder _htmlEncoder) : PageModel
 {
     public ExecutionViewModel Execution { get; set; }
