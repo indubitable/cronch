@@ -1,0 +1,12 @@
+version: "3.9"
+services:
+  cronch:
+    image: ghcr.io/indubitable/cronch:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - cronchconfig:/opt/cronch/cronchconfig
+      - cronchdata:/opt/cronch/cronchdata
+volumes:
+  cronchconfig:
+  cronchdata:
