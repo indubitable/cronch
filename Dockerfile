@@ -17,7 +17,7 @@ RUN cd cronch && dotnet publish -o out /p:MvcRazorCompileOnPublish=true
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-bookworm-slim
 WORKDIR /opt/cronch
 RUN apt update \
- && apt install -y curl wget tini
+ && apt install -y --no-install-recommends curl wget jq tini
 COPY --from=build-env /build/cronch/out .
 ENTRYPOINT ["/usr/bin/tini", "--", "dotnet", "cronch.dll"]
 

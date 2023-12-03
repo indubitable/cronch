@@ -17,7 +17,7 @@ RUN cd cronch && dotnet publish -o out /p:MvcRazorCompileOnPublish=true
 FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim
 WORKDIR /opt/cronch
 RUN apt update \
- && apt install -y curl wget tini python3-pip python-is-python3 ruby php-cli npm git
+ && apt install -y --no-install-recommends curl wget jq tini python3-pip python-is-python3 ruby php-cli npm git
 COPY --from=build-env /build/cronch/out .
 ENTRYPOINT ["/usr/bin/tini", "--", "dotnet", "cronch.dll"]
 
