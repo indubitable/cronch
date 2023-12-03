@@ -38,7 +38,7 @@ on:
         default: true
       add_gh_release:
         type: boolean
-        description: Create GitHub release pointing to this image
+        description: Create GitHub release
         default: true
 
 jobs:
