@@ -34,7 +34,7 @@ public class ExecutionDetailsModel(JobExecutionService _jobExecutionService, Job
     private string ProcessJobOutput(string output, int lastLineCount)
     {
         var stb = new StringBuilder();
-        var splitLines = output.TrimEnd('\r', '\n').Split('\n');
+        var splitLines = output.ReplaceLineEndings("\n").TrimEnd('\n').Split('\n');
         JobOutputProcessedLines = splitLines.Length; // at least for now, the number of raw lines is the same as the number of processed lines
         foreach(var line in splitLines.Skip(lastLineCount))
         {
@@ -45,13 +45,13 @@ public class ExecutionDetailsModel(JobExecutionService _jobExecutionService, Job
                 var spanClass = (l[0] == 'E' ? "stderr" : "stdout");
                 if (DateTimeOffset.TryParseExact(l.AsSpan(2, 15), "yyyyMMdd HHmmss", null, System.Globalization.DateTimeStyles.AssumeUniversal, out var timestamp))
                 {
-                    stb.Append($"<span class=\"{spanClass}\"><span class=\"unselectable timestamp me-2\">{timestamp.ToLocalTime():yyyy-MM-dd HH:mm:ss}</span>{l.AsSpan(18..)}\r\n</span>");
+                    stb.Append($"<span class=\"{spanClass}\"><span class=\"unselectable timestamp me-2\">{timestamp.ToLocalTime():yyyy-MM-dd HH:mm:ss}</span>{l.AsSpan(18..)}\n</span>");
                 }
             }
             else
             {
                 // Append this line as is, because something is odd about it
-                stb.Append($"<span>{_htmlEncoder.Encode(l)}\r\n</span>");
+                stb.Append($"<span>{_htmlEncoder.Encode(l)}\n</span>");
             }
         }
         return stb.ToString();

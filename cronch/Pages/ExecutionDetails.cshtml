@@ -82,4 +82,12 @@
             <pre class="overflow-visible"><code>@Html.Raw(Model.JobOutputProcessed)</code></pre>
         </div>
     </div>
+    <script type="text/javascript">
+        const source = document.querySelector('.job-output code');
+        source.addEventListener('copy', (event) => {
+            const selection = document.getSelection();
+            event.clipboardData.setData('text/plain', selection.toString());
+            event.preventDefault();
+        });
+    </script>
 </div>
