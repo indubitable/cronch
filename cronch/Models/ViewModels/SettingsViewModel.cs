@@ -8,7 +8,7 @@ public class SettingsViewModel
     [Range(10, 1000)]
     public int? MaxHistoryItemsShown { get; set; }
 
-    [Display(Name = "Maximum count of historical executions per run")]
+    [Display(Name = "Maximum count of historical executions per job")]
     [Range(1, 10000)]
     public int? DeleteHistoricalRunsAfterCount { get; set; }
 
