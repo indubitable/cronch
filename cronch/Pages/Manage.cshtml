@@ -47,7 +47,11 @@
                         <br />
                         <small><i>@job.GetValidatedCronDescription()</i></small>
                     </td>
-                    <td>Latest: @(job.LatestExecution?.ToLocalTime().ToString("G") ?? "N/A")<br />Next: @(job.NextExecution?.ToLocalTime().ToString("G") ?? "N/A")</td>
+                    <td id="latest-next-td-for-job-@job.Id" hx-get="@(HttpContext.Request.Path + HttpContext.Request.QueryString)" hx-trigger="every 30s" hx-select="#latest-next-td-for-job-@job.Id" hx-swap="outerHTML">
+                        Latest: @(job.LatestExecution?.ToLocalTime().ToString("G") ?? "N/A")
+                        <br />
+                        Next: @(job.NextExecution?.ToLocalTime().ToString("G") ?? "N/A")
+                    </td>
                     <td class="text-end">
                         <a asp-page="/EditJob" asp-route-id="@job.Id" class="btn btn-sm btn-outline-secondary">Configure</a>
                         <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-bs-jobid="@job.Id" data-bs-jobname="@job.Name">Delete</button>

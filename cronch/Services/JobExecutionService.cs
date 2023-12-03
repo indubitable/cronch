@@ -10,11 +10,11 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
 
     private readonly ConcurrentDictionary<ExecutionIdentifier, Thread> _executions = new();
 
-    public virtual Dictionary<Guid, DateTimeOffset> GetLatestExecutions()
+    public virtual Dictionary<Guid, DateTimeOffset> GetLatestExecutionsPerJob()
     {
         using var scope = _serviceProvider.CreateScope();
         var executionPersistenceService = scope.ServiceProvider.GetRequiredService<ExecutionPersistenceService>();
-        return executionPersistenceService.GetLatestExecutions();
+        return executionPersistenceService.GetLatestExecutionsPerJob();
     }
 
     public virtual ExecutionPersistenceService.ExecutionStatistics GetExecutionStatistics(DateTimeOffset from, DateTimeOffset to)
@@ -66,7 +66,7 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
             .ToList();
     }
 
-    public virtual List<ExecutionIdentifier> GetAllCurrentExecutions()
+    public virtual List<ExecutionIdentifier> GetAllRunningExecutions()
     {
         return _executions.Keys.ToList();
     }

@@ -7,11 +7,11 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
 {
     public readonly record struct ExecutionStatistics(int Successes, int Errors, int Warnings);
 
-    public virtual Dictionary<Guid, DateTimeOffset> GetLatestExecutions()
+    public virtual Dictionary<Guid, DateTimeOffset> GetLatestExecutionsPerJob()
     {
         return _dbContext.Executions
-            .AsNoTracking()
-            .Select(e => KeyValuePair.Create(e.Id, e.StartedOn))
+            .FromSqlRaw(@"SELECT t1.* FROM Execution t1 JOIN (SELECT JobId, MAX(StartedOn) AS StartedOn FROM Execution GROUP BY JobId) t2 ON t1.JobId=t2.JobId AND t1.StartedOn=t2.StartedOn")
+            .Select(e => KeyValuePair.Create(e.JobId, e.StartedOn))
             .ToDictionary();
     }
 
