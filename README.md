@@ -56,13 +56,23 @@ This is the standard CRONCH! image, based on Debian. It's a multi-arch image wit
 
 This is a larger CRONCH! image, also based on Debian and also multi-arch. In addition to Bash and Perl, it supports Node, Python, Ruby, PHP, and PowerShell Core (pwsh) for scripting.
 
+The sizes of the two images are significantly different. On amd64, standard is under 300MB, while "extra" is over 1GB.
+
 ### Configuration
 
-TODO
+By default, CRONCH! listens on port 8080 inside the container. Of course, that can be mapped to any external port. Additionally, two volumes should be mounted: one for configuration, and one for historical data storage. They are `/opt/cronch/cronchconfig` and `/opt/cronch/cronchdata`, respectively.
+
+Using plain Docker with filesystem mounts, the command might look like this:
+
+```shell
+docker run --restart=always --name=cronch -p 8080:8080 -v ./cronchconfig:/opt/cronch/cronchconfig -v ./cronchdata:/opt/cronch/cronchdata ghcr.io/indubitable/cronch:latest
+```
+
+An example `docker-compose.yml` file has been provided in this repository as well. Using Docker Compose is even easier than the above command.
 
 ## Current status
 
-MVP achieved! It still shouldn't be considered stable, however. [Container images are available in GHCR.](https://github.com/indubitable/cronch/pkgs/container/cronch)
+MVP achieved! It still shouldn't be considered stable, however.
 
 Next steps:
 
