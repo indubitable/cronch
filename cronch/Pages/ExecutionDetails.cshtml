@@ -33,7 +33,7 @@
             <tbody>
                 <tr>
                     <th>Job name</th>
-                    <td>@(Model.Job?.Name ?? Model.Execution.JobName)</td>
+                    <td>@Model.Execution.JobName</td>
                     <th>Status</th>
                     <td>@Model.Execution.Status.ToUserString()</td>
                 </tr>

@@ -7,6 +7,8 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
 {
     public readonly record struct ExecutionStatistics(int Successes, int Errors, int Warnings);
 
+    private static readonly object _writeLock = new();
+
     public virtual Dictionary<Guid, DateTimeOffset> GetLatestExecutionsPerJob()
     {
         return _dbContext.Executions
@@ -53,8 +55,11 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
     {
         try
         {
-            _dbContext.Executions.Add(execution);
-            _dbContext.SaveChanges();
+            lock (_writeLock)
+            {
+                _dbContext.Executions.Add(execution);
+                _dbContext.SaveChanges();
+            }
         }
         catch (Exception ex)
         {
@@ -67,8 +72,11 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
     {
         try
         {
-            _dbContext.Executions.Update(execution);
-            _dbContext.SaveChanges();
+            lock (_writeLock)
+            {
+                _dbContext.Executions.Update(execution);
+                _dbContext.SaveChanges();
+            }
         }
         catch (Exception ex)
         {
@@ -98,15 +106,19 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
 
     public virtual void RemoveAllDatabaseRecordsForJobId(Guid id)
     {
-        _dbContext.Executions
-            .Where(e => e.JobId == id)
-            .ExecuteDelete();
+        lock (_writeLock)
+        {
+            _dbContext.Executions
+                .Where(e => e.JobId == id)
+                .ExecuteDelete();
+        }
     }
 
     public List<ExecutionModel> GetOldestExecutionsAfterCount(Guid jobId, int skipCount)
     {
         // Order by most recent, then skip as many as required. The rest should be returned.
         return _dbContext.Executions
+            .AsNoTracking()
             .Where(e => e.JobId == jobId)
             .OrderByDescending(e => e.StartedOn)
             .Skip(skipCount)
@@ -127,14 +139,18 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
         }
 
         // Now, delete the DB entry
-        _dbContext.Executions
-            .Where(e => e.Id == execution.Id)
-            .ExecuteDelete();
+        lock (_writeLock)
+        {
+            _dbContext.Executions
+                .Where(e => e.Id == execution.Id)
+                .ExecuteDelete();
+        }
     }
 
     public List<ExecutionModel> GetExecutionsOlderThan(DateTimeOffset startedOn)
     {
         return _dbContext.Executions
+            .AsNoTracking()
             .Where(e => e.StartedOn < startedOn)
             .ToList();
     }
