@@ -2,7 +2,7 @@
 
 # A web-based job scheduler
 
-[📦 Docker image (standard)](https://github.com/indubitable/cronch/pkgs/container/cronch) - [📦 Docker image (extra)](https://github.com/indubitable/cronch/pkgs/container/cronch-extra) - [📜 Features](#features) - [📷 Screenshots](#screenshots)
+[📦 Docker image (standard)](https://github.com/indubitable/cronch/pkgs/container/cronch) - [📦 Docker image (extra)](https://github.com/indubitable/cronch/pkgs/container/cronch-extra) - [📜 Features](#features) - [💽 Installation](#installation) - [📷 Screenshots](#screenshots)
 
 ## What is it?
 
