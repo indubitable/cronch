@@ -49,15 +49,16 @@ jobs:
 
       - run: |
           cd cronch
-          dotnet publish -r linux-x64 --sc -o publish-linux-x64 && pushd publish-linux-x64 && tar cJf cronch-${{ github.event.inputs.tagged_version }}-linux-x64.tar.xz * && popd
-          dotnet publish -r linux-musl-x64 --sc -o publish-linux-musl-x64 && pushd publish-linux-musl-x64 && tar cJf cronch-${{ github.event.inputs.tagged_version }}-linux-musl-x64.tar.xz * && popd
-          dotnet publish -r linux-arm --sc -o publish-linux-arm && pushd publish-linux-arm && tar cJf cronch-${{ github.event.inputs.tagged_version }}-linux-arm.tar.xz * && popd
-          dotnet publish -r linux-arm64 --sc -o publish-linux-arm64 && pushd publish-linux-arm64 && tar cJf cronch-${{ github.event.inputs.tagged_version }}-linux-arm64.tar.xz * && popd
-          dotnet publish -r linux-musl-arm64 --sc -o publish-linux-musl-arm64 && pushd publish-linux-musl-arm64 && tar cJf cronch-${{ github.event.inputs.tagged_version }}-linux-musl-arm64.tar.xz * && popd
-          dotnet publish -r win-x64 --sc -o publish-win-x64 && pushd publish-win-x64 && zip cronch-${{ github.event.inputs.tagged_version }}-win-x64.zip * && popd
-          dotnet publish -r win-arm64 --sc -o publish-win-arm64 && pushd publish-win-arm64 && zip cronch-${{ github.event.inputs.tagged_version }}-win-arm64.zip * && popd
-          dotnet publish -r osx-x64 --sc -o publish-macos-x64 && pushd publish-macos-x64 && zip cronch-${{ github.event.inputs.tagged_version }}-macos-x64.zip * && popd
-          dotnet publish -r osx-arm64 --sc -o publish-macos-arm64 && pushd publish-macos-arm64 && zip cronch-${{ github.event.inputs.tagged_version }}-macos-arm64.zip * && popd
+          mkdir publish-artifacts
+          dotnet publish -r linux-x64 --sc -o publish-linux-x64 && pushd publish-linux-x64 && tar cJf ../publish-artifacts/cronch-${{ github.event.inputs.tagged_version }}-linux-x64.tar.xz * && popd
+          dotnet publish -r linux-musl-x64 --sc -o publish-linux-musl-x64 && pushd publish-linux-musl-x64 && tar cJf ../publish-artifacts/cronch-${{ github.event.inputs.tagged_version }}-linux-musl-x64.tar.xz * && popd
+          dotnet publish -r linux-arm --sc -o publish-linux-arm && pushd publish-linux-arm && tar cJf ../publish-artifacts/cronch-${{ github.event.inputs.tagged_version }}-linux-arm.tar.xz * && popd
+          dotnet publish -r linux-arm64 --sc -o publish-linux-arm64 && pushd publish-linux-arm64 && tar cJf ../publish-artifacts/cronch-${{ github.event.inputs.tagged_version }}-linux-arm64.tar.xz * && popd
+          dotnet publish -r linux-musl-arm64 --sc -o publish-linux-musl-arm64 && pushd publish-linux-musl-arm64 && tar cJf ../publish-artifacts/cronch-${{ github.event.inputs.tagged_version }}-linux-musl-arm64.tar.xz * && popd
+          dotnet publish -r win-x64 --sc -o publish-win-x64 && pushd publish-win-x64 && zip ../publish-artifacts/cronch-${{ github.event.inputs.tagged_version }}-win-x64.zip * && popd
+          dotnet publish -r win-arm64 --sc -o publish-win-arm64 && pushd publish-win-arm64 && zip ../publish-artifacts/cronch-${{ github.event.inputs.tagged_version }}-win-arm64.zip * && popd
+          dotnet publish -r osx-x64 --sc -o publish-macos-x64 && pushd publish-macos-x64 && zip ../publish-artifacts/cronch-${{ github.event.inputs.tagged_version }}-macos-x64.zip * && popd
+          dotnet publish -r osx-arm64 --sc -o publish-macos-arm64 && pushd publish-macos-arm64 && zip ../publish-artifacts/cronch-${{ github.event.inputs.tagged_version }}-macos-arm64.zip * && popd
 
       - uses: ncipollo/release-action@v1
         with:
@@ -65,7 +66,7 @@ jobs:
           tag: ${{ github.event.inputs.tagged_version }}
           allowUpdates: true
           removeArtifacts: true
-          artifacts: publish-*/cronch-${{ github.event.inputs.tagged_version }}*
+          artifacts: cronch/publish-artifacts/*
           body: |
             Container images for this release are located at https://github.com/orgs/indubitable/packages?repo_name=cronch
 
