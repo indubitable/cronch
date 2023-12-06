@@ -1,0 +1,144 @@
+name: Release
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  TAG_NAME: ghcr.io/indubitable/cronch
+  TAG_NAME_EXTRA: ghcr.io/indubitable/cronch-extra
+
+on:
+  workflow_dispatch:
+    inputs:
+      tagged_version:
+        description: Tagged and compiled version
+        default: '0.0.1'
+        required: true
+      generate_docker_images:
+        type: boolean
+        description: Generate Docker images
+        default: true
+      is_latest:
+        type: boolean
+        description: Add "latest" tag to Docker images
+        default: true
+      is_test:
+        type: boolean
+        description: Add "test" tag to Docker images
+      generate_extra:
+        type: boolean
+        description: Also generate "extra" images with more scripting options
+        default: true
+      add_gh_release:
+        type: boolean
+        description: Create GitHub release
+        default: true
+      generate_binaries:
+        type: boolean
+        description: Generate binaries for the GitHub release
+        default: true
+
+jobs:
+  create_github_release_with_binaries:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.add_gh_release == 'true' && github.event.inputs.generate_binaries == 'true' }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - run: |
+          cd cronch
+          dotnet publish -r linux-x64 --sc -o publish-linux-x64 && pushd publish-linux-x64 && tar cJf cronch-${{ github.event.inputs.tagged_version }}-linux-x64.tar.xz * && popd
+          dotnet publish -r linux-musl-x64 --sc -o publish-linux-musl-x64 && pushd publish-linux-musl-x64 && tar cJf cronch-${{ github.event.inputs.tagged_version }}-linux-musl-x64.tar.xz * && popd
+          dotnet publish -r linux-arm --sc -o publish-linux-arm && pushd publish-linux-arm && tar cJf cronch-${{ github.event.inputs.tagged_version }}-linux-arm.tar.xz * && popd
+          dotnet publish -r linux-arm64 --sc -o publish-linux-arm64 && pushd publish-linux-arm64 && tar cJf cronch-${{ github.event.inputs.tagged_version }}-linux-arm64.tar.xz * && popd
+          dotnet publish -r linux-musl-arm64 --sc -o publish-linux-musl-arm64 && pushd publish-linux-musl-arm64 && tar cJf cronch-${{ github.event.inputs.tagged_version }}-linux-musl-arm64.tar.xz * && popd
+          dotnet publish -r win-x64 --sc -o publish-win-x64 && pushd publish-win-x64 && zip cronch-${{ github.event.inputs.tagged_version }}-win-x64.zip * && popd
+          dotnet publish -r win-arm64 --sc -o publish-win-arm64 && pushd publish-win-arm64 && zip cronch-${{ github.event.inputs.tagged_version }}-win-arm64.zip * && popd
+          dotnet publish -r osx-x64 --sc -o publish-macos-x64 && pushd publish-macos-x64 && zip cronch-${{ github.event.inputs.tagged_version }}-macos-x64.zip * && popd
+          dotnet publish -r osx-arm64 --sc -o publish-macos-arm64 && pushd publish-macos-arm64 && zip cronch-${{ github.event.inputs.tagged_version }}-macos-arm64.zip * && popd
+
+      - uses: ncipollo/release-action@v1
+        with:
+          commit: ${{ github.sha }}
+          tag: ${{ github.event.inputs.tagged_version }}
+          allowUpdates: true
+          removeArtifacts: true
+          artifacts: publish-*/cronch-${{ github.event.inputs.tagged_version }}*
+          body: |
+            Container images for this release are located at https://github.com/orgs/indubitable/packages?repo_name=cronch
+
+  create_github_release_without_binaries:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.add_gh_release == 'true' && github.event.inputs.generate_binaries == 'false' }}
+
+    steps:
+      - uses: ncipollo/release-action@v1
+        with:
+          commit: ${{ github.sha }}
+          tag: ${{ github.event.inputs.tagged_version }}
+          allowUpdates: true
+          body: |
+            Container images for this release are located at https://github.com/orgs/indubitable/packages?repo_name=cronch
+
+  build_and_push_docker_images:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.generate_docker_images == 'true' }}
+
+    steps:
+      - name: Set tags
+        id: set_tags
+        run: |
+          export ALL_TAGS="$TAG_NAME:${{ github.event.inputs.tagged_version }}"
+          [ "${{ github.event.inputs.is_latest }}" = "true" ] && export ALL_TAGS="$ALL_TAGS,$TAG_NAME:latest"
+          [ "${{ github.event.inputs.is_test }}" = "true" ] && export ALL_TAGS="$ALL_TAGS,$TAG_NAME:test"
+          echo "all-tags=$ALL_TAGS" >> $GITHUB_OUTPUT
+
+          export ALL_TAGS_EXTRA="$TAG_NAME_EXTRA:${{ github.event.inputs.tagged_version }}"
+          [ "${{ github.event.inputs.is_latest }}" = "true" ] && export ALL_TAGS_EXTRA="$ALL_TAGS_EXTRA,$TAG_NAME_EXTRA:latest"
+          [ "${{ github.event.inputs.is_test }}" = "true" ] && export ALL_TAGS_EXTRA="$ALL_TAGS_EXTRA,$TAG_NAME_EXTRA:test"
+          echo "all-tags-extra=$ALL_TAGS_EXTRA" >> $GITHUB_OUTPUT
+
+      - uses: actions/checkout@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          push: true
+          tags: ${{ steps.set_tags.outputs.all-tags }}
+          provenance: false
+          build-args: |
+            DOTNET_SDK_PLATFORM=-amd64
+            CRONCH_VERSION=${{ github.event.inputs.tagged_version }}
+          outputs: type=image,name=${{ env.TAG_NAME }},annotation-index.org.opencontainers.image.source=https://github.com/indubitable/cronch,annotation-index.org.opencontainers.image.description=https://github.com/indubitable/cronch/releases/tag/${{ github.event.inputs.tagged_version }},annotation-index.org.opencontainers.image.licenses=BSD-2-Clause
+
+      - name: Build and push (extra)
+        uses: docker/build-push-action@v5
+        if: ${{ github.event.inputs.generate_extra == 'true' }}
+        with:
+          context: .
+          file: Dockerfile.extra
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          push: true
+          tags: ${{ steps.set_tags.outputs.all-tags-extra }}
+          provenance: false
+          build-args: |
+            DOTNET_SDK_PLATFORM=-amd64
+            CRONCH_VERSION=${{ github.event.inputs.tagged_version }}
+          outputs: type=image,name=${{ env.TAG_NAME_EXTRA }},annotation-index.org.opencontainers.image.source=https://github.com/indubitable/cronch,annotation-index.org.opencontainers.image.description=https://github.com/indubitable/cronch/releases/tag/${{ github.event.inputs.tagged_version }},annotation-index.org.opencontainers.image.licenses=BSD-2-Clause
