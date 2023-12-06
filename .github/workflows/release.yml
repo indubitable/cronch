@@ -48,11 +48,11 @@ jobs:
       - uses: actions/checkout@v3
 
       - run: |
-          cd cronch
           mkdir publish-artifacts
-          dotnet publish -r linux-x64 --sc -o publish-linux-x64/cronch && pushd publish-linux-x64 && tar cJf ../publish-artifacts/cronch-${{ github.event.inputs.tagged_version }}-linux-x64.tar.xz cronch && popd
+          cd cronch
+          dotnet publish -r linux-x64 --sc -o ../publish-linux-x64/cronch && pushd ../publish-linux-x64 && tar cJf ../publish-artifacts/cronch-${{ github.event.inputs.tagged_version }}-linux-x64.tar.xz cronch && popd
           dotnet clean
-          dotnet publish -r linux-musl-x64 --sc -o publish-linux-musl-x64/cronch && pushd publish-linux-musl-x64 && tar cJf ../publish-artifacts/cronch-${{ github.event.inputs.tagged_version }}-linux-musl-x64.tar.xz cronch && popd
+          dotnet publish -r linux-musl-x64 --sc -o ../publish-linux-musl-x64/cronch && pushd ../publish-linux-musl-x64 && tar cJf ../publish-artifacts/cronch-${{ github.event.inputs.tagged_version }}-linux-musl-x64.tar.xz cronch && popd
           dotnet clean
           #dotnet publish -r linux-arm --sc -o publish-linux-arm && pushd publish-linux-arm && tar cJf ../publish-artifacts/cronch-${{ github.event.inputs.tagged_version }}-linux-arm.tar.xz * && popd
           #dotnet clean
@@ -74,7 +74,7 @@ jobs:
           tag: ${{ github.event.inputs.tagged_version }}
           allowUpdates: true
           removeArtifacts: true
-          artifacts: cronch/publish-artifacts/*
+          artifacts: publish-artifacts/*
           body: |
             Container images for this release are located at https://github.com/orgs/indubitable/packages?repo_name=cronch
 
