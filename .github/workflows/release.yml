@@ -50,6 +50,7 @@ jobs:
       - run: |
           mkdir publish-artifacts
           cd cronch
+          export CRONCH_VERSION=${{ github.event.inputs.tagged_version }}
           dotnet publish -r linux-x64 --sc -o ../publish-linux-x64/cronch && pushd ../publish-linux-x64 && tar cJf ../publish-artifacts/cronch-${{ github.event.inputs.tagged_version }}-linux-x64.tar.xz cronch && popd
           dotnet publish -r linux-musl-x64 --sc -o ../publish-linux-musl-x64/cronch && pushd ../publish-linux-musl-x64 && tar cJf ../publish-artifacts/cronch-${{ github.event.inputs.tagged_version }}-linux-musl-x64.tar.xz cronch && popd
           dotnet publish -r linux-arm --sc -o ../publish-linux-arm/cronch && pushd ../publish-linux-arm && tar cJf ../publish-artifacts/cronch-${{ github.event.inputs.tagged_version }}-linux-arm.tar.xz cronch && popd

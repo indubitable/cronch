@@ -1,0 +1,13 @@
+[Unit]
+Description=CRONCH
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/cronch
+ExecStart=/opt/cronch/cronch
+Restart=always
+RestartSec=10
+Environment="ASPNETCORE_ENVIRONMENT=Production"
+
+[Install]
+WantedBy=multi-user.target

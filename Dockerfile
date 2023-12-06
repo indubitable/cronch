@@ -19,6 +19,7 @@ WORKDIR /opt/cronch
 RUN apt update \
  && apt install -y --no-install-recommends curl wget jq tini
 COPY --from=build-env /build/cronch/out .
+ENV ASPNETCORE_ENVIRONMENT=Production
 ENTRYPOINT ["/usr/bin/tini", "--", "dotnet", "cronch.dll"]
 
 # ------ CONFIGURATION:
