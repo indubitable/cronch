@@ -46,9 +46,13 @@ CRONCH! is a cron-like job scheduler. It has a user-friendly web interface and c
 
 ## Installation
 
-### Docker images
+### Using Docker
 
-Docker is by far the easiest way to install CRONCH! at the moment. The following images are provided:
+Docker is the easiest way to install CRONCH! at the moment.
+
+#### Image options
+
+The following images are provided:
 
 `ghcr.io/indubitable/cronch` - [see details](https://github.com/indubitable/cronch/pkgs/container/cronch)
 
@@ -60,7 +64,7 @@ This is a larger CRONCH! image, also based on Debian and also multi-arch. In add
 
 The sizes of the two images are significantly different. On amd64, standard is under 300MB, while "extra" is over 1GB.
 
-### Configuration
+#### Container configuration
 
 By default, CRONCH! listens on port 8080 inside the container. Of course, that can be mapped to any external port. Additionally, two volumes should be mounted: one for configuration, and one for historical data storage. They are `/opt/cronch/cronchconfig` and `/opt/cronch/cronchdata`, respectively.
 
@@ -71,6 +75,34 @@ docker run --restart=always --name=cronch -p 8080:8080 -v ./cronchconfig:/opt/cr
 ```
 
 An example `docker-compose.yml` file has been provided in this repository as well. Using Docker Compose is even easier than the above command.
+
+### Using Windows binaries
+
+CRONCH! GitHub releases include Windows x64 and ARM64 binaries. Simply download and unzip the appropriate `-win-` file from the [latest GitHub release](https://github.com/indubitable/cronch/releases), and execute `cronch.exe`.
+
+Note, when running in Windows, CRONCH! will default to outputting logs, including the configured HTTP listen address(es), to standard out as well as the Event Log. The latter is especially useful when running as a Windows service.
+
+#### Windows service option
+
+CRONCH! can register and run as a Windows service. To install it as a Windows service, execute `cronch.exe -i` from an elevated command prompt. To uninstall it, execute `cronch.exe -u` instead.
+
+### Using Linux binaries
+
+CRONCH! GitHub releases include Linux binaries for various architectures, including options for musl libc. Simply download and `tar xf` the appropriate `-linux-` file from the [latest GitHub release](https://github.com/indubitable/cronch/releases), and execute `./cronch`.
+
+#### Integrating with systemd
+
+An example systemd service file is [provided in the repository](https://github.com/indubitable/cronch/blob/main/cronch-daemon.service). To use it, download the file, and make any necessary changes to it, such as updating paths. Then, copy it inside `/etc/systemd/system/`. Once that is done, execute the following:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable cronch-daemon.service
+sudo systemctl start cronch-daemon.service
+```
+
+### Using Mac binaries
+
+_Instructions TBD..._
 
 ## Current status
 
