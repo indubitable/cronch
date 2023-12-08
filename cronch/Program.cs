@@ -1,9 +1,32 @@
 using cronch;
 using cronch.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting.WindowsServices;
+using Microsoft.Extensions.Logging.Configuration;
+using Microsoft.Extensions.Logging.EventLog;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables(prefix: "CRONCH_");
+
+if (OperatingSystem.IsWindows())
+{
+    LoggerProviderOptions.RegisterProviderOptions<EventLogSettings, EventLogLoggerProvider>(builder.Services);
+
+    if (WindowsServiceHelpers.IsWindowsService())
+    {
+        Environment.CurrentDirectory = AppContext.BaseDirectory;
+    }
+    else if (args.Length == 1 && args[0].Equals("-i"))
+    {
+        WindowsHostedService.InstallSelf();
+        return;
+    }
+    else if (args.Length == 1 && args[0].Equals("-u"))
+    {
+        WindowsHostedService.UninstallSelf();
+        return;
+    }
+}
 
 // Add services to the container.
 builder.Services.AddRazorPages();
@@ -13,6 +36,15 @@ Directory.CreateDirectory(dataLocation);
 var dbFile = Path.GetFullPath(Path.Combine(dataLocation, "executions.db"));
 builder.Services.AddDbContext<CronchDbContext>(options => options.UseSqlite($"Data Source={dbFile}"));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
+if (OperatingSystem.IsWindows())
+{
+    builder.Services.AddWindowsService(options =>
+    {
+        options.ServiceName = "CRONCH!";
+    });
+    builder.Services.AddHostedService<WindowsHostedService>();
+}
 
 builder.Services.AddSingleton<JobConfigService>();
 builder.Services.AddSingleton<ConfigPersistenceService>();
