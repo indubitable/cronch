@@ -118,6 +118,15 @@ Pre-run configuration includes the ability to customize things like what port nu
 
 For advanced hosting configurations using the built-in Kestrel web server, including setting up HTTPS, please see [Microsoft's documentation](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel/endpoints?view=aspnetcore-8.0).
 
+### In-app settings
+
+The Settings page in CRONCH! contains additional configurable options, including:
+
+- Maximum count of historical executions per job, which deletes older job execution records by count
+- Maximum age of historical run executions in days, which deletes older job execution records by age
+- Default script file location, which allows for job scripts to be placed in a custom directory by default
+- Run completion script, which can be used to post-process job executions
+
 ## Current status
 
 MVP achieved! It still shouldn't be considered stable, however.
