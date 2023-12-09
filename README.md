@@ -2,7 +2,7 @@
 
 # A web-based job scheduler
 
-[📦 Docker image (standard)](https://github.com/indubitable/cronch/pkgs/container/cronch) - [📦 Docker image (extra)](https://github.com/indubitable/cronch/pkgs/container/cronch-extra) - [📜 Features](#features) - [💽 Installation](#installation) - [📷 Screenshots](#screenshots)
+[📦 Docker (standard)](https://github.com/indubitable/cronch/pkgs/container/cronch) - [📦 Docker (extra)](https://github.com/indubitable/cronch/pkgs/container/cronch-extra) - [📜 Features](#features) - [💽 Installation](#installation) - [📝 Configuration](#configuration) - [📷 Screenshots](#screenshots)
 
 ## What is it?
 
@@ -103,6 +103,20 @@ sudo systemctl start cronch-daemon.service
 ### Using Mac binaries
 
 _Instructions TBD..._
+
+## Configuration
+
+### Environment variables and appsettings.json
+
+Pre-run configuration includes the ability to customize things like what port number CRONCH! listens on and directories for data storage.
+
+| Environment variable | JSON config | Default | Description |
+| --- | --- | --- | --- |
+| `CRONCH_ConfigLocation` | `ConfigLocation` in appsettings.json | `./cronchconfig` | The storage location of the main configuration XML file that contains job definitions and runtime settings |
+| `CRONCH_DataLocation` | `DataLocation` in appsettings.json | `./cronchdata` | The storage location of execution data (SQLite database and output files) |
+| `CRONCH_HTTP_PORTS` | `HTTP_PORTS` in appsettings.Production.json | `8080` | The HTTP port to listen on |
+
+For advanced hosting configurations using the built-in Kestrel web server, including setting up HTTPS, please see [Microsoft's documentation](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel/endpoints?view=aspnetcore-8.0).
 
 ## Current status
 
