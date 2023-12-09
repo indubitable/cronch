@@ -34,5 +34,5 @@ VOLUME /opt/cronch/cronchdata
 ENV ASPNETCORE_FORWARDEDHEADERS_ENABLED=false
 
 # Change this to bind to a specific interface or different port, if needed:
-ENV ASPNETCORE_HTTP_PORTS="8080"
+ENV CRONCH_HTTP_PORTS="8080"
 EXPOSE 8080
