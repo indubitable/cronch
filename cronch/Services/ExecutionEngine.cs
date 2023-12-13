@@ -49,9 +49,12 @@ public class ExecutionEngine(ILogger<ExecutionEngine> _logger)
                 var line = args.Data;
                 if (!string.IsNullOrWhiteSpace(line))
                 {
-                    outputWriter.WriteLine(formatOutput ? $"O {DateTimeOffset.UtcNow:yyyyMMdd HHmmss} {line}" : line);
-                    outputWriter.Flush();
-                    ProcessLineForStatusUpdate(line, jobModel.Keywords, jobModel.StdOutProcessing, ref intermediateExecutionStatus);
+                    lock (outputWriter)
+                    {
+                        outputWriter.WriteLine(formatOutput ? $"O {DateTimeOffset.UtcNow:yyyyMMdd HHmmss} {line}" : line);
+                        outputWriter.Flush();
+                        ProcessLineForStatusUpdate(line, jobModel.Keywords, jobModel.StdOutProcessing, ref intermediateExecutionStatus);
+                    }
                 }
             };
             process.ErrorDataReceived += (sender, args) =>
@@ -59,9 +62,12 @@ public class ExecutionEngine(ILogger<ExecutionEngine> _logger)
                 var line = args.Data;
                 if (!string.IsNullOrWhiteSpace(line))
                 {
-                    outputWriter.WriteLine(formatOutput ? $"E {DateTimeOffset.UtcNow:yyyyMMdd HHmmss} {line}" : line);
-                    outputWriter.Flush();
-                    ProcessLineForStatusUpdate(line, jobModel.Keywords, jobModel.StdErrProcessing, ref intermediateExecutionStatus);
+                    lock (outputWriter)
+                    {
+                        outputWriter.WriteLine(formatOutput ? $"E {DateTimeOffset.UtcNow:yyyyMMdd HHmmss} {line}" : line);
+                        outputWriter.Flush();
+                        ProcessLineForStatusUpdate(line, jobModel.Keywords, jobModel.StdErrProcessing, ref intermediateExecutionStatus);
+                    }
                 }
             };
             process.Start();
