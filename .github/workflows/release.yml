@@ -60,6 +60,7 @@ jobs:
           dotnet publish -r win-arm64 --sc -o ../publish-win-arm64/cronch && pushd ../publish-win-arm64 && zip -r ../publish-artifacts/cronch-${{ github.event.inputs.tagged_version }}-win-arm64.zip cronch && popd
           dotnet publish -r osx-x64 --sc -o ../publish-macos-x64/cronch && pushd ../publish-macos-x64 && zip -r ../publish-artifacts/cronch-${{ github.event.inputs.tagged_version }}-macos-x64.zip cronch && popd
           dotnet publish -r osx-arm64 --sc -o ../publish-macos-arm64/cronch && pushd ../publish-macos-arm64 && zip -r ../publish-artifacts/cronch-${{ github.event.inputs.tagged_version }}-macos-arm64.zip cronch && popd
+          dotnet publish --no-self-contained -p:PublishSingleFile=false -o ../publish-xplat/cronch && pushd ../publish-xplat && zip -r ../publish-artifacts/cronch-${{ github.event.inputs.tagged_version }}-xplat.zip cronch && tar cJf ../publish-artifacts/cronch-${{ github.event.inputs.tagged_version }}-xplat.tar.xz cronch && popd
 
       - uses: ncipollo/release-action@v1
         with:
