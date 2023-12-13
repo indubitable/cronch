@@ -46,6 +46,10 @@ CRONCH! is a cron-like job scheduler. It has a user-friendly web interface and c
 
 ## Installation
 
+CRONCH! can be installed using pre-built Docker images or using binary artifacts provided in [GitHub releases](https://github.com/indubitable/cronch/releases). Both methods are described below.
+
+In addition to platform-specific binaries, cross-platform (`xplat`) ones are provided as well. They are smaller because they require the [latest ASP.NET Core runtime](https://dotnet.microsoft.com/en-us/download/dotnet) to already be installed on the target system.
+
 ### Using Docker
 
 Docker is the easiest way to install CRONCH! at the moment.
