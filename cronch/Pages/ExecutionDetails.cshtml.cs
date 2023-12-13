@@ -45,7 +45,7 @@ public class ExecutionDetailsModel(JobExecutionService _jobExecutionService, Job
                 var spanClass = (l[0] == 'E' ? "stderr" : "stdout");
                 if (DateTimeOffset.TryParseExact(l.AsSpan(2, 15), "yyyyMMdd HHmmss", null, System.Globalization.DateTimeStyles.AssumeUniversal, out var timestamp))
                 {
-                    stb.Append($"<span class=\"{spanClass}\"><span class=\"unselectable timestamp me-2\">{timestamp.ToLocalTime():yyyy-MM-dd HH:mm:ss}</span>{_htmlEncoder.Encode(l.Substring(18))}\n</span>");
+                    stb.Append($"<span class=\"{spanClass}\"><span class=\"unselectable timestamp me-2\">{timestamp.ToLocalTime():yyyy-MM-dd HH:mm:ss}</span>{_htmlEncoder.Encode(l[18..])}\n</span>");
                 }
             }
             else
