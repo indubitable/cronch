@@ -33,6 +33,13 @@
                     </div>
                     <div class="toast-body">
                         @TempData["Message"]
+                        @if (TempData.ContainsKey("MessageLink") && TempData.ContainsKey("MessageLinkName"))
+                        {
+                            <div>
+                                <br />
+                                <a href="@TempData["MessageLink"]" class="btn btn-sm btn-outline-dark">@TempData["MessageLinkName"]</a>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>

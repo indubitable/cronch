@@ -71,7 +71,7 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
         return _executions.Keys.ToList();
     }
 
-    public virtual void ExecuteJob(JobModel jobModel, ExecutionReason reason)
+    public virtual Guid ExecuteJob(JobModel jobModel, ExecutionReason reason)
     {
         var execution = ExecutionModel.CreateNew(jobModel.Id, jobModel.Name, reason, ExecutionStatus.Unknown);
 
@@ -115,7 +115,7 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
                 }
 
                 // Leave and never look back
-                return;
+                return execution.Id;
             }
         }
 
@@ -131,6 +131,8 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
         }
 
         thread.Start();
+
+        return execution.Id;
     }
 
     private ExecutionViewModel ConvertExecutionModelToViewModel(ExecutionModel model)

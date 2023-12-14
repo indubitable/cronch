@@ -56,7 +56,7 @@ body {
 }
 
 .toast {
-  background-color: rgba(var(--bs-body-bg-rgb), 0.9);
+  background-color: rgba(var(--bs-body-bg-rgb), 0.95);
 }
 
 .form-switch .form-check-input, .form-switch .form-check-label {
@@ -85,4 +85,8 @@ table tr.clickable-row {
 
 .container.job-output code .stderr .timestamp {
   color: rgba(var(--bs-danger-rgb), 0.6);
+}
+
+.dropdown-toggle.no-caret::after {
+  display: none;
 }

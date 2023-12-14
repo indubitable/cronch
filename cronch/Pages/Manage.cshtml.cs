@@ -26,14 +26,30 @@ public class ManageModel(JobConfigService _jobConfigService, JobExecutionService
         return RedirectToPage("/Manage");
     }
 
+    public IActionResult OnPostDuplicateJob(Guid originalJobId, string duplicateName)
+    {
+        var originalJob = _jobConfigService.GetJob(originalJobId);
+
+        var newJob = originalJob.ToPersistence().ToModel();
+        newJob.Id = Guid.NewGuid();
+        newJob.Name = duplicateName;
+        newJob.Enabled = false;
+
+        _jobConfigService.CreateJob(newJob, false);
+
+        return RedirectToPage("/EditJob", new { id = newJob.Id });
+    }
+
     public IActionResult OnPostRunJob(Guid id)
     {
         var job = _jobConfigService.GetJob(id);
         if (job != null)
         {
-            _jobExecutionService.ExecuteJob(job, Models.ExecutionReason.Manual);
+            var execId = _jobExecutionService.ExecuteJob(job, Models.ExecutionReason.Manual);
             TempData["Message"] = "Job started!";
             TempData["MessageType"] = "success";
+            TempData["MessageLink"] = $"/ExecutionDetails/{execId:D}";
+            TempData["MessageLinkName"] = "View execution details";
         }
         else
         {
