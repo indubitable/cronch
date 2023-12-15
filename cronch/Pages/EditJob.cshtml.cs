@@ -11,9 +11,18 @@ public class EditJobModel(JobConfigService _jobConfigService) : PageModel
     [BindProperty]
     public JobViewModel JobVM { get; set; } = null!;
 
-    public void OnGet(Guid id)
+    public IActionResult OnGet(Guid id)
     {
-        JobVM = _jobConfigService.GetJob(id).ToViewModel();
+        var job = _jobConfigService.GetJob(id);
+        if (job != null)
+        {
+            JobVM = job.ToViewModel();
+            return Page();
+        }
+        else
+        {
+            return NotFound();
+        }
     }
 
     public IActionResult OnPost(Guid id)

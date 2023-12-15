@@ -33,12 +33,12 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
         };
     }
 
-    public virtual ExecutionModel GetExecution(Guid id)
+    public virtual ExecutionModel? GetExecution(Guid id)
     {
         return _dbContext.Executions
             .AsNoTracking()
             .Where(e => e.Id == id)
-            .Single();
+            .SingleOrDefault();
     }
 
     public virtual List<ExecutionModel> GetRecentExecutions(int maxCount, Guid? jobId)

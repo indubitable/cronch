@@ -68,6 +68,7 @@ else
 {
     app.UseExceptionHandler("/Error");
 }
+app.UseStatusCodePagesWithReExecute("/Error");
 
 using (var scope = app.Services.CreateScope())
 {

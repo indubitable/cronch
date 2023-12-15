@@ -62,8 +62,8 @@ public class JobConfigService(ConfigPersistenceService _configPersistenceService
         return config.Jobs.Select(ConversionUtility.ToModel).ToList();
     }
 
-	public JobModel GetJob(Guid id)
+	public JobModel? GetJob(Guid id)
 	{
-		return GetAllJobs().Single(j => j.Id == id);
+		return GetAllJobs().SingleOrDefault(j => j.Id == id);
 	}
 }

@@ -24,7 +24,7 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
         return executionPersistenceService.GetExecutionStatistics(from, to);
     }
 
-    public virtual ExecutionViewModel GetExecution(Guid executionId)
+    public virtual ExecutionViewModel? GetExecution(Guid executionId)
     {
         using var scope = _serviceProvider.CreateScope();
         var executionPersistenceService = scope.ServiceProvider.GetRequiredService<ExecutionPersistenceService>();
@@ -38,20 +38,23 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
         var executionPersistenceService = scope.ServiceProvider.GetRequiredService<ExecutionPersistenceService>();
 
         var execution = executionPersistenceService.GetExecution(executionId);
-        var outputPathname = executionPersistenceService.GetOutputPathName(execution, false);
-
         var outputContents = string.Empty;
-        try
+        if (execution != null)
         {
-            if (File.Exists(outputPathname))
+            var outputPathname = executionPersistenceService.GetOutputPathName(execution, false);
+
+            try
             {
-                using var reader = new StreamReader(outputPathname, new FileStreamOptions { Access = FileAccess.Read, Mode = FileMode.Open, Share = FileShare.ReadWrite });
-                outputContents = reader.ReadToEnd();
+                if (File.Exists(outputPathname))
+                {
+                    using var reader = new StreamReader(outputPathname, new FileStreamOptions { Access = FileAccess.Read, Mode = FileMode.Open, Share = FileShare.ReadWrite });
+                    outputContents = reader.ReadToEnd();
+                }
             }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Unable to read stdout/stderr for execution {Id}", executionId);
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Unable to read stdout/stderr for execution {Id}", executionId);
+            }
         }
         return outputContents;
     }
@@ -62,7 +65,7 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
         var executionPersistenceService = scope.ServiceProvider.GetRequiredService<ExecutionPersistenceService>();
 
         return executionPersistenceService.GetRecentExecutions(maxCount, jobId)
-            .Select(ConvertExecutionModelToViewModel)
+            .Select(e => ConvertExecutionModelToViewModel(e)!.Value)
             .ToList();
     }
 
@@ -135,8 +138,10 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
         return execution.Id;
     }
 
-    private ExecutionViewModel ConvertExecutionModelToViewModel(ExecutionModel model)
+    private ExecutionViewModel? ConvertExecutionModelToViewModel(ExecutionModel? model)
     {
+        if (model == null) return null;
+
         var currentExecutions = _executions.Keys.ToList();
         ExecutionStatus fixOutdatedRunningStatus(Guid execId, ExecutionStatus es) => (es == ExecutionStatus.Running && !currentExecutions.Any(ce => ce.ExecutionId == execId)) ? ExecutionStatus.Unknown : es;
 

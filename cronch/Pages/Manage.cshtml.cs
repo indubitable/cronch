@@ -29,6 +29,11 @@ public class ManageModel(JobConfigService _jobConfigService, JobExecutionService
     public IActionResult OnPostDuplicateJob(Guid originalJobId, string duplicateName)
     {
         var originalJob = _jobConfigService.GetJob(originalJobId);
+        if (originalJob == null)
+        {
+            // This really shouldn't happen in normal circumstances...
+            return RedirectToPage("/Manage");
+        }
 
         var newJob = originalJob.ToPersistence().ToModel();
         newJob.Id = Guid.NewGuid();
@@ -65,25 +70,27 @@ public class ManageModel(JobConfigService _jobConfigService, JobExecutionService
         foreach (var jobId in jobIds)
         {
             var job = _jobConfigService.GetJob(jobId);
+            if (job != null)
+            {
+                if (action.Equals("enable"))
+                {
+                    job.Enabled = true;
+                    verb = "enabled";
+                }
+                else if (action.Equals("disable"))
+                {
+                    job.Enabled = false;
+                    verb = "disabled";
+                }
+                else
+                {
+                    TempData["Message"] = "Unable to perform unknown action!";
+                    TempData["MessageType"] = "danger";
+                    return RedirectToPage("/Manage");
+                }
 
-            if (action.Equals("enable"))
-            {
-                job.Enabled = true;
-                verb = "enabled";
+                _jobConfigService.UpdateJob(job);
             }
-            else if (action.Equals("disable"))
-            {
-                job.Enabled = false;
-                verb = "disabled";
-            }
-            else
-            {
-                TempData["Message"] = "Unable to perform unknown action!";
-                TempData["MessageType"] = "danger";
-                return RedirectToPage("/Manage");
-            }
-
-            _jobConfigService.UpdateJob(job);
         }
 
         TempData["Message"] = $"Successfully {verb} {jobIds.Count} job(s)";

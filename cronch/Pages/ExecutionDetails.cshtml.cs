@@ -18,16 +18,26 @@ public class ExecutionDetailsModel(JobExecutionService _jobExecutionService, Job
 
     public void OnGet(Guid id, [FromQuery] int? lastLineCount)
     {
-        Execution = _jobExecutionService.GetExecution(id);
-        JobOutputProcessed = ProcessJobOutput(_jobExecutionService.GetOutputForExecution(id), lastLineCount ?? 0);
+        var exec = _jobExecutionService.GetExecution(id);
+        if (exec.HasValue)
+        {
+            Execution = exec.Value;
+            JobOutputProcessed = ProcessJobOutput(_jobExecutionService.GetOutputForExecution(id), lastLineCount ?? 0);
 
-        try
-        {
-            Job = _jobConfigService.GetJob(Execution.JobId).ToViewModel();
+            var job = _jobConfigService.GetJob(Execution.JobId);
+            if (job != null) // might be null if job has been deleted
+            {
+                Job = job.ToViewModel();
+            }
         }
-        catch (Exception)
+        else
         {
-            // Job may have been deleted. Ignore.
+            Execution = new ExecutionViewModel
+            {
+                JobId = Guid.Empty,
+                ExecutionId = Guid.Empty,
+            };
+            HttpContext.Response.StatusCode = 404;
         }
     }
 
