@@ -177,7 +177,7 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
             using var outputStream = File.Open(persistence.GetOutputPathName(execution, true), FileMode.Create, FileAccess.Write, FileShare.Read);
             execution.Status = ExecutionStatus.Running;
             persistence.AddExecution(execution);
-            engine.PerformExecution(execution, jobModel, scriptFilePathname, outputStream, true, []);
+            engine.PerformExecution(execution, jobModel, scriptFilePathname, outputStream, true, GetRunEnvVars(execution, jobModel));
             persistence.UpdateExecution(execution);
         }
         catch (Exception ex)
@@ -233,6 +233,15 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
         {
             _logger.LogError(ex, "Error occurred while executing run completion script for job '{Name}' ({Id}), execution {ExecName}", jobModel.Name, jobModel.Id, execution.GetExecutionName());
         }
+    }
+
+    private static Dictionary<string, string> GetRunEnvVars(ExecutionModel execution, JobModel jobModel)
+    {
+        return new Dictionary<string, string> {
+            { "CRONCH_JOB_ID", jobModel.Id.ToString("D") },
+            { "CRONCH_JOB_NAME", jobModel.Name },
+            { "CRONCH_EXECUTION_ID", execution.Id.ToString("D") },
+        };
     }
 
     private static Dictionary<string, string> GetRunCompletionEnvVars(ExecutionModel execution, JobModel jobModel, string outputFilePathname)

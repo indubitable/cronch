@@ -60,12 +60,22 @@
             <div class="col mb-3 d-flex align-items-center">
                 <div class="flex-fill">
                     <label bs5-for="Script" class="form-label"></label>
-                    <textarea bs5-for="Script" rows="5" class="form-control"></textarea>
+                    <textarea bs5-for="Script" rows="15" class="form-control font-monospace"></textarea>
                     <span asp-validation-for="Script" class="text-danger"></span>
                 </div>
             </div>
             <div class="col mb-3 d-flex align-items-center">
-                <div class="shadow p-3 bg-body-tertiary rounded flex-fill">The script to run, executed by the executor (see below)</div>
+                <div class="shadow p-3 bg-body-tertiary rounded flex-fill">
+                    The script to run, executed by the executor (see below)
+                    <br /><br />
+                    The following environment variables are available:
+                    <br />
+                    <ul>
+                        <li><code>CRONCH_JOB_ID</code> - job ID</li>
+                        <li><code>CRONCH_JOB_NAME</code> - job name</li>
+                        <li><code>CRONCH_EXECUTION_ID</code> - execution ID</li>
+                    </ul>
+                </div>
             </div>
         </div>
         <div class="row gx-5">
