@@ -41,6 +41,12 @@ public class ExecutionDetailsModel(JobExecutionService _jobExecutionService, Job
         }
     }
 
+    public IActionResult OnPostKillNow(Guid id)
+    {
+        _jobExecutionService.TerminateExecution(id);
+        return RedirectToPage(new { id });
+    }
+
     private string ProcessJobOutput(string output, int lastLineCount)
     {
         var stb = new StringBuilder();

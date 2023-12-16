@@ -5,5 +5,6 @@ public enum TerminationReason
     NoneSpecified,
     Exited,
     TimedOut,
-    SkippedForParallelism
+    SkippedForParallelism,
+    UserTriggered,
 }

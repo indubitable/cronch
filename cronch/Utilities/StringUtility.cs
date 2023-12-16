@@ -27,6 +27,7 @@ public static class StringUtility
             TerminationReason.Exited => "Exited normally",
             TerminationReason.TimedOut => "Timed out",
             TerminationReason.SkippedForParallelism => "Skipped due to parallelism limit",
+            TerminationReason.UserTriggered => "Terminated by user",
             _ => "Unknown",
         };
     }

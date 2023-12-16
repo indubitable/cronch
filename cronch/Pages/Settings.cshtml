@@ -126,6 +126,7 @@
                                     <li><code>@(Models.TerminationReason.Exited)</code></li>
                                     <li><code>@(Models.TerminationReason.TimedOut)</code></li>
                                     <li><code>@(Models.TerminationReason.SkippedForParallelism)</code></li>
+                                    <li><code>@(Models.TerminationReason.UserTriggered)</code></li>
                                 </ul>
                             </li>
                             <li><code>CRONCH_EXECUTION_INTERNAL_OUTPUT_FILE</code> - location of the internally-formatted file containing the job's stdout and stderr data. Note, this file's format should not be considered stable. Cursory <code>grep</code> checks for keywords should work, but relying on the details of the current format is strongly discouraged.</li>

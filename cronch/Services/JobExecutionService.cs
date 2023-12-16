@@ -9,6 +9,7 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
     public readonly record struct ExecutionIdentifier(Guid JobId, Guid ExecutionId, DateTimeOffset StartedOn);
 
     private readonly ConcurrentDictionary<ExecutionIdentifier, Thread> _executions = new();
+    private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _execCancellations = new();
 
     public virtual Dictionary<Guid, DateTimeOffset> GetLatestExecutionsPerJob()
     {
@@ -74,6 +75,14 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
         return _executions.Keys.ToList();
     }
 
+    public virtual void TerminateExecution(Guid id)
+    {
+        if (_execCancellations.TryGetValue(id, out var cancelSource))
+        {
+            cancelSource.Cancel();
+        }
+    }
+
     public virtual Guid ExecuteJob(JobModel jobModel, ExecutionReason reason)
     {
         var execution = ExecutionModel.CreateNew(jobModel.Id, jobModel.Name, reason, ExecutionStatus.Unknown);
@@ -122,7 +131,14 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
             }
         }
 
-        var thread = new Thread(() => PerformExecution(execution, jobModel))
+        var cancelSource = new CancellationTokenSource();
+        if (!_execCancellations.TryAdd(execution.Id, cancelSource))
+        {
+            cancelSource.Dispose();
+            throw new InvalidOperationException("Unable to execute job: could not register execution token");
+        }
+
+        var thread = new Thread(() => PerformExecution(execution, jobModel, cancelSource.Token))
         {
             IsBackground = true
         };
@@ -130,6 +146,8 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
         // Register the execution
         if (!_executions.TryAdd(GetExecutionIdentifierFromModel(execution), thread))
         {
+            _execCancellations.TryRemove(execution.Id, out _);
+            cancelSource.Dispose();
             throw new InvalidOperationException("Unable to execute job: could not register execution");
         }
 
@@ -158,7 +176,7 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
         };
     }
 
-    private void PerformExecution(ExecutionModel execution, JobModel jobModel)
+    private void PerformExecution(ExecutionModel execution, JobModel jobModel, CancellationToken cancelToken)
     {
         using var scope = _serviceProvider.CreateScope();
         var persistence = scope.ServiceProvider.GetRequiredService<ExecutionPersistenceService>();
@@ -177,7 +195,7 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
             using var outputStream = File.Open(persistence.GetOutputPathName(execution, true), FileMode.Create, FileAccess.Write, FileShare.Read);
             execution.Status = ExecutionStatus.Running;
             persistence.AddExecution(execution);
-            engine.PerformExecution(execution, jobModel, scriptFilePathname, outputStream, true, GetRunEnvVars(execution, jobModel));
+            engine.PerformExecution(execution, jobModel, scriptFilePathname, outputStream, true, GetRunEnvVars(execution, jobModel), cancelToken);
             persistence.UpdateExecution(execution);
         }
         catch (Exception ex)
@@ -186,6 +204,10 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
         }
         finally
         {
+            if (_execCancellations.TryRemove(execution.Id, out var cancelSource))
+            {
+                cancelSource.Dispose();
+            }
             _executions.TryRemove(GetExecutionIdentifierFromModel(execution), out var _);
         }
 
@@ -220,7 +242,8 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
             };
             var runCompletionExecution = ExecutionModel.CreateNew(runCompletionJob.Id, runCompletionJob.Name, ExecutionReason.Scheduled, ExecutionStatus.Unknown);
             var envVars = GetRunCompletionEnvVars(execution, jobModel, executionPersistenceService.GetOutputPathName(execution, false));
-            executionEngine.PerformExecution(runCompletionExecution, runCompletionJob, Path.Combine(GetDefaultScriptLocation(settings), Path.GetRandomFileName()), outputStream, false, envVars);
+            using var cancelSource = new CancellationTokenSource();
+            executionEngine.PerformExecution(runCompletionExecution, runCompletionJob, Path.Combine(GetDefaultScriptLocation(settings), Path.GetRandomFileName()), outputStream, false, envVars, cancelSource.Token);
 
             if (runCompletionExecution.StopReason != TerminationReason.Exited || runCompletionExecution.ExitCode != 0)
             {

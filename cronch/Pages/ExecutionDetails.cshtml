@@ -59,7 +59,10 @@
                         <th>Termination reason</th>
                         @if (Model.Execution.Status == Models.ExecutionStatus.Running)
                         {
-                            <td>N/A</td>
+                            <td>
+                                N/A
+                                <button class="btn btn-sm btn-danger ms-2" data-bs-toggle="modal" data-bs-target="#confirmKillModal">Terminate</button>
+                            </td>
                         }
                         else
                         {
@@ -107,4 +110,25 @@
             });
         </script>
     }
+    <div class="modal fade" id="confirmKillModal" tabindex="-1" aria-labelledby="confirmKillModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="confirmKillModalLabel">Terminate?</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-start">
+                    Are you sure you want to terminate this execution?
+                </div>
+                <div class="modal-footer">
+                    <form method="post" asp-page-handler="KillNow">
+                        <input type="hidden" name="id" value="@Model.Execution.ExecutionId" />
+
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger">Terminate</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

@@ -5,7 +5,7 @@ namespace cronch.Services;
 
 public class ExecutionEngine(ILogger<ExecutionEngine> _logger)
 {
-    public void PerformExecution(ExecutionModel execution, JobModel jobModel, string targetScriptFile, Stream outputStream, bool formatOutput, Dictionary<string, string> environmentVars)
+    public void PerformExecution(ExecutionModel execution, JobModel jobModel, string targetScriptFile, Stream outputStream, bool formatOutput, Dictionary<string, string> environmentVars, CancellationToken cancelToken)
     {
         var intermediateExecutionStatus = ExecutionStatus.CompletedAsSuccess;
 
@@ -74,6 +74,13 @@ public class ExecutionEngine(ILogger<ExecutionEngine> _logger)
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
 
+            var manuallyTerminated = false;
+            using var _ = cancelToken.Register(() =>
+            {
+                manuallyTerminated = true;
+                process.Kill(true);
+            });
+
             if (jobModel.TimeLimitSecs.HasValue)
             {
                 if (process.WaitForExit(TimeSpan.FromSeconds(jobModel.TimeLimitSecs.Value)))
@@ -100,6 +107,11 @@ public class ExecutionEngine(ILogger<ExecutionEngine> _logger)
 
             execution.CompletedOn = DateTimeOffset.UtcNow;
             execution.ExitCode = process.ExitCode;
+
+            if (manuallyTerminated)
+            {
+                execution.StopReason = TerminationReason.UserTriggered;
+            }
 
             if (execution.Status == ExecutionStatus.Running)
             {
