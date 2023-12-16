@@ -109,10 +109,10 @@ public class JobViewModel : IValidatableObject
             return new List<SelectListItem>
             {
                 new SelectListItem("None", nameof(OutputProcessing.None)),
-				new SelectListItem("Mark as warning on any output", nameof(OutputProcessing.WarningOnAnyOutput)),
-				new SelectListItem("Mark as error on any output", nameof(OutputProcessing.ErrorOnAnyOutput)),
-				new SelectListItem("Mark as warning when a keyword matches", nameof(OutputProcessing.WarningOnMatchingKeywords)),
-				new SelectListItem("Mark as error when a keyword matches", nameof(OutputProcessing.ErrorOnMatchingKeywords)),
+				new SelectListItem("Set job status to warning on any output", nameof(OutputProcessing.WarningOnAnyOutput)),
+				new SelectListItem("Set job status to error on any output", nameof(OutputProcessing.ErrorOnAnyOutput)),
+				new SelectListItem("Set job status to warning when a keyword matches", nameof(OutputProcessing.WarningOnMatchingKeywords)),
+				new SelectListItem("Set job status to error when a keyword matches", nameof(OutputProcessing.ErrorOnMatchingKeywords)),
 			};
         }
     }
