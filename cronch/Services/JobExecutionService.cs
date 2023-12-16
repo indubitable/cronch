@@ -189,7 +189,14 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
             var scriptFilePathname = Path.Combine(scriptDefaultDir, Path.GetRandomFileName());
             if (!string.IsNullOrWhiteSpace(jobModel.ScriptFilePathname))
             {
-                scriptFilePathname = Path.Combine(scriptDefaultDir, jobModel.ScriptFilePathname.Trim());
+                if (jobModel.ScriptFilePathname.Contains("{0}"))
+                {
+                    scriptFilePathname = Path.Combine(scriptDefaultDir, string.Format(jobModel.ScriptFilePathname.Trim(), Path.GetRandomFileName()));
+                }
+                else
+                {
+                    scriptFilePathname = Path.Combine(scriptDefaultDir, jobModel.ScriptFilePathname.Trim());
+                }
             }
 
             using var outputStream = File.Open(persistence.GetOutputPathName(execution, true), FileMode.Create, FileAccess.Write, FileShare.Read);
