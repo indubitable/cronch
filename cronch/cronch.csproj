@@ -18,6 +18,7 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<PublishSingleFile>true</PublishSingleFile>
+		<ThreadPoolMaxThreads>120</ThreadPoolMaxThreads>
 	</PropertyGroup>
 
 	<ItemGroup>
