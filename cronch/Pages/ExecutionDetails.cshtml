@@ -77,7 +77,7 @@
                         }
                         else
                         {
-                            <td>@(Model.Execution.CompletedOn.HasValue ? Model.Execution.CompletedOn.Value.ToString("G") : "Unknown")</td>
+                            <td>@(Model.Execution.CompletedOn.HasValue ? Model.Execution.CompletedOn.Value.ToLocalTime().ToString("G") : "Unknown")</td>
                         }
                         <th>Run duration</th>
                         <td>@(Model.Execution.CompletedOn.HasValue || Model.Execution.Status == Models.ExecutionStatus.Running ? Model.Execution.FormattedDuration : "Unknown")</td>
