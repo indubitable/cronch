@@ -129,6 +129,16 @@ public class ExecutionEngine(ILogger<ExecutionEngine> _logger)
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred while executing job '{Name}' ({Id}), execution {ExecName}", jobModel.Name, jobModel.Id, execution.GetExecutionName());
+
+            try
+            {
+                execution.Status = ExecutionStatus.CompletedAsIndeterminate;
+                execution.StopReason = TerminationReason.NoneSpecified;
+            }
+            catch (Exception)
+            {
+                // Ignore.
+            }
         }
         finally
         {
