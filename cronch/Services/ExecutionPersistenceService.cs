@@ -52,12 +52,13 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
 
     public virtual void AddExecution(ExecutionModel execution)
     {
-        using var transaction = _dbContext.Database.BeginTransaction();
         try
         {
-            _dbContext.Executions.Add(execution);
-            _dbContext.SaveChanges();
-            transaction.Commit();
+            WriteWithRetry(() =>
+            {
+                _dbContext.Executions.Add(execution);
+                _dbContext.SaveChanges();
+            });
         }
         catch (Exception ex)
         {
@@ -68,12 +69,13 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
 
     public virtual void UpdateExecution(ExecutionModel execution)
     {
-        using var transaction = _dbContext.Database.BeginTransaction();
         try
         {
-            _dbContext.Executions.Update(execution);
-            _dbContext.SaveChanges();
-            transaction.Commit();
+            WriteWithRetry(() =>
+            {
+                _dbContext.Executions.Update(execution);
+                _dbContext.SaveChanges();
+            });
         }
         catch (Exception ex)
         {
@@ -103,11 +105,12 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
 
     public virtual void RemoveAllDatabaseRecordsForJobId(Guid id)
     {
-        using var transaction = _dbContext.Database.BeginTransaction();
-        _dbContext.Executions
-            .Where(e => e.JobId == id)
-            .ExecuteDelete();
-        transaction.Commit();
+        WriteWithRetry(() =>
+        {
+            _dbContext.Executions
+                .Where(e => e.JobId == id)
+                .ExecuteDelete();
+        });
     }
 
     public List<ExecutionModel> GetOldestExecutionsAfterCount(Guid jobId, int skipCount)
@@ -135,11 +138,12 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
         }
 
         // Now, delete the DB entry
-        using var transaction = _dbContext.Database.BeginTransaction();
-        _dbContext.Executions
-            .Where(e => e.Id == execution.Id)
-            .ExecuteDelete();
-        transaction.Commit();
+        WriteWithRetry(() =>
+        {
+            _dbContext.Executions
+                .Where(e => e.Id == execution.Id)
+                .ExecuteDelete();
+        });
     }
 
     public List<ExecutionModel> GetExecutionsOlderThan(DateTimeOffset startedOn)
@@ -159,5 +163,34 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
             throw new InvalidOperationException();
         }
         return Path.GetFullPath(location);
+    }
+
+    private void WriteWithRetry(Action writeAction, int retryCount = 3)
+    {
+        Exception? lastException = null;
+        for (int i = 0; i < retryCount; i++)
+        {
+            using var transaction = _dbContext.Database.BeginTransaction();
+            try
+            {
+                writeAction.Invoke();
+                transaction.Commit();
+
+                // Success!
+                return;
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+                _logger.LogWarning(ex, "Database write attempt #{Attempt} failed", i + 1);
+                lastException = ex;
+                Thread.Sleep(20);
+
+                // Retry if count allows for it...
+            }
+        }
+
+        // Failed!
+        throw new Exception("Database write with retry failed!", lastException);
     }
 }
