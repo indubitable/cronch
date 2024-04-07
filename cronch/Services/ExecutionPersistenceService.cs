@@ -7,12 +7,11 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
 {
     public readonly record struct ExecutionStatistics(int Successes, int Errors, int Warnings);
 
-    private static readonly object _writeLock = new();
-
     public virtual Dictionary<Guid, DateTimeOffset> GetLatestExecutionsPerJob()
     {
         return _dbContext.Executions
             .FromSqlRaw(@"SELECT t1.* FROM Execution t1 JOIN (SELECT JobId, MAX(StartedOn) AS StartedOn FROM Execution GROUP BY JobId) t2 ON t1.JobId=t2.JobId AND t1.StartedOn=t2.StartedOn")
+            .AsNoTracking()
             .Select(e => KeyValuePair.Create(e.JobId, e.StartedOn))
             .ToDictionary();
     }
@@ -53,13 +52,12 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
 
     public virtual void AddExecution(ExecutionModel execution)
     {
+        using var transaction = _dbContext.Database.BeginTransaction();
         try
         {
-            lock (_writeLock)
-            {
-                _dbContext.Executions.Add(execution);
-                _dbContext.SaveChanges();
-            }
+            _dbContext.Executions.Add(execution);
+            _dbContext.SaveChanges();
+            transaction.Commit();
         }
         catch (Exception ex)
         {
@@ -70,13 +68,12 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
 
     public virtual void UpdateExecution(ExecutionModel execution)
     {
+        using var transaction = _dbContext.Database.BeginTransaction();
         try
         {
-            lock (_writeLock)
-            {
-                _dbContext.Executions.Update(execution);
-                _dbContext.SaveChanges();
-            }
+            _dbContext.Executions.Update(execution);
+            _dbContext.SaveChanges();
+            transaction.Commit();
         }
         catch (Exception ex)
         {
@@ -106,12 +103,11 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
 
     public virtual void RemoveAllDatabaseRecordsForJobId(Guid id)
     {
-        lock (_writeLock)
-        {
-            _dbContext.Executions
-                .Where(e => e.JobId == id)
-                .ExecuteDelete();
-        }
+        using var transaction = _dbContext.Database.BeginTransaction();
+        _dbContext.Executions
+            .Where(e => e.JobId == id)
+            .ExecuteDelete();
+        transaction.Commit();
     }
 
     public List<ExecutionModel> GetOldestExecutionsAfterCount(Guid jobId, int skipCount)
@@ -139,12 +135,11 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
         }
 
         // Now, delete the DB entry
-        lock (_writeLock)
-        {
-            _dbContext.Executions
-                .Where(e => e.Id == execution.Id)
-                .ExecuteDelete();
-        }
+        using var transaction = _dbContext.Database.BeginTransaction();
+        _dbContext.Executions
+            .Where(e => e.Id == execution.Id)
+            .ExecuteDelete();
+        transaction.Commit();
     }
 
     public List<ExecutionModel> GetExecutionsOlderThan(DateTimeOffset startedOn)
