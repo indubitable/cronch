@@ -45,7 +45,7 @@ jobs:
     if: ${{ github.event.inputs.add_gh_release == 'true' && github.event.inputs.generate_binaries == 'true' }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - run: |
           mkdir publish-artifacts
@@ -103,7 +103,7 @@ jobs:
           [ "${{ github.event.inputs.is_test }}" = "true" ] && export ALL_TAGS_EXTRA="$ALL_TAGS_EXTRA,$TAG_NAME_EXTRA:test"
           echo "all-tags-extra=$ALL_TAGS_EXTRA" >> $GITHUB_OUTPUT
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
