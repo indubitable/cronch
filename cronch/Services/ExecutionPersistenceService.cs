@@ -170,9 +170,9 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
         Exception? lastException = null;
         for (int i = 0; i < retryCount; i++)
         {
-            using var transaction = _dbContext.Database.BeginTransaction();
             try
             {
+                using var transaction = _dbContext.Database.BeginTransaction();
                 writeAction.Invoke();
                 transaction.Commit();
 
@@ -181,8 +181,7 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
             }
             catch (Exception ex)
             {
-                transaction.Rollback();
-                _logger.LogWarning(ex, "Database write attempt #{Attempt} failed", i + 1);
+                _logger.LogWarning(ex, "Database write attempt #{Attempt} failed, retrying up to {RetryCount} times", i + 1, retryCount);
                 lastException = ex;
                 Thread.Sleep(20);
 
