@@ -34,7 +34,7 @@ builder.Services.AddRazorPages();
 var dataLocation = builder.Configuration["DataLocation"] ?? throw new ArgumentNullException("DataLocation", "The DataLocation configuration option is missing");
 Directory.CreateDirectory(dataLocation);
 var dbFile = Path.GetFullPath(Path.Combine(dataLocation, "executions.db"));
-builder.Services.AddDbContext<CronchDbContext>(options => options.UseSqlite($"Data Source={dbFile}"));
+builder.Services.AddDbContext<CronchDbContext>(options => options.UseSqlite($"Data Source={dbFile}", sqliteOptions => sqliteOptions.CommandTimeout(5)));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 if (OperatingSystem.IsWindows())
