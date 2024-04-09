@@ -3,13 +3,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace cronch.Services;
 
-public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _logger, IConfiguration _configuration, CronchDbContext _dbContext)
+public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _logger, IConfiguration _configuration, IServiceProvider _serviceProvider)
 {
     public readonly record struct ExecutionStatistics(int Successes, int Errors, int Warnings);
 
     public virtual Dictionary<Guid, DateTimeOffset> GetLatestExecutionsPerJob()
     {
-        return _dbContext.Executions
+        using var scope = _serviceProvider.CreateScope();
+        using var dbContext = scope.ServiceProvider.GetRequiredService<CronchDbContext>();
+        return dbContext.Executions
             .FromSqlRaw(@"SELECT t1.* FROM Execution t1 JOIN (SELECT JobId, MAX(StartedOn) AS StartedOn FROM Execution GROUP BY JobId) t2 ON t1.JobId=t2.JobId AND t1.StartedOn=t2.StartedOn")
             .AsNoTracking()
             .Select(e => KeyValuePair.Create(e.JobId, e.StartedOn))
@@ -18,7 +20,9 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
 
     public virtual ExecutionStatistics GetExecutionStatistics(DateTimeOffset from,  DateTimeOffset to)
     {
-        var statuses = _dbContext.Executions
+        using var scope = _serviceProvider.CreateScope();
+        using var dbContext = scope.ServiceProvider.GetRequiredService<CronchDbContext>();
+        var statuses = dbContext.Executions
             .AsNoTracking()
             .Where(e => e.StartedOn > from && e.StartedOn <= to)
             .Select(e => e.Status)
@@ -34,7 +38,9 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
 
     public virtual ExecutionModel? GetExecution(Guid id)
     {
-        return _dbContext.Executions
+        using var scope = _serviceProvider.CreateScope();
+        using var dbContext = scope.ServiceProvider.GetRequiredService<CronchDbContext>();
+        return dbContext.Executions
             .AsNoTracking()
             .Where(e => e.Id == id)
             .SingleOrDefault();
@@ -42,7 +48,9 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
 
     public virtual List<ExecutionModel> GetRecentExecutions(int maxCount, Guid? jobId)
     {
-        return _dbContext.Executions
+        using var scope = _serviceProvider.CreateScope();
+        using var dbContext = scope.ServiceProvider.GetRequiredService<CronchDbContext>();
+        return dbContext.Executions
             .AsNoTracking()
             .Where(e => (!jobId.HasValue || e.JobId == jobId))
             .OrderByDescending(e => e.StartedOn)
@@ -54,10 +62,10 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
     {
         try
         {
-            WriteWithRetry(() =>
+            WriteWithRetry((dbContext) =>
             {
-                _dbContext.Executions.Add(execution);
-                _dbContext.SaveChanges();
+                dbContext.Executions.Add(execution);
+                dbContext.SaveChanges();
             });
         }
         catch (Exception ex)
@@ -71,10 +79,10 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
     {
         try
         {
-            WriteWithRetry(() =>
+            WriteWithRetry((dbContext) =>
             {
-                _dbContext.Executions.Update(execution);
-                _dbContext.SaveChanges();
+                dbContext.Executions.Update(execution);
+                dbContext.SaveChanges();
             });
         }
         catch (Exception ex)
@@ -105,9 +113,9 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
 
     public virtual void RemoveAllDatabaseRecordsForJobId(Guid id)
     {
-        WriteWithRetry(() =>
+        WriteWithRetry((dbContext) =>
         {
-            _dbContext.Executions
+            dbContext.Executions
                 .Where(e => e.JobId == id)
                 .ExecuteDelete();
         });
@@ -116,7 +124,9 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
     public List<ExecutionModel> GetOldestExecutionsAfterCount(Guid jobId, int skipCount)
     {
         // Order by most recent, then skip as many as required. The rest should be returned.
-        return _dbContext.Executions
+        using var scope = _serviceProvider.CreateScope();
+        using var dbContext = scope.ServiceProvider.GetRequiredService<CronchDbContext>();
+        return dbContext.Executions
             .AsNoTracking()
             .Where(e => e.JobId == jobId)
             .OrderByDescending(e => e.StartedOn)
@@ -138,9 +148,9 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
         }
 
         // Now, delete the DB entry
-        WriteWithRetry(() =>
+        WriteWithRetry((dbContext) =>
         {
-            _dbContext.Executions
+            dbContext.Executions
                 .Where(e => e.Id == execution.Id)
                 .ExecuteDelete();
         });
@@ -148,7 +158,9 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
 
     public List<ExecutionModel> GetExecutionsOlderThan(DateTimeOffset startedOn)
     {
-        return _dbContext.Executions
+        using var scope = _serviceProvider.CreateScope();
+        using var dbContext = scope.ServiceProvider.GetRequiredService<CronchDbContext>();
+        return dbContext.Executions
             .AsNoTracking()
             .Where(e => e.StartedOn < startedOn)
             .ToList();
@@ -165,15 +177,17 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
         return Path.GetFullPath(location);
     }
 
-    private void WriteWithRetry(Action writeAction, int retryCount = 3)
+    private void WriteWithRetry(Action<CronchDbContext> writeAction, int retryCount = 3)
     {
+        using var scope = _serviceProvider.CreateScope();
+        using var dbContext = scope.ServiceProvider.GetRequiredService<CronchDbContext>();
         Exception? lastException = null;
         for (int i = 0; i < retryCount; i++)
         {
             try
             {
-                using var transaction = _dbContext.Database.BeginTransaction();
-                writeAction.Invoke();
+                using var transaction = dbContext.Database.BeginTransaction();
+                writeAction.Invoke(dbContext);
                 transaction.Commit();
 
                 // Success!
@@ -183,7 +197,7 @@ public class ExecutionPersistenceService(ILogger<ExecutionPersistenceService> _l
             {
                 _logger.LogWarning(ex, "Database write attempt #{Attempt} failed, retrying up to {RetryCount} times", i + 1, retryCount);
                 lastException = ex;
-                Thread.Sleep(20);
+                Thread.Sleep(new Random().Next(50, 500));
 
                 // Retry if count allows for it...
             }

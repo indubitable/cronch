@@ -34,13 +34,20 @@ builder.Services.AddRazorPages();
 var dataLocation = builder.Configuration["DataLocation"] ?? throw new ArgumentNullException("DataLocation", "The DataLocation configuration option is missing");
 Directory.CreateDirectory(dataLocation);
 SQLitePCL.Batteries_V2.Init();
-var result = SQLitePCL.raw.sqlite3_config(SQLitePCL.raw.SQLITE_CONFIG_MULTITHREAD);
+var result = SQLitePCL.raw.sqlite3_config(SQLitePCL.raw.SQLITE_CONFIG_SERIALIZED);
 if (result != SQLitePCL.raw.SQLITE_OK)
 {
     Console.WriteLine($"sqlite3_config for multithreading failed: {result}");
 }
 var dbFile = Path.GetFullPath(Path.Combine(dataLocation, "executions.db"));
-builder.Services.AddDbContext<CronchDbContext>(options => options.UseSqlite($"Data Source=\"{dbFile}\";Pooling=False;Cache=Private;Default Timeout=10"));
+var connectionString = new Microsoft.Data.Sqlite.SqliteConnectionStringBuilder()
+{
+    DataSource = dbFile,
+    Pooling = false,
+    Cache = Microsoft.Data.Sqlite.SqliteCacheMode.Private,
+    DefaultTimeout = 10,
+}.ToString();
+builder.Services.AddDbContext<CronchDbContext>(options => options.UseSqlite(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 if (OperatingSystem.IsWindows())
