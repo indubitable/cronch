@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace cronch.Pages;
 
@@ -11,6 +12,7 @@ public class AboutModel(IConfiguration _configuration) : PageModel
     public string DataLocationResolved { get; set; } = string.Empty;
     public string AppVersion { get; set; } = string.Empty;
     public string AppFullVersion { get; set; } = string.Empty;
+    public string Runtime { get; set; } = string.Empty;
 
     public void OnGet()
     {
@@ -22,5 +24,6 @@ public class AboutModel(IConfiguration _configuration) : PageModel
         var version = Attribute.GetCustomAttribute(Assembly.GetExecutingAssembly(), typeof(AssemblyInformationalVersionAttribute)) as AssemblyInformationalVersionAttribute;
         AppFullVersion = version?.InformationalVersion ?? "Unknown";
         AppVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? string.Empty;
+        Runtime = RuntimeInformation.FrameworkDescription;
     }
 }
