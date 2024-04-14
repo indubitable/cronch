@@ -27,6 +27,11 @@ public class CleanupService(ILogger<CleanupService> _logger, JobConfigService _j
             CleanUpExecutionsForDeletedJobs();
         }
         catch { }
+        try
+        {
+            CleanUpOrphanedExecutionFiles();
+        }
+        catch { }
 
         while (true)
         {
@@ -69,7 +74,7 @@ public class CleanupService(ILogger<CleanupService> _logger, JobConfigService _j
         }
     }
 
-    private void DeleteExecutions(ExecutionPersistenceService executionPersistenceService, List<ExecutionModel> executions)
+    private void DeleteExecutions(ExecutionPersistenceService executionPersistenceService, IEnumerable<ExecutionModel> executions)
     {
         foreach (var exec in executions)
         {
@@ -90,25 +95,18 @@ public class CleanupService(ILogger<CleanupService> _logger, JobConfigService _j
         var executionPersistenceService = scope.ServiceProvider.GetRequiredService<ExecutionPersistenceService>();
 
         var allConfiguredJobIds = _jobConfigService.GetAllJobs().Select(j => j.Id);
-        var allDataSubdirectories = executionPersistenceService.GetAllDataSubdirectories();
-        foreach (var subdir in allDataSubdirectories)
-        {
-            if (!Guid.TryParseExact(Path.GetFileName(subdir), "D", out var id)) continue;
+        executionPersistenceService.CleanUpExecutionFilesForDeletedJobs(allConfiguredJobIds);
+    }
 
-            if (!allConfiguredJobIds.Contains(id))
-            {
-                // Found one! Remove it.
-                try
-                {
-                    Directory.Delete(subdir, true);
-                    executionPersistenceService.RemoveAllDatabaseRecordsForJobId(id);
-                    _logger.LogInformation("Deleted data for nonexistent job {Id}", id);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Unable to delete data for nonexistent job {Id}", id);
-                }
-            }
+    private void CleanUpOrphanedExecutionFiles()
+    {
+        using var scope = _serviceProvider.CreateScope();
+        var executionPersistenceService = scope.ServiceProvider.GetRequiredService<ExecutionPersistenceService>();
+
+        var allConfiguredJobIds = _jobConfigService.GetAllJobs().Select(j => j.Id);
+        foreach (var id in allConfiguredJobIds)
+        {
+            executionPersistenceService.CleanUpOrphanedExecutionFiles(id);
         }
     }
 }

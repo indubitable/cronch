@@ -1,6 +1,4 @@
-using cronch;
 using cronch.Services;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting.WindowsServices;
 using Microsoft.Extensions.Logging.Configuration;
 using Microsoft.Extensions.Logging.EventLog;
@@ -31,25 +29,6 @@ if (OperatingSystem.IsWindows())
 // Add services to the container.
 builder.Services.AddRazorPages();
 
-var dataLocation = builder.Configuration["DataLocation"] ?? throw new ArgumentNullException("DataLocation", "The DataLocation configuration option is missing");
-Directory.CreateDirectory(dataLocation);
-SQLitePCL.Batteries_V2.Init();
-var result = SQLitePCL.raw.sqlite3_config(SQLitePCL.raw.SQLITE_CONFIG_SERIALIZED);
-if (result != SQLitePCL.raw.SQLITE_OK)
-{
-    Console.WriteLine($"sqlite3_config for multithreading failed: {result}");
-}
-var dbFile = Path.GetFullPath(Path.Combine(dataLocation, "executions.db"));
-var connectionString = new Microsoft.Data.Sqlite.SqliteConnectionStringBuilder()
-{
-    DataSource = dbFile,
-    Pooling = false,
-    Cache = Microsoft.Data.Sqlite.SqliteCacheMode.Private,
-    DefaultTimeout = 10,
-}.ToString();
-builder.Services.AddDbContext<CronchDbContext>(options => options.UseSqlite(connectionString));
-builder.Services.AddDatabaseDeveloperPageExceptionFilter();
-
 if (OperatingSystem.IsWindows())
 {
     builder.Services.AddWindowsService(options =>
@@ -75,7 +54,6 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
-    app.UseMigrationsEndPoint();
 }
 else
 {
@@ -87,9 +65,8 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
 
-    var dbContext = services.GetRequiredService<CronchDbContext>();
-    dbContext.Database.Migrate();
-    dbContext.Database.ExecuteSqlRaw("PRAGMA journal_mode=WAL;");
+    var execPersistenceService = services.GetRequiredService<ExecutionPersistenceService>();
+    execPersistenceService.InitializeDatabase();
 
     var cleanupService = services.GetRequiredService<CleanupService>();
     cleanupService.Initialize();

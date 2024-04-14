@@ -40,6 +40,4 @@ public class ExecutionModel
     {
         return $"{StartedOn:yyyy-MM-dd_HH-mm-ss.fff}_{Id:N}";
     }
-
-    private ExecutionModel() { }
 }
