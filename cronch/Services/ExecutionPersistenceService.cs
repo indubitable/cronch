@@ -28,9 +28,9 @@ public partial class ExecutionPersistenceService(ILogger<ExecutionPersistenceSer
         _connectionString = new SqliteConnectionStringBuilder()
         {
             DataSource = dbFile,
-            Pooling = true,
+            Pooling = false,
             Cache = SqliteCacheMode.Private,
-            DefaultTimeout = 10,
+            DefaultTimeout = 90,
         }.ToString();
 
         using var db = new SqliteConnection(_connectionString);
