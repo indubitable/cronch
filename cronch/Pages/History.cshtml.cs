@@ -1,3 +1,4 @@
+using cronch.Models;
 using cronch.Models.ViewModels;
 using cronch.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -12,10 +13,10 @@ public class HistoryModel(JobExecutionService _jobExecutionService, SettingsServ
     public List<ExecutionViewModel> Executions { get; set; } = [];
     public bool IsDataFiltered { get; set; }
 
-    public void OnGet([FromQuery] Guid? jobId)
+    public void OnGet([FromQuery] Guid? jobId, [FromQuery] ExecutionStatus? status)
     {
         MaxResults = _settingsService.LoadSettings().MaxHistoryItemsShown ?? SettingsService.DefaultMaxHistoryItemsShown;
-        Executions = _jobExecutionService.GetRecentExecutions(MaxResults, jobId);
-        IsDataFiltered = jobId.HasValue;
+        Executions = _jobExecutionService.GetRecentExecutions(MaxResults, jobId, status);
+        IsDataFiltered = jobId.HasValue || status.HasValue;
     }
 }

@@ -60,12 +60,17 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
 		return outputContents;
 	}
 
-	public virtual List<ExecutionViewModel> GetRecentExecutions(int maxCount, Guid? jobId)
+	public virtual List<ExecutionViewModel> GetRecentExecutions(int maxCount, Guid? jobIdFilter, ExecutionStatus? executionStatusFilter)
 	{
 		using var scope = _serviceProvider.CreateScope();
 		var executionPersistenceService = scope.ServiceProvider.GetRequiredService<ExecutionPersistenceService>();
 
-		return executionPersistenceService.GetRecentExecutions(maxCount, jobId)
+		return executionPersistenceService.GetRecentExecutions(maxCount, jobIdFilter, executionStatusFilter)
+			.Where(e =>
+				(executionStatusFilter.HasValue && executionStatusFilter.Value == ExecutionStatus.Running)
+				? GetAllRunningExecutions().Select(re => re.ExecutionId).Contains(e.Id)
+				: true
+			)
 			.Select(e => ConvertExecutionModelToViewModel(e)!.Value)
 			.ToList();
 	}

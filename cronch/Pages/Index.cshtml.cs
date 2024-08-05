@@ -33,6 +33,6 @@ public class IndexModel(JobConfigService _jobConfigService, JobExecutionService 
         LastWeekErrors = stats.Errors;
         LastWeekWarnings = stats.Warnings;
 
-        RecentExecutions = _jobExecutionService.GetRecentExecutions(15, null);
+        RecentExecutions = _jobExecutionService.GetRecentExecutions(15, null, null);
     }
 }
