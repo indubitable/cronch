@@ -78,7 +78,7 @@ using (var scope = app.Services.CreateScope())
     schedulingService.RefreshSchedules(configService.GetAllJobs());
 }
 
-app.UseStaticFiles();
+app.MapStaticAssets();
 
 app.UseRouting();
 

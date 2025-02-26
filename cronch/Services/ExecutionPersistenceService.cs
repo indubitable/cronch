@@ -30,7 +30,7 @@ public partial class ExecutionPersistenceService(ILogger<ExecutionPersistenceSer
 			DataSource = dbFile,
 			Pooling = false,
 			Cache = SqliteCacheMode.Private,
-			DefaultTimeout = 90,
+			DefaultTimeout = 30,
 		}.ToString();
 
 		using var db = new SqliteConnection(_connectionString);

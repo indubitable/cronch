@@ -1,5 +1,5 @@
 ARG DOTNET_SDK_PLATFORM=
-FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim${DOTNET_SDK_PLATFORM} AS build-env
+FROM mcr.microsoft.com/dotnet/sdk:9.0-bookworm-slim${DOTNET_SDK_PLATFORM} AS build-env
 WORKDIR /build/cronch
 ARG CRONCH_VERSION=0.0.1
 ENV CRONCH_VERSION=${CRONCH_VERSION}
@@ -14,7 +14,7 @@ COPY . .
 RUN cd cronch && dotnet publish -o out /p:MvcRazorCompileOnPublish=true
 
 # Build runtime image
-FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim
+FROM mcr.microsoft.com/dotnet/sdk:9.0-bookworm-slim
 WORKDIR /opt/cronch
 RUN apt update \
  && apt install -y --no-install-recommends curl wget jq tini python3-pip python-is-python3 ruby php-cli npm git
