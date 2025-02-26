@@ -47,6 +47,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9'
+          dotnet-quality: 'ga'
+
       - run: |
           mkdir publish-artifacts
           cd cronch
