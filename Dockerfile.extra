@@ -1,5 +1,4 @@
-ARG DOTNET_SDK_PLATFORM=
-FROM mcr.microsoft.com/dotnet/sdk:9.0-bookworm-slim${DOTNET_SDK_PLATFORM} AS build-env
+FROM mcr.microsoft.com/dotnet/sdk:9.0-bookworm-slim AS build-env
 WORKDIR /build/cronch
 ARG CRONCH_VERSION=0.0.1
 ENV CRONCH_VERSION=${CRONCH_VERSION}
