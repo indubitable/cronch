@@ -11,7 +11,7 @@ RUN dotnet restore
 # Copy everything else and build
 WORKDIR /build
 COPY . .
-RUN cd cronch && dotnet publish -o out /p:MvcRazorCompileOnPublish=true
+RUN cd cronch && dotnet publish --no-self-contained -p:PublishSingleFile=false -o out /p:MvcRazorCompileOnPublish=true
 
 # Build runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:9.0-bookworm-slim
