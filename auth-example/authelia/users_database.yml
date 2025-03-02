@@ -1,0 +1,8 @@
+# Execute the following command to generate a new password hash:
+# docker run --rm -it authelia/authelia:latest authelia crypto hash generate argon2
+# The example below is for root:root
+users:
+    root:
+        password: $argon2id$v=19$m=65536,t=3,p=4$Vyhw0ef9hPodpwiOv/Br5A$bAVa/68q2VxqeSeQxz6Bv4lNNKtZITxxHdfa64XyDbg
+        displayname: "root"
+        email: root@root.example.com

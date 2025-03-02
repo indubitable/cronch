@@ -1,0 +1,17 @@
+cronch.example.com {
+    tls internal
+
+    @authelia path /auth /auth/*
+    handle @authelia {
+        reverse_proxy authelia:9091
+    }
+
+    @cronch path / /*
+    handle @cronch {
+        forward_auth authelia:9091 {
+            uri /api/authz/forward-auth
+            copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
+        }
+        reverse_proxy cronch:8080
+    }
+}

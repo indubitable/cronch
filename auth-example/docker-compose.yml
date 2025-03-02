@@ -1,0 +1,25 @@
+services:
+  cronch:
+    image: ghcr.io/indubitable/cronch-extra:latest
+    restart: unless-stopped
+    volumes:
+      - ./cronchconfig:/opt/cronch/cronchconfig
+      - ./cronchdata:/opt/cronch/cronchdata
+    environment:
+      - ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
+
+  proxy:
+    image: caddy:latest
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy/data:/data
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+
+  authelia:
+    image: authelia/authelia:latest
+    restart: unless-stopped
+    volumes:
+      - ./authelia:/config

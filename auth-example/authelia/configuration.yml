@@ -1,0 +1,34 @@
+server:
+  address: 'tcp://:9091/auth'
+
+identity_validation:
+  reset_password:
+    jwt_secret: 'you must change this value!'
+
+authentication_backend:
+  file:
+    path: /config/users_database.yml
+
+totp:
+  issuer: cronch
+
+access_control:
+  default_policy: deny
+  rules:
+    - domain: cronch.example.com
+      policy: one_factor
+
+session:
+  secret: 'you must change this value!'
+  cookies:
+    - domain: cronch.example.com
+      authelia_url: https://cronch.example.com/auth/
+
+storage:
+  encryption_key: 'you must change this value!'
+  local:
+    path: /config/storage.db
+
+notifier:
+  filesystem:
+    filename: /config/notification.txt

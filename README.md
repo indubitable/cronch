@@ -35,8 +35,8 @@ CRONCH! is a cron-like job scheduler. It has a user-friendly web interface and c
 ## Non-features (i.e., things purposely avoided, at least for now)
 
 - User management
-  - CRONCH! should be running on an isolated system if security is a concern
-  - Running behind an authorization frontend such as Authelia is an option as well
+  - CRONCH! should ideally be running on a secure, isolated system
+  - Running behind an authorization frontend such as Authelia is an option as well - see [the auth example](https://github.com/indubitable/cronch/tree/main/auth-example) for details
 - Multi-server setups
   - Supporting the ability to execute jobs on multiple systems would be very complex and is not needed at the moment
   - It is possible to manually configure a script to execute remote commands via SSH, etc.
