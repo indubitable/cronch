@@ -71,6 +71,10 @@ table tr.clickable-row {
   height: 50vh;
 }
 
+.fs-7 {
+  font-size: 0.875rem !important;
+}
+
 .unselectable {
   user-select: none;
 }
