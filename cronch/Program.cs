@@ -27,7 +27,12 @@ if (OperatingSystem.IsWindows())
 }
 
 // Add services to the container.
-builder.Services.AddRazorPages();
+var mvcBuilder = builder.Services.AddRazorPages();
+
+if (builder.Environment.IsDevelopment())
+{
+	mvcBuilder.AddRazorRuntimeCompilation();
+}
 
 if (OperatingSystem.IsWindows())
 {
