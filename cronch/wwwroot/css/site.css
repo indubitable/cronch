@@ -96,7 +96,7 @@ table tr.clickable-row {
 }
 
 .script-editor {
-  min-height: 12rem;
+  min-height: 20rem;
   resize: vertical;
 }
 
@@ -105,5 +105,5 @@ table tr.clickable-row {
 }
 
 .script-editor-loading {
-  max-height: 12rem;
+  max-height: 20rem;
 }

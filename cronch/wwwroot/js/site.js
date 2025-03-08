@@ -59,10 +59,22 @@ function convertHighlightLanguageToAce(lang) {
     return aceLang;
 }
 
+function getAceLanguage(scriptContents) {
+    var regex = /\[\[\[CRONCH:syntax:(.+)\]\]\]/g;
+    var match = regex.exec(scriptContents);
+    var syntax = match ? match[1] : null;
+    return syntax || convertHighlightLanguageToAce(hljs.highlightAuto(scriptContents).language);
+}
+
 function configureCronchScriptEditor(editorElement, hiddenValueElement) {
     var scriptUpdateTimer = null;
     var determineLanguageTimer = null;
-    var selectedAceLanguage = convertHighlightLanguageToAce(hljs.highlightAuto(hiddenValueElement.value).language);
+    var selectedAceLanguage = 'sh';
+    try {
+        selectedAceLanguage = getAceLanguage(hiddenValueElement.value);
+    } catch (e) {
+        console.warn('Error occurred while detecting language', e);
+    }
     editorElement.setAttribute('detected-language', selectedAceLanguage);
     var editor = ace.edit(editorElement, {
         autoScrollEditorIntoView: true,
@@ -73,7 +85,11 @@ function configureCronchScriptEditor(editorElement, hiddenValueElement) {
         navigateWithinSoftTabs: true,
     });
     editor.setTheme('ace/theme/tomorrow');
-    editor.session.setMode(`ace/mode/${selectedAceLanguage}`);
+    try {
+        editor.session.setMode(`ace/mode/${selectedAceLanguage}`);
+    } catch (e) {
+        console.warn('Error occurred while setting language', e);
+    }
     editor.session.on('change', function () {
         clearTimeout(scriptUpdateTimer);
         scriptUpdateTimer = setTimeout(() => {
@@ -81,11 +97,20 @@ function configureCronchScriptEditor(editorElement, hiddenValueElement) {
         }, 10);
         clearTimeout(determineLanguageTimer);
         determineLanguageTimer = setTimeout(() => {
-            var aceLang = convertHighlightLanguageToAce(hljs.highlightAuto(editor.session.getValue()).language);
+            var aceLang = 'sh';
+            try {
+                aceLang = getAceLanguage(editor.session.getValue());
+            } catch (e) {
+                console.warn('Error occurred while detecting language', e);
+            }
             if (aceLang !== selectedAceLanguage) {
                 selectedAceLanguage = aceLang;
-                editor.session.setMode(`ace/mode/${selectedAceLanguage}`);
-                editorElement.setAttribute('detected-language', selectedAceLanguage);
+                try {
+                    editor.session.setMode(`ace/mode/${selectedAceLanguage}`);
+                    editorElement.setAttribute('detected-language', selectedAceLanguage);
+                } catch (e) {
+                    console.warn('Error occurred while setting language', e);
+                }
             }
         }, 200);
     });
