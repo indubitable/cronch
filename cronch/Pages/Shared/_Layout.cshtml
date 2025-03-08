@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - CRONCH!</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/lib/hljs/default.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/cronch.styles.css" asp-append-version="true" />
     <environment include="Development">
@@ -90,6 +91,13 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <environment include="Development">
+        <script type="text/javascript" src="~/lib/hljs/highlight.js"></script>
+    </environment>
+    <environment exclude="Development">
+        <script type="text/javascript" src="~/lib/hljs/highlight.min.js"></script>
+    </environment>
+    <script type="text/javascript" src="~/lib/ace/ace.js"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

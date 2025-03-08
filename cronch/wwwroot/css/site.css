@@ -94,3 +94,16 @@ table tr.clickable-row {
 .dropdown-toggle.no-caret::after {
   display: none;
 }
+
+.script-editor {
+  min-height: 12rem;
+  resize: vertical;
+}
+
+.script-editor-large {
+  min-height: 40rem;
+}
+
+.script-editor-loading {
+  max-height: 12rem;
+}

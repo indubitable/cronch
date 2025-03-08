@@ -60,8 +60,14 @@
             <div class="col mb-3 d-flex align-items-center">
                 <div class="flex-fill">
                     <label bs5-for="Script" class="form-label"></label>
-                    <textarea bs5-for="Script" rows="15" class="form-control font-monospace fs-7"></textarea>
+                    <input type="hidden" asp-for="Script" id="script-hidden" />
+                    <pre id="script-editor" class="script-editor script-editor-loading">@(Model?.Script)</pre>
                     <span asp-validation-for="Script" class="text-danger"></span>
+                    <script type="text/javascript">
+                        window.onload = function() {
+                            configureCronchScriptEditor(document.getElementById('script-editor'), document.getElementById('script-hidden'));
+                        }
+                    </script>
                 </div>
             </div>
             <div class="col mb-3 d-flex align-items-center">

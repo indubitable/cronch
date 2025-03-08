@@ -90,8 +90,15 @@
                 <div class="col mb-3 d-flex align-items-center">
                     <div class="flex-fill">
                         <label bs5-for="SettingsVM.CompletionScript" class="form-label"></label>
-                        <textarea bs5-for="SettingsVM.CompletionScript" rows="15" class="form-control font-monospace fs-7"></textarea>
+                        <input type="hidden" asp-for="SettingsVM.CompletionScript" id="script-hidden" />
+                        <pre id="script-editor" class="script-editor script-editor-large script-editor-loading">@(Model?.SettingsVM.CompletionScript)</pre>
                         <span asp-validation-for="SettingsVM.CompletionScript" class="text-danger"></span>
+                        <script type="text/javascript">
+                            window.onload = function() {
+                                configureCronchScriptEditor(document.getElementById('script-editor'), document.getElementById('script-hidden'));
+                            }
+                        </script>
+
                     </div>
                 </div>
                 <div class="col mb-3 d-flex align-items-center">
