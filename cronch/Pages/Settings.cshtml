@@ -7,14 +7,14 @@
 <div class="text-center">
     <h1 class="display-4">Settings</h1>
     <br />
-    <div class="container text-start px-5">
+    <div id="settings-form-container" class="container text-start px-5">
         <div asp-validation-summary="All" class="rounded border border-2 border-danger"></div>
-        <form method="post">
+        <form method="post" hx-boost="true" hx-select="#settings-form-container" hx-target="#settings-form-container" hx-swap="outerHTML">
             <div class="row gx-5">
                 <div class="col mb-3 d-flex align-items-center">
                     <div class="flex-fill">
-                        <label bs5-for="SettingsVM.MaxHistoryItemsShown" class="form-label"></label>
-                        <input bs5-for="SettingsVM.MaxHistoryItemsShown" class="form-control" />
+                        <label asp-for="SettingsVM.MaxHistoryItemsShown" class="form-label"></label>
+                        <input asp-for="SettingsVM.MaxHistoryItemsShown" class="form-control" />
                         <span asp-validation-for="SettingsVM.MaxHistoryItemsShown" class="text-danger"></span>
                     </div>
                 </div>
@@ -32,8 +32,8 @@
             <div class="row gx-5">
                 <div class="col mb-3 d-flex align-items-center">
                     <div class="flex-fill">
-                        <label bs5-for="SettingsVM.DeleteHistoricalRunsAfterCount" class="form-label"></label>
-                        <input bs5-for="SettingsVM.DeleteHistoricalRunsAfterCount" class="form-control" />
+                        <label asp-for="SettingsVM.DeleteHistoricalRunsAfterCount" class="form-label"></label>
+                        <input asp-for="SettingsVM.DeleteHistoricalRunsAfterCount" class="form-control" />
                         <span asp-validation-for="SettingsVM.DeleteHistoricalRunsAfterCount" class="text-danger"></span>
                     </div>
                 </div>
@@ -51,8 +51,8 @@
             <div class="row gx-5">
                 <div class="col mb-3 d-flex align-items-center">
                     <div class="flex-fill">
-                        <label bs5-for="SettingsVM.DeleteHistoricalRunsAfterDays" class="form-label"></label>
-                        <input bs5-for="SettingsVM.DeleteHistoricalRunsAfterDays" class="form-control" />
+                        <label asp-for="SettingsVM.DeleteHistoricalRunsAfterDays" class="form-label"></label>
+                        <input asp-for="SettingsVM.DeleteHistoricalRunsAfterDays" class="form-control" />
                         <span asp-validation-for="SettingsVM.DeleteHistoricalRunsAfterDays" class="text-danger"></span>
                     </div>
                 </div>
@@ -70,8 +70,8 @@
             <div class="row gx-5">
                 <div class="col mb-3 d-flex align-items-center">
                     <div class="flex-fill">
-                        <label bs5-for="SettingsVM.DefaultScriptFileLocation" class="form-label"></label>
-                        <input bs5-for="SettingsVM.DefaultScriptFileLocation" class="form-control" />
+                        <label asp-for="SettingsVM.DefaultScriptFileLocation" class="form-label"></label>
+                        <input asp-for="SettingsVM.DefaultScriptFileLocation" class="form-control" />
                         <span asp-validation-for="SettingsVM.DefaultScriptFileLocation" class="text-danger"></span>
                     </div>
                 </div>
@@ -89,15 +89,10 @@
             <div class="row gx-5">
                 <div class="col mb-3 d-flex align-items-center">
                     <div class="flex-fill">
-                        <label bs5-for="SettingsVM.CompletionScript" class="form-label"></label>
+                        <label asp-for="SettingsVM.CompletionScript" class="form-label"></label>
                         <input type="hidden" asp-for="SettingsVM.CompletionScript" id="script-hidden" />
-                        <pre id="script-editor" class="script-editor script-editor-large script-editor-loading">@(Model?.SettingsVM.CompletionScript)</pre>
+                        <pre id="script-editor" class="script-editor script-editor-large script-editor-loading" data-script-editor="script-hidden">@(Model?.SettingsVM.CompletionScript)</pre>
                         <span asp-validation-for="SettingsVM.CompletionScript" class="text-danger"></span>
-                        <script type="text/javascript">
-                            window.onload = function() {
-                                configureCronchScriptEditor(document.getElementById('script-editor'), document.getElementById('script-hidden'));
-                            }
-                        </script>
 
                     </div>
                 </div>
@@ -150,14 +145,14 @@
             <div class="row gx-5">
                 <div class="col mb-3 d-flex align-items-center">
                     <div class="flex-fill">
-                        <label bs5-for="SettingsVM.CompletionScriptExecutor" class="form-label"></label>
-                        <input bs5-for="SettingsVM.CompletionScriptExecutor" class="form-control executor-input" />
+                        <label asp-for="SettingsVM.CompletionScriptExecutor" class="form-label"></label>
+                        <input asp-for="SettingsVM.CompletionScriptExecutor" class="form-control executor-input" />
                         <span asp-validation-for="SettingsVM.CompletionScriptExecutor" class="text-danger"></span>
 
                         <br /><br />
 
-                        <label bs5-for="SettingsVM.CompletionScriptExecutorArgs" class="form-label"></label>
-                        <input bs5-for="SettingsVM.CompletionScriptExecutorArgs" class="form-control executor-args-input" />
+                        <label asp-for="SettingsVM.CompletionScriptExecutorArgs" class="form-label"></label>
+                        <input asp-for="SettingsVM.CompletionScriptExecutorArgs" class="form-control executor-args-input" />
                         <span asp-validation-for="SettingsVM.CompletionScriptExecutorArgs" class="text-danger"></span>
                     </div>
                 </div>
@@ -175,16 +170,16 @@
                     <div class="flex-fill">
                         <p>Run completion script job execution statuses</p>
                         <div class="form-check form-switch">
-                            <input bs5-for="SettingsVM.RunCompletionScriptOnSuccess" type="checkbox" class="form-check-input" autocomplete="off">
+                            <input asp-for="SettingsVM.RunCompletionScriptOnSuccess" type="checkbox" class="form-check-input" autocomplete="off">
                             <label asp-for="SettingsVM.RunCompletionScriptOnSuccess" class="form-check-label"></label>
                             <br />
-                            <input bs5-for="SettingsVM.RunCompletionScriptOnIndeterminate" type="checkbox" class="form-check-input" autocomplete="off">
+                            <input asp-for="SettingsVM.RunCompletionScriptOnIndeterminate" type="checkbox" class="form-check-input" autocomplete="off">
                             <label asp-for="SettingsVM.RunCompletionScriptOnIndeterminate" class="form-check-label"></label>
                             <br />
-                            <input bs5-for="SettingsVM.RunCompletionScriptOnWarning" type="checkbox" class="form-check-input" autocomplete="off">
+                            <input asp-for="SettingsVM.RunCompletionScriptOnWarning" type="checkbox" class="form-check-input" autocomplete="off">
                             <label asp-for="SettingsVM.RunCompletionScriptOnWarning" class="form-check-label"></label>
                             <br />
-                            <input bs5-for="SettingsVM.RunCompletionScriptOnError" type="checkbox" class="form-check-input" autocomplete="off">
+                            <input asp-for="SettingsVM.RunCompletionScriptOnError" type="checkbox" class="form-check-input" autocomplete="off">
                             <label asp-for="SettingsVM.RunCompletionScriptOnError" class="form-check-label"></label>
                         </div>
                     </div>

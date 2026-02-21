@@ -25,6 +25,12 @@ public class AddJobModel(JobConfigService _jobConfigService) : PageModel
 
         _jobConfigService.CreateJob(JobVM.ToModel(), true);
 
+        if (Request.Headers.ContainsKey("HX-Request"))
+        {
+            Response.Headers.Append("HX-Redirect", "/Manage");
+            return StatusCode(204);
+        }
+
         return RedirectToPage("/Manage");
     }
 }

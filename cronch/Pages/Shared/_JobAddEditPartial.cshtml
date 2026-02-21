@@ -1,13 +1,13 @@
 ﻿@model cronch.Models.ViewModels.JobViewModel
 
-<div class="container text-start px-5">
+<div id="job-form-container" class="container text-start px-5">
     <div asp-validation-summary="All" class="rounded border border-2 border-danger"></div>
-    <form method="post">
+    <form method="post" hx-boost="true" hx-select="#job-form-container" hx-target="#job-form-container" hx-swap="outerHTML">
         <div class="row gx-5">
             <div class="col mb-3 d-flex align-items-center">
                 <div class="flex-fill">
-                    <label bs5-for="Name" class="form-label"></label>
-                    <input bs5-for="Name" class="form-control" />
+                    <label asp-for="Name" class="form-label"></label>
+                    <input asp-for="Name" class="form-control" />
                     <span asp-validation-for="Name" class="text-danger"></span>
                 </div>
             </div>
@@ -21,7 +21,7 @@
         <div class="row gx-5">
             <div class="col mb-3 d-flex align-items-center">
                 <div class="form-check flex-fill">
-                    <input bs5-for="Enabled" class="form-check-input" />
+                    <input asp-for="Enabled" class="form-check-input" />
                     <label asp-for="Enabled" class="form-check-label"></label>
                 </div>
             </div>
@@ -35,8 +35,8 @@
         <div class="row gx-5">
             <div class="col mb-3 d-flex align-items-center">
                 <div class="flex-fill">
-                    <label bs5-for="CronSchedule" class="form-label"></label>
-                    <input bs5-for="CronSchedule" class="form-control cron-schedule-input" />
+                    <label asp-for="CronSchedule" class="form-label"></label>
+                    <input asp-for="CronSchedule" class="form-control cron-schedule-input" />
                     <span asp-validation-for="CronSchedule" class="text-danger"></span>
                 </div>
             </div>
@@ -59,15 +59,10 @@
         <div class="row gx-5">
             <div class="col mb-3 d-flex align-items-center">
                 <div class="flex-fill">
-                    <label bs5-for="Script" class="form-label"></label>
+                    <label asp-for="Script" class="form-label"></label>
                     <input type="hidden" asp-for="Script" id="script-hidden" />
-                    <pre id="script-editor" class="script-editor script-editor-loading">@(Model?.Script)</pre>
+                    <pre id="script-editor" class="script-editor script-editor-loading" data-script-editor="script-hidden">@(Model?.Script)</pre>
                     <span asp-validation-for="Script" class="text-danger"></span>
-                    <script type="text/javascript">
-                        window.onload = function() {
-                            configureCronchScriptEditor(document.getElementById('script-editor'), document.getElementById('script-hidden'));
-                        }
-                    </script>
                 </div>
             </div>
             <div class="col mb-3 d-flex align-items-center">
@@ -91,14 +86,14 @@
         <div class="row gx-5">
             <div class="col mb-3 d-flex align-items-center">
                 <div class="flex-fill">
-                    <label bs5-for="Executor" class="form-label"></label>
-                    <input bs5-for="Executor" class="form-control executor-input" />
+                    <label asp-for="Executor" class="form-label"></label>
+                    <input asp-for="Executor" class="form-control executor-input" />
                     <span asp-validation-for="Executor" class="text-danger"></span>
 
                     <br /><br />
 
-                    <label bs5-for="ExecutorArgs" class="form-label"></label>
-                    <input bs5-for="ExecutorArgs" class="form-control executor-args-input" />
+                    <label asp-for="ExecutorArgs" class="form-label"></label>
+                    <input asp-for="ExecutorArgs" class="form-control executor-args-input" />
                     <span asp-validation-for="ExecutorArgs" class="text-danger"></span>
                 </div>
             </div>
@@ -114,8 +109,8 @@
         <div class="row gx-5">
             <div class="col mb-3 d-flex align-items-center">
                 <div class="flex-fill">
-                    <label bs5-for="ScriptFilePathname" class="form-label"></label>
-                    <input bs5-for="ScriptFilePathname" class="form-control" />
+                    <label asp-for="ScriptFilePathname" class="form-label"></label>
+                    <input asp-for="ScriptFilePathname" class="form-control" />
                     <span asp-validation-for="ScriptFilePathname" class="text-danger"></span>
                 </div>
             </div>
@@ -139,8 +134,8 @@
         <div class="row gx-5">
             <div class="col mb-3 d-flex align-items-center">
                 <div class="flex-fill">
-                    <label bs5-for="TimeLimitSecs" class="form-label"></label>
-                    <input bs5-for="TimeLimitSecs" class="form-control" />
+                    <label asp-for="TimeLimitSecs" class="form-label"></label>
+                    <input asp-for="TimeLimitSecs" class="form-control" />
                     <span asp-validation-for="TimeLimitSecs" class="text-danger"></span>
                 </div>
             </div>
@@ -158,14 +153,14 @@
         <div class="row gx-5">
             <div class="col mb-3 d-flex align-items-center">
                 <div class="flex-fill">
-                    <label bs5-for="Parallelism" class="form-label"></label>
-                    <input bs5-for="Parallelism" class="form-control" />
+                    <label asp-for="Parallelism" class="form-label"></label>
+                    <input asp-for="Parallelism" class="form-control" />
                     <span asp-validation-for="Parallelism" class="text-danger"></span>
 
                     <br /><br />
 
                     <label asp-for="MarkParallelSkipAs" class="form-label"></label>
-                    <select bs5-for="MarkParallelSkipAs" bs5-items="cronch.Models.ViewModels.JobViewModel.ParallelSkipProcessingOptions" class="form-select"></select>
+                    <select asp-for="MarkParallelSkipAs" asp-items="cronch.Models.ViewModels.JobViewModel.ParallelSkipProcessingOptions" class="form-select"></select>
                 </div>
             </div>
             <div class="col mb-3 d-flex align-items-center">
@@ -184,8 +179,8 @@
         <div class="row gx-5">
             <div class="col mb-3 d-flex align-items-center">
                 <div class="flex-fill">
-                    <label bs5-for="Keywords" class="form-label"></label>
-                    <input bs5-for="Keywords" class="form-control" />
+                    <label asp-for="Keywords" class="form-label"></label>
+                    <input asp-for="Keywords" class="form-control" />
                     <span asp-validation-for="Keywords" class="text-danger"></span>
                 </div>
             </div>
@@ -200,12 +195,12 @@
             <div class="col mb-3 d-flex align-items-center">
                 <div class="flex-fill">
                     <label asp-for="StdOutProcessing" class="form-label"></label>
-                    <select bs5-for="StdOutProcessing" bs5-items="cronch.Models.ViewModels.JobViewModel.OutputProcessingOptions" class="form-select"></select>
+                    <select asp-for="StdOutProcessing" asp-items="cronch.Models.ViewModels.JobViewModel.OutputProcessingOptions" class="form-select"></select>
 
                     <br /><br />
 
                     <label asp-for="StdErrProcessing" class="form-label"></label>
-                    <select bs5-for="StdErrProcessing" bs5-items="cronch.Models.ViewModels.JobViewModel.OutputProcessingOptions" class="form-select"></select>
+                    <select asp-for="StdErrProcessing" asp-items="cronch.Models.ViewModels.JobViewModel.OutputProcessingOptions" class="form-select"></select>
                 </div>
             </div>
             <div class="col mb-3 d-flex align-items-center">

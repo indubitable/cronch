@@ -36,6 +36,12 @@ public class EditJobModel(JobConfigService _jobConfigService) : PageModel
         model.Id = id;
         _jobConfigService.UpdateJob(model);
 
+        if (Request.Headers.ContainsKey("HX-Request"))
+        {
+            Response.Headers.Append("HX-Redirect", "/Manage");
+            return StatusCode(204);
+        }
+
         return RedirectToPage("/Manage");
     }
 }

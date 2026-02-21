@@ -28,6 +28,12 @@ public class SettingsModel(SettingsService _settingsService) : PageModel
         TempData["Message"] = "Settings have been saved.";
         TempData["MessageType"] = "success";
 
+        if (Request.Headers.ContainsKey("HX-Request"))
+        {
+            Response.Headers.Append("HX-Redirect", "/Settings");
+            return StatusCode(204);
+        }
+
         return RedirectToPage("/Settings");
     }
 }

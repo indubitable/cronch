@@ -1,6 +1,17 @@
 ﻿// Find and show any toasts
 document.querySelectorAll('.toast').forEach(toastEl => new bootstrap.Toast(toastEl).show());
 
+function initializeScriptEditors(rootEl) {
+    (rootEl || document).querySelectorAll('pre[data-script-editor].script-editor-loading').forEach(function (editorEl) {
+        var hiddenEl = document.getElementById(editorEl.dataset.scriptEditor);
+        if (hiddenEl) {
+            configureCronchScriptEditor(editorEl, hiddenEl);
+        }
+    });
+}
+window.addEventListener('load', function () { initializeScriptEditors(); });
+document.addEventListener('htmx:afterSettle', function (evt) { initializeScriptEditors(evt.detail.elt); });
+
 function convertHighlightLanguageToAce(lang) {
     var aceLang = null;
     switch (lang) {
