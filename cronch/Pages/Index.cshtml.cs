@@ -10,7 +10,7 @@ public class IndexModel(JobConfigService _jobConfigService, JobExecutionService 
 {
     public int EnabledJobCount { get; set; }
     public int TotalJobCount { get; set; }
-    public List<ExecutionViewModel> RunningJobs { get; set; } = [];
+    public int RunningJobCount { get; set; }
     public List<ExecutionViewModel> RecentExecutions { get; set; } = [];
 
     public void OnGet()
@@ -19,11 +19,7 @@ public class IndexModel(JobConfigService _jobConfigService, JobExecutionService 
         EnabledJobCount = allJobs.Where(j => j.Enabled).Count();
         TotalJobCount = allJobs.Count;
 
-        RunningJobs = _jobExecutionService.GetAllRunningExecutions()
-            .Select(e => new ExecutionViewModel(e.JobId, e.ExecutionId, allJobs.FirstOrDefault(j => j.Id == e.JobId)?.Name ?? string.Empty, e.StartedOn, null, Models.ExecutionStatus.Running, null, null))
-            .Where(re => !string.IsNullOrWhiteSpace(re.JobName))
-            .OrderBy(e => e.StartedOn)
-            .ToList();
+        RunningJobCount = _jobExecutionService.GetAllRunningExecutions().Count;
 
         RecentExecutions = _jobExecutionService.GetRecentExecutions(15, null, null);
     }
