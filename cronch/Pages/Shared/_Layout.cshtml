@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+﻿@inject cronch.Services.JobExecutionService _layoutExecutionService
+@{
+    var _layoutStats = _layoutExecutionService.GetExecutionStatistics(DateTimeOffset.UtcNow.AddDays(-7), DateTimeOffset.UtcNow);
+}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -69,6 +73,28 @@
                             <a class="nav-link text-dark" asp-page="/Settings">Settings</a>
                         </li>
                     </ul>
+                    @if (_layoutStats.Errors > 0 || _layoutStats.Warnings > 0)
+                    {
+                        <ul class="navbar-nav gap-1 align-items-center">
+                            @if (_layoutStats.Errors > 0)
+                            {
+                                <li class="nav-item">
+                                    <a asp-page="/History" asp-route-status="CompletedAsError"
+                                       class="badge rounded-pill text-bg-danger text-decoration-none"
+                                       title="@_layoutStats.Errors error(s) in the last 7 days">&#x2715; @_layoutStats.Errors</a>
+                                </li>
+                            }
+                            @if (_layoutStats.Warnings > 0)
+                            {
+                                <li class="nav-item">
+                                    <a asp-page="/History" asp-route-status="CompletedAsWarning"
+                                       class="badge rounded-pill text-decoration-none"
+                                       style="background-color: #fd7e14; color: white;"
+                                       title="@_layoutStats.Warnings warning(s) in the last 7 days">&#x26A0;&#xFE0E; @_layoutStats.Warnings</a>
+                                </li>
+                            }
+                        </ul>
+                    }
                 </div>
             </div>
         </nav>

@@ -37,24 +37,6 @@
                     }
                 </table>
             </div>
-            <div class="col border border-bottom-0">
-                <h2><u>Statistics</u></h2>
-                <p>Over the last week</p>
-                <table class="table table-striped">
-                    <tr>
-                        <td class="text-start">Successes</td>
-                        <td class="text-end"><span class="badge rounded-pill text-bg-success">@Model.LastWeekSuccesses</span></td>
-                    </tr>
-                    <tr>
-                        <td class="text-start">Errors</td>
-                        <td class="text-end"><span class="badge rounded-pill text-bg-danger">@Model.LastWeekErrors</span></td>
-                    </tr>
-                    <tr>
-                        <td class="text-start">Warnings</td>
-                        <td class="text-end"><span class="badge rounded-pill text-bg-warning">@Model.LastWeekWarnings</span></td>
-                    </tr>
-                </table>
-            </div>
         </div>
         <div class="row">
             <div class="col border border-top-0">
@@ -62,9 +44,6 @@
             </div>
             <div class="col border border-top-0">
                 <p><a asp-page="History" asp-route-status="Running" class="btn btn-outline-dark">View All</a></p>
-            </div>
-            <div class="col border border-top-0">
-                <p><a asp-page="History" class="btn btn-outline-dark">View Details</a></p>
             </div>
         </div>
     </div>

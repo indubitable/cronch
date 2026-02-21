@@ -11,9 +11,6 @@ public class IndexModel(JobConfigService _jobConfigService, JobExecutionService 
     public int EnabledJobCount { get; set; }
     public int TotalJobCount { get; set; }
     public List<ExecutionViewModel> RunningJobs { get; set; } = [];
-    public int LastWeekSuccesses { get; set; }
-    public int LastWeekErrors { get; set; }
-    public int LastWeekWarnings { get; set; }
     public List<ExecutionViewModel> RecentExecutions { get; set; } = [];
 
     public void OnGet()
@@ -27,11 +24,6 @@ public class IndexModel(JobConfigService _jobConfigService, JobExecutionService 
             .Where(re => !string.IsNullOrWhiteSpace(re.JobName))
             .OrderBy(e => e.StartedOn)
             .ToList();
-
-        var stats = _jobExecutionService.GetExecutionStatistics(DateTimeOffset.UtcNow.AddDays(-7), DateTimeOffset.UtcNow);
-        LastWeekSuccesses = stats.Successes;
-        LastWeekErrors = stats.Errors;
-        LastWeekWarnings = stats.Warnings;
 
         RecentExecutions = _jobExecutionService.GetRecentExecutions(15, null, null);
     }
