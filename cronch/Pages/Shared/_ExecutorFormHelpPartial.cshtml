@@ -1,26 +1,24 @@
-﻿<script type="text/javascript">
+<script type="text/javascript">
     function setExecutor(execFile, execArgs) {
         document.querySelector('.executor-input').value = execFile;
         document.querySelector('.executor-args-input').value = execArgs;
         return false;
     }
 </script>
-The command that executes your script
+The command that executes your script. It must have at least a <a target="_blank" href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.processstartinfo.filename">filename</a>, and optionally some <a target="_blank" href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.processstartinfo.arguments">arguments</a>.
 <br /><br />
-The command must have at least a <a target="_blank" href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.processstartinfo.filename">filename</a>, and optionally some <a target="_blank" href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.processstartinfo.arguments">arguments</a>.
-<br /><br />
-If <code>{0}</code> is present in the executor arguments field, it is replaced with the script location. Otherwise, the script location is appended at the end.
-<br /><br />
-Quick choices:
-<a href="#" onclick="return setExecutor('/usr/bin/env', 'bash -c');">Bash</a>
-|
-<a href="#" onclick="return setExecutor('/usr/bin/env', 'bash -l -c');">Bash (login shell)</a>
-|
-<a href="#" onclick="return setExecutor('/usr/bin/env', 'pwsh -NonInteractive -f');">PowerShell (Core)</a>
-<br />
-Windows only:
-<a href="#" onclick="return setExecutor('C:\\Program Files\\Git\\bin\\bash.exe', '-c &quot;exec $(cygpath -u \'{0}\')&quot;');">Git Bash</a>
-|
-<a href="#" onclick="return setExecutor('cmd.exe', '/C');">cmd.exe</a>
-|
-<a href="#" onclick="return setExecutor('powershell.exe', '-NonInteractive -f');">Windows PowerShell</a>
+If <code>{0}</code> is present in the arguments field, it is replaced with the script file path. Otherwise, the path is appended at the end.
+<div class="mt-3">
+    <div class="small text-muted mb-1">Cross-platform</div>
+    <div class="d-flex flex-wrap gap-1 mb-3">
+        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="return setExecutor('/usr/bin/env', 'bash -c')">Bash</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="return setExecutor('/usr/bin/env', 'bash -l -c')">Bash (login shell)</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="return setExecutor('/usr/bin/env', 'pwsh -NonInteractive -f')">PowerShell (Core)</button>
+    </div>
+    <div class="small text-muted mb-1">Windows only</div>
+    <div class="d-flex flex-wrap gap-1">
+        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="return setExecutor('C:\\Program Files\\Git\\bin\\bash.exe', '-c &quot;exec $(cygpath -u \'{0}\')&quot;')">Git Bash</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="return setExecutor('cmd.exe', '/C')">cmd.exe</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="return setExecutor('powershell.exe', '-NonInteractive -f')">Windows PowerShell</button>
+    </div>
+</div>

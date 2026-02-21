@@ -1,4 +1,4 @@
-﻿@page
+@page
 @model SettingsModel
 @{
     ViewData["Title"] = "Settings";
@@ -10,109 +10,82 @@
     <div id="settings-form-container" class="container text-start px-5">
         <div asp-validation-summary="All" class="rounded border border-2 border-danger"></div>
         <form method="post" hx-boost="true" hx-select="#settings-form-container" hx-target="#settings-form-container" hx-swap="outerHTML">
-            <div class="row gx-5">
-                <div class="col mb-3 d-flex align-items-center">
-                    <div class="flex-fill">
-                        <label asp-for="SettingsVM.MaxHistoryItemsShown" class="form-label"></label>
-                        <input asp-for="SettingsVM.MaxHistoryItemsShown" class="form-control" />
-                        <span asp-validation-for="SettingsVM.MaxHistoryItemsShown" class="text-danger"></span>
-                    </div>
-                </div>
-                <div class="col mb-3 d-flex align-items-center">
-                    <div class="shadow p-3 bg-body-tertiary rounded flex-fill">
-                        Optional - the maximum number of executions shown on the History page
-                        <br /><br />
-                        If left empty, this defaults to @(Services.SettingsService.DefaultMaxHistoryItemsShown).
-                    </div>
-                </div>
-            </div>
-            <div class="row gx-5">
-                <hr />
-            </div>
-            <div class="row gx-5">
-                <div class="col mb-3 d-flex align-items-center">
-                    <div class="flex-fill">
-                        <label asp-for="SettingsVM.DeleteHistoricalRunsAfterCount" class="form-label"></label>
-                        <input asp-for="SettingsVM.DeleteHistoricalRunsAfterCount" class="form-control" />
-                        <span asp-validation-for="SettingsVM.DeleteHistoricalRunsAfterCount" class="text-danger"></span>
-                    </div>
-                </div>
-                <div class="col mb-3 d-flex align-items-center">
-                    <div class="shadow p-3 bg-body-tertiary rounded flex-fill">
-                        Optional - if specified, executions of each run will be deleted after this count, oldest first
-                        <br /><br />
-                        If left empty, executions will not be deleted based on count per job. They may still be deleted based on age (see below).
-                    </div>
-                </div>
-            </div>
-            <div class="row gx-5">
-                <hr />
-            </div>
-            <div class="row gx-5">
-                <div class="col mb-3 d-flex align-items-center">
-                    <div class="flex-fill">
-                        <label asp-for="SettingsVM.DeleteHistoricalRunsAfterDays" class="form-label"></label>
-                        <input asp-for="SettingsVM.DeleteHistoricalRunsAfterDays" class="form-control" />
-                        <span asp-validation-for="SettingsVM.DeleteHistoricalRunsAfterDays" class="text-danger"></span>
-                    </div>
-                </div>
-                <div class="col mb-3 d-flex align-items-center">
-                    <div class="shadow p-3 bg-body-tertiary rounded flex-fill">
-                        Optional - if specified, executions will be deleted when they are older than the specified number of days
-                        <br /><br />
-                        If left empty, executions will not be deleted based on age. They may still be deleted based on count (see above).
-                    </div>
-                </div>
-            </div>
-            <div class="row gx-5">
-                <hr />
-            </div>
-            <div class="row gx-5">
-                <div class="col mb-3 d-flex align-items-center">
-                    <div class="flex-fill">
-                        <label asp-for="SettingsVM.DefaultScriptFileLocation" class="form-label"></label>
-                        <input asp-for="SettingsVM.DefaultScriptFileLocation" class="form-control" />
-                        <span asp-validation-for="SettingsVM.DefaultScriptFileLocation" class="text-danger"></span>
-                    </div>
-                </div>
-                <div class="col mb-3 d-flex align-items-center">
-                    <div class="shadow p-3 bg-body-tertiary rounded flex-fill">
-                        Optional - default filesystem location for all scripts
-                        <br /><br />
-                        If left empty, the default becomes the user/system default temporary directory, e.g., <code>/tmp</code> on Linux or <code>C:\Users\<i>(username)</i>\AppData\Local\Temp</code> on Windows.
-                    </div>
-                </div>
-            </div>
-            <div class="row gx-5">
-                <hr />
-            </div>
-            <div class="row gx-5">
-                <div class="col mb-3 d-flex align-items-center">
-                    <div class="flex-fill">
-                        <label asp-for="SettingsVM.CompletionScript" class="form-label"></label>
-                        <input type="hidden" asp-for="SettingsVM.CompletionScript" id="script-hidden" />
-                        <pre id="script-editor" class="script-editor script-editor-large script-editor-loading" data-script-editor="script-hidden">@(Model?.SettingsVM.CompletionScript)</pre>
-                        <span asp-validation-for="SettingsVM.CompletionScript" class="text-danger"></span>
 
+            <h5 class="border-bottom pb-2 mb-3">History &amp; Display</h5>
+
+            <div class="mb-3">
+                <label asp-for="SettingsVM.MaxHistoryItemsShown" class="form-label"></label>
+                <input asp-for="SettingsVM.MaxHistoryItemsShown" class="form-control" style="max-width: 10rem;" />
+                <div class="form-text">Maximum executions shown on the History page. Leave empty to use the default (@(Services.SettingsService.DefaultMaxHistoryItemsShown)). Valid range: 10–1,000.</div>
+                <span asp-validation-for="SettingsVM.MaxHistoryItemsShown" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="SettingsVM.DeleteHistoricalRunsAfterCount" class="form-label"></label>
+                <input asp-for="SettingsVM.DeleteHistoricalRunsAfterCount" class="form-control" style="max-width: 10rem;" />
+                <div class="form-text">Auto-deletes the oldest executions per job when this limit is exceeded. Leave empty to disable count-based auto-deletion.</div>
+                <span asp-validation-for="SettingsVM.DeleteHistoricalRunsAfterCount" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="SettingsVM.DeleteHistoricalRunsAfterDays" class="form-label"></label>
+                <input asp-for="SettingsVM.DeleteHistoricalRunsAfterDays" class="form-control" style="max-width: 10rem;" />
+                <div class="form-text">Auto-deletes executions older than this. Leave empty to disable age-based auto-deletion.</div>
+                <span asp-validation-for="SettingsVM.DeleteHistoricalRunsAfterDays" class="text-danger"></span>
+            </div>
+
+            <hr class="my-4" />
+
+            <h5 class="border-bottom pb-2 mb-3">Script Defaults</h5>
+
+            <div class="mb-3">
+                <label asp-for="SettingsVM.DefaultScriptFileLocation" class="form-label"></label>
+                <input asp-for="SettingsVM.DefaultScriptFileLocation" class="form-control" />
+                <div class="form-text">Defaults to the system temp directory (e.g., <code>/tmp</code> or <code>C:\Users\<i>(username)</i>\AppData\Local\Temp</code>) if left empty.</div>
+                <span asp-validation-for="SettingsVM.DefaultScriptFileLocation" class="text-danger"></span>
+            </div>
+
+            <hr class="my-4" />
+
+            <h5 class="border-bottom pb-2 mb-3">Completion Script</h5>
+            <p class="text-muted">An optional script that runs automatically after job executions complete. Requires an executor and at least one trigger status to be configured.</p>
+
+            <div class="row gx-5 mb-4">
+                <div class="col mb-3">
+                    <label asp-for="SettingsVM.CompletionScriptExecutor" class="form-label"></label>
+                    <input asp-for="SettingsVM.CompletionScriptExecutor" class="form-control executor-input" />
+                    <span asp-validation-for="SettingsVM.CompletionScriptExecutor" class="text-danger"></span>
+
+                    <label asp-for="SettingsVM.CompletionScriptExecutorArgs" class="form-label mt-3"></label>
+                    <input asp-for="SettingsVM.CompletionScriptExecutorArgs" class="form-control executor-args-input" />
+                    <span asp-validation-for="SettingsVM.CompletionScriptExecutorArgs" class="text-danger"></span>
+                </div>
+                <div class="col mb-3">
+                    <div class="shadow p-3 bg-body-tertiary rounded">
+                        <partial name="_ExecutorFormHelpPartial" />
                     </div>
                 </div>
-                <div class="col mb-3 d-flex align-items-center">
-                    <div class="shadow p-3 bg-body-tertiary rounded flex-fill">
-                        Optional - script to execute upon completion of job executions
-                        <br /><br />
-                        In order for the script to be able to run, an executor must be selected, and at least one job execution status must be enabled (see below).
-                        <br /><br />
-                        The following environment variables are available:
-                        <br />
-                        <ul>
-                            <li><code>CRONCH_JOB_ID</code> - job ID</li>
-                            <li><code>CRONCH_JOB_NAME</code> - job name</li>
-                            <li><code>CRONCH_EXECUTION_ID</code> - execution ID</li>
-                            <li><code>CRONCH_EXECUTION_STARTED_ON</code> - Unix Epoch start time (in seconds, UTC)</li>
-                            <li><code>CRONCH_EXECUTION_COMPLETED_ON</code> - Unix Epoch stop time (in seconds, UTC)</li>
-                            <li><code>CRONCH_EXECUTION_EXIT_CODE</code> - numeric exit code</li>
+            </div>
+
+            <div class="row gx-5 mb-4">
+                <div class="col mb-3">
+                    <label asp-for="SettingsVM.CompletionScript" class="form-label"></label>
+                    <input type="hidden" asp-for="SettingsVM.CompletionScript" id="script-hidden" />
+                    <pre id="script-editor" class="script-editor script-editor-large script-editor-loading" data-script-editor="script-hidden">@(Model?.SettingsVM.CompletionScript)</pre>
+                    <span asp-validation-for="SettingsVM.CompletionScript" class="text-danger"></span>
+                </div>
+                <div class="col mb-3">
+                    <div class="shadow p-3 bg-body-tertiary rounded" style="position: sticky; top: 1rem;">
+                        <strong>Environment variables</strong>
+                        <ul class="mt-2 mb-3">
+                            <li><code>CRONCH_JOB_ID</code> – job ID</li>
+                            <li><code>CRONCH_JOB_NAME</code> – job name</li>
+                            <li><code>CRONCH_EXECUTION_ID</code> – execution ID</li>
+                            <li><code>CRONCH_EXECUTION_STARTED_ON</code> – Unix Epoch start time (UTC, seconds)</li>
+                            <li><code>CRONCH_EXECUTION_COMPLETED_ON</code> – Unix Epoch stop time (UTC, seconds)</li>
+                            <li><code>CRONCH_EXECUTION_EXIT_CODE</code> – numeric exit code</li>
                             <li>
-                                <code>CRONCH_EXECUTION_STATUS</code> - one of the following:
+                                <code>CRONCH_EXECUTION_STATUS</code> – one of:
                                 <ul>
                                     <li><code>@(Models.ExecutionStatus.Unknown)</code></li>
                                     <li><code>@(Models.ExecutionStatus.CompletedAsSuccess)</code></li>
@@ -122,7 +95,7 @@
                                 </ul>
                             </li>
                             <li>
-                                <code>CRONCH_EXECUTION_STOP_REASON</code> - one of the following:
+                                <code>CRONCH_EXECUTION_STOP_REASON</code> – one of:
                                 <ul>
                                     <li><code>@(Models.TerminationReason.NoneSpecified)</code></li>
                                     <li><code>@(Models.TerminationReason.Exited)</code></li>
@@ -131,70 +104,37 @@
                                     <li><code>@(Models.TerminationReason.UserTriggered)</code></li>
                                 </ul>
                             </li>
-                            <li><code>CRONCH_EXECUTION_INTERNAL_OUTPUT_FILE</code> - location of the internally-formatted file containing the job's stdout and stderr data. Note, this file's format should not be considered stable. Cursory <code>grep</code> checks for keywords should work, but relying on the details of the current format is strongly discouraged.</li>
+                            <li><code>CRONCH_EXECUTION_INTERNAL_OUTPUT_FILE</code> – location of the internally-formatted file containing the job's stdout and stderr. The file format is not stable; only cursory keyword checks are recommended.</li>
                         </ul>
-                        The script will run for a maximum of @Services.SettingsService.MaxCompletionScriptRuntimeSeconds seconds.
-                        <br /><br />
-                        Hint: to force the code highlighting to a specific syntax, add a comment anywhere in the script in the form of, for example, <code>[[[CRONCH:syntax:javascript]]]</code> for JavaScript. Choose any <a target="_blank" href="https://github.com/indubitable/cronch/tree/main/cronch/wwwroot/lib/ace"><code>mode-*.js</code> file</a>.
+                        The script runs for a maximum of @Services.SettingsService.MaxCompletionScriptRuntimeSeconds seconds.
+                        <hr />
+                        <small class="text-muted">To force syntax highlighting to a specific language, add a comment anywhere in the script in the form <code>[[[CRONCH:syntax:javascript]]]</code>. See available <a target="_blank" href="https://github.com/indubitable/cronch/tree/main/cronch/wwwroot/lib/ace"><code>mode-*.js</code></a> files.</small>
                     </div>
                 </div>
             </div>
-            <div class="row gx-5">
-                <hr />
-            </div>
-            <div class="row gx-5">
-                <div class="col mb-3 d-flex align-items-center">
-                    <div class="flex-fill">
-                        <label asp-for="SettingsVM.CompletionScriptExecutor" class="form-label"></label>
-                        <input asp-for="SettingsVM.CompletionScriptExecutor" class="form-control executor-input" />
-                        <span asp-validation-for="SettingsVM.CompletionScriptExecutor" class="text-danger"></span>
 
-                        <br /><br />
+            <div class="mb-4">
+                <div class="fw-semibold mb-1">Trigger statuses</div>
+                <div class="form-text mb-2">The completion script runs only for the selected job execution statuses. If none are selected, it never runs.</div>
+                <div class="form-check form-switch">
+                    <input asp-for="SettingsVM.RunCompletionScriptOnSuccess" type="checkbox" class="form-check-input" autocomplete="off">
+                    <label asp-for="SettingsVM.RunCompletionScriptOnSuccess" class="form-check-label"></label>
+                </div>
+                <div class="form-check form-switch">
+                    <input asp-for="SettingsVM.RunCompletionScriptOnIndeterminate" type="checkbox" class="form-check-input" autocomplete="off">
+                    <label asp-for="SettingsVM.RunCompletionScriptOnIndeterminate" class="form-check-label"></label>
+                </div>
+                <div class="form-check form-switch">
+                    <input asp-for="SettingsVM.RunCompletionScriptOnWarning" type="checkbox" class="form-check-input" autocomplete="off">
+                    <label asp-for="SettingsVM.RunCompletionScriptOnWarning" class="form-check-label"></label>
+                </div>
+                <div class="form-check form-switch">
+                    <input asp-for="SettingsVM.RunCompletionScriptOnError" type="checkbox" class="form-check-input" autocomplete="off">
+                    <label asp-for="SettingsVM.RunCompletionScriptOnError" class="form-check-label"></label>
+                </div>
+            </div>
 
-                        <label asp-for="SettingsVM.CompletionScriptExecutorArgs" class="form-label"></label>
-                        <input asp-for="SettingsVM.CompletionScriptExecutorArgs" class="form-control executor-args-input" />
-                        <span asp-validation-for="SettingsVM.CompletionScriptExecutorArgs" class="text-danger"></span>
-                    </div>
-                </div>
-                <div class="col mb-3 d-flex align-items-center">
-                    <div class="shadow p-3 bg-body-tertiary rounded flex-fill">
-                        <partial name="_ExecutorFormHelpPartial" />
-                    </div>
-                </div>
-            </div>
-            <div class="row gx-5">
-                <hr />
-            </div>
-            <div class="row gx-5">
-                <div class="col mb-3 d-flex align-items-center">
-                    <div class="flex-fill">
-                        <p>Run completion script job execution statuses</p>
-                        <div class="form-check form-switch">
-                            <input asp-for="SettingsVM.RunCompletionScriptOnSuccess" type="checkbox" class="form-check-input" autocomplete="off">
-                            <label asp-for="SettingsVM.RunCompletionScriptOnSuccess" class="form-check-label"></label>
-                            <br />
-                            <input asp-for="SettingsVM.RunCompletionScriptOnIndeterminate" type="checkbox" class="form-check-input" autocomplete="off">
-                            <label asp-for="SettingsVM.RunCompletionScriptOnIndeterminate" class="form-check-label"></label>
-                            <br />
-                            <input asp-for="SettingsVM.RunCompletionScriptOnWarning" type="checkbox" class="form-check-input" autocomplete="off">
-                            <label asp-for="SettingsVM.RunCompletionScriptOnWarning" class="form-check-label"></label>
-                            <br />
-                            <input asp-for="SettingsVM.RunCompletionScriptOnError" type="checkbox" class="form-check-input" autocomplete="off">
-                            <label asp-for="SettingsVM.RunCompletionScriptOnError" class="form-check-label"></label>
-                        </div>
-                    </div>
-                </div>
-                <div class="col mb-3 d-flex align-items-center">
-                    <div class="shadow p-3 bg-body-tertiary rounded flex-fill">
-                        Optional - status(es) for which to run the completion script (see above)
-                        <br /><br />
-                        If no statuses are selected, the completion script will never run.
-                    </div>
-                </div>
-            </div>
-            <br />
-            <button type="submit" class="btn btn-primary">Save</button>
-            <br /><br />
+            <button type="submit" class="btn btn-primary mb-4">Save</button>
         </form>
     </div>
 </div>

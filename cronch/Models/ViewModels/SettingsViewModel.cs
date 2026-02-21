@@ -4,28 +4,28 @@ namespace cronch.Models.ViewModels;
 
 public class SettingsViewModel
 {
-    [Display(Name = "Maximum number of run executions to show in History")]
+    [Display(Name = "History page display limit")]
     [Range(10, 1000)]
     public int? MaxHistoryItemsShown { get; set; }
 
-    [Display(Name = "Maximum count of historical executions per job")]
+    [Display(Name = "Per-job execution history limit")]
     [Range(1, 10000)]
     public int? DeleteHistoricalRunsAfterCount { get; set; }
 
-    [Display(Name = "Maximum age of historical run executions in days")]
+    [Display(Name = "Execution history retention (days)")]
     [Range(1, 5000)]
     public int? DeleteHistoricalRunsAfterDays { get; set; }
 
     [Display(Name = "Default script file location")]
     public string? DefaultScriptFileLocation { get; set; }
 
-    [Display(Name = "Run completion script executor")]
+    [Display(Name = "Executor")]
     public string? CompletionScriptExecutor { get; set; }
 
-    [Display(Name = "Run completion script executor arguments")]
+    [Display(Name = "Executor arguments")]
     public string? CompletionScriptExecutorArgs { get; set; }
 
-    [Display(Name = "Run completion script")]
+    [Display(Name = "Completion script")]
     public string? CompletionScript { get; set; }
 
     [Required(AllowEmptyStrings = false)]
