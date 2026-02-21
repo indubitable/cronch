@@ -1,214 +1,149 @@
-﻿@model cronch.Models.ViewModels.JobViewModel
+@model cronch.Models.ViewModels.JobViewModel
 
 <div id="job-form-container" class="container text-start px-5">
     <div asp-validation-summary="All" class="rounded border border-2 border-danger"></div>
     <form method="post" hx-boost="true" hx-select="#job-form-container" hx-target="#job-form-container" hx-swap="outerHTML">
-        <div class="row gx-5">
-            <div class="col mb-3 d-flex align-items-center">
-                <div class="flex-fill">
-                    <label asp-for="Name" class="form-label"></label>
-                    <input asp-for="Name" class="form-control" />
-                    <span asp-validation-for="Name" class="text-danger"></span>
-                </div>
-            </div>
-            <div class="col mb-3 d-flex align-items-center">
-                <div class="shadow p-3 bg-body-tertiary rounded flex-fill">Choose a meaningful name for this job</div>
-            </div>
+
+        <h5 class="border-bottom pb-2 mb-3">Schedule</h5>
+
+        <div class="mb-3">
+            <label asp-for="Name" class="form-label"></label>
+            <input asp-for="Name" class="form-control" />
+            <span asp-validation-for="Name" class="text-danger"></span>
         </div>
-        <div class="row gx-5">
-            <hr />
-        </div>
-        <div class="row gx-5">
-            <div class="col mb-3 d-flex align-items-center">
-                <div class="form-check flex-fill">
-                    <input asp-for="Enabled" class="form-check-input" />
-                    <label asp-for="Enabled" class="form-check-label"></label>
-                </div>
+
+        <div class="mb-3">
+            <div class="form-check">
+                <input asp-for="Enabled" class="form-check-input" />
+                <label asp-for="Enabled" class="form-check-label"></label>
             </div>
-            <div class="col mb-3 d-flex align-items-center">
-                <div class="shadow p-3 bg-body-tertiary rounded flex-fill">Whether this job will be immediately enabled after saving</div>
-            </div>
+            <div class="form-text">When disabled, the job will not run on its schedule.</div>
         </div>
-        <div class="row gx-5">
-            <hr />
-        </div>
-        <div class="row gx-5">
-            <div class="col mb-3 d-flex align-items-center">
-                <div class="flex-fill">
-                    <label asp-for="CronSchedule" class="form-label"></label>
-                    <input asp-for="CronSchedule" class="form-control cron-schedule-input" />
-                    <span asp-validation-for="CronSchedule" class="text-danger"></span>
-                </div>
+
+        <div class="row gx-5 mb-3">
+            <div class="col">
+                <label asp-for="CronSchedule" class="form-label"></label>
+                <input asp-for="CronSchedule" class="form-control cron-schedule-input" />
+                <span asp-validation-for="CronSchedule" class="text-danger"></span>
             </div>
-            <div class="col mb-3 d-flex align-items-center">
-                <div class="shadow p-3 bg-body-tertiary rounded flex-fill">
+            <div class="col">
+                <div class="shadow p-3 bg-body-tertiary rounded">
                     <a target="_blank" href="https://github.com/HangfireIO/Cronos#cron-format">A six-part (with seconds) cron expression</a>
-                    <br /><br />
-                    Quick choices:
-                    <a href="#" onclick="document.querySelector('.cron-schedule-input').value='*/30 * * * * *'; return false;">Every 30 seconds</a>
-                    |
-                    <a href="#" onclick="document.querySelector('.cron-schedule-input').value='0 * * * * *'; return false;">Every minute</a>
-                    |
-                    <a href="#" onclick="document.querySelector('.cron-schedule-input').value='0 0 0 * * MON-FRI'; return false;">At midnight Monday-Friday</a>
+                    <div class="small text-muted mt-3 mb-1">Quick choices</div>
+                    <div class="d-flex flex-wrap gap-1">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="document.querySelector('.cron-schedule-input').value='*/30 * * * * *'">Every 30 seconds</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="document.querySelector('.cron-schedule-input').value='0 * * * * *'">Every minute</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="document.querySelector('.cron-schedule-input').value='0 0 * * * *'">Every hour</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="document.querySelector('.cron-schedule-input').value='0 0 0 * * MON-FRI'">At midnight Monday–Friday</button>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="row gx-5">
-            <hr />
-        </div>
-        <div class="row gx-5">
-            <div class="col mb-3 d-flex align-items-center">
-                <div class="flex-fill">
-                    <label asp-for="Script" class="form-label"></label>
-                    <input type="hidden" asp-for="Script" id="script-hidden" />
-                    <pre id="script-editor" class="script-editor script-editor-loading" data-script-editor="script-hidden">@(Model?.Script)</pre>
-                    <span asp-validation-for="Script" class="text-danger"></span>
-                </div>
+
+        <hr class="my-4" />
+
+        <h5 class="border-bottom pb-2 mb-3">Script &amp; Executor</h5>
+
+        <div class="row gx-5 mb-4">
+            <div class="col">
+                <label asp-for="Script" class="form-label"></label>
+                <input type="hidden" asp-for="Script" id="script-hidden" />
+                <pre id="script-editor" class="script-editor script-editor-loading" data-script-editor="script-hidden">@(Model?.Script)</pre>
+                <span asp-validation-for="Script" class="text-danger"></span>
             </div>
-            <div class="col mb-3 d-flex align-items-center">
-                <div class="shadow p-3 bg-body-tertiary rounded flex-fill">
-                    The script to run, executed by the executor (see below)
-                    <br /><br />
-                    The following environment variables are available:
-                    <br />
-                    <ul>
-                        <li><code>CRONCH_JOB_ID</code> - job ID</li>
-                        <li><code>CRONCH_JOB_NAME</code> - job name</li>
-                        <li><code>CRONCH_EXECUTION_ID</code> - execution ID</li>
+            <div class="col">
+                <div class="shadow p-3 bg-body-tertiary rounded" style="position: sticky; top: 1rem;">
+                    <strong>Environment variables</strong>
+                    <ul class="mt-2 mb-3">
+                        <li><code>CRONCH_JOB_ID</code> – job ID</li>
+                        <li><code>CRONCH_JOB_NAME</code> – job name</li>
+                        <li><code>CRONCH_EXECUTION_ID</code> – execution ID</li>
                     </ul>
-                    Hint: to force the code highlighting to a specific syntax, add a comment anywhere in the script in the form of, for example, <code>[[[CRONCH:syntax:javascript]]]</code> for JavaScript. Choose any <a target="_blank" href="https://github.com/indubitable/cronch/tree/main/cronch/wwwroot/lib/ace"><code>mode-*.js</code> file</a>.
+                    <hr />
+                    <small class="text-muted">To force syntax highlighting to a specific language, add a comment in the form <code>[[[CRONCH:syntax:javascript]]]</code>. See available <a target="_blank" href="https://github.com/indubitable/cronch/tree/main/cronch/wwwroot/lib/ace"><code>mode-*.js</code></a> files.</small>
                 </div>
             </div>
         </div>
-        <div class="row gx-5">
-            <hr />
-        </div>
-        <div class="row gx-5">
-            <div class="col mb-3 d-flex align-items-center">
-                <div class="flex-fill">
-                    <label asp-for="Executor" class="form-label"></label>
-                    <input asp-for="Executor" class="form-control executor-input" />
-                    <span asp-validation-for="Executor" class="text-danger"></span>
 
-                    <br /><br />
+        <div class="row gx-5 mb-4">
+            <div class="col">
+                <label asp-for="Executor" class="form-label"></label>
+                <input asp-for="Executor" class="form-control executor-input" />
+                <span asp-validation-for="Executor" class="text-danger"></span>
 
-                    <label asp-for="ExecutorArgs" class="form-label"></label>
-                    <input asp-for="ExecutorArgs" class="form-control executor-args-input" />
-                    <span asp-validation-for="ExecutorArgs" class="text-danger"></span>
-                </div>
+                <label asp-for="ExecutorArgs" class="form-label mt-3"></label>
+                <input asp-for="ExecutorArgs" class="form-control executor-args-input" />
+                <span asp-validation-for="ExecutorArgs" class="text-danger"></span>
             </div>
-            <div class="col mb-3 d-flex align-items-center">
-                <div class="shadow p-3 bg-body-tertiary rounded flex-fill">
+            <div class="col">
+                <div class="shadow p-3 bg-body-tertiary rounded">
                     <partial name="_ExecutorFormHelpPartial" />
                 </div>
             </div>
         </div>
-        <div class="row gx-5">
-            <hr />
-        </div>
-        <div class="row gx-5">
-            <div class="col mb-3 d-flex align-items-center">
-                <div class="flex-fill">
-                    <label asp-for="ScriptFilePathname" class="form-label"></label>
-                    <input asp-for="ScriptFilePathname" class="form-control" />
-                    <span asp-validation-for="ScriptFilePathname" class="text-danger"></span>
-                </div>
-            </div>
-            <div class="col mb-3 d-flex align-items-center">
-                <div class="shadow p-3 bg-body-tertiary rounded flex-fill">
-                    <strong>[DANGEROUS!]</strong> Optional - the relative or absolute name of the script file that will be executed by the executor (above) and will contain the script contents (above)
-                    <br /><br />
-                    This can be useful for, e.g., ensuring that a Windows batch file always has a <code>.bat</code> extension.
-                    <br /><br />
-                    If specified, the same filename will be used for every execution of this job. Parallel executions could, then, result in the script file being unexpectedly deleted or overwritten during a previous execution, leading to errors.
-                    <br /><br />
-                    To make this safer, use <code>{0}</code> inside the filename, which will then be replaced by a randomly generated name. Note, new directories will not be created automatically, so specifying <code>{0}</code> in the path before the filename will result in an error.
-                    <br /><br />
-                    If left empty, a randomly generated filename will be created in the default script file location, as configured in Settings.
-                </div>
-            </div>
-        </div>
-        <div class="row gx-5">
-            <hr />
-        </div>
-        <div class="row gx-5">
-            <div class="col mb-3 d-flex align-items-center">
-                <div class="flex-fill">
-                    <label asp-for="TimeLimitSecs" class="form-label"></label>
-                    <input asp-for="TimeLimitSecs" class="form-control" />
-                    <span asp-validation-for="TimeLimitSecs" class="text-danger"></span>
-                </div>
-            </div>
-            <div class="col mb-3 d-flex align-items-center">
-                <div class="shadow p-3 bg-body-tertiary rounded flex-fill">
-                    Optional - how long to permit the job to execute before forcefully killing it
-                    <br /><br />
-                    If left empty, no time limit will be enforced. If set to 0, the job will be killed immediately.
-                </div>
-            </div>
-        </div>
-        <div class="row gx-5">
-            <hr />
-        </div>
-        <div class="row gx-5">
-            <div class="col mb-3 d-flex align-items-center">
-                <div class="flex-fill">
-                    <label asp-for="Parallelism" class="form-label"></label>
-                    <input asp-for="Parallelism" class="form-control" />
-                    <span asp-validation-for="Parallelism" class="text-danger"></span>
 
+        <div class="row gx-5 mb-3">
+            <div class="col">
+                <label asp-for="ScriptFilePathname" class="form-label"></label>
+                <input asp-for="ScriptFilePathname" class="form-control" />
+                <span asp-validation-for="ScriptFilePathname" class="text-danger"></span>
+            </div>
+            <div class="col">
+                <div class="shadow p-3 bg-body-tertiary rounded">
+                    Optional — if specified, this filename is used for the script file instead of a randomly generated name. Useful when a specific extension is required (e.g., <code>.bat</code> on Windows).
                     <br /><br />
+                    <span class="text-danger fw-semibold">Parallelism risk:</span> the same filename is reused on every execution. If two executions run simultaneously, one may overwrite the other's script file mid-run. Use <code>{0}</code> in the filename to substitute a random component and mitigate this.
+                    <br /><br />
+                    If left empty, a randomly generated filename is created in the default script file location (configured in Settings).
+                </div>
+            </div>
+        </div>
 
-                    <label asp-for="MarkParallelSkipAs" class="form-label"></label>
-                    <select asp-for="MarkParallelSkipAs" asp-items="cronch.Models.ViewModels.JobViewModel.ParallelSkipProcessingOptions" class="form-select"></select>
-                </div>
-            </div>
-            <div class="col mb-3 d-flex align-items-center">
-                <div class="shadow p-3 bg-body-tertiary rounded flex-fill">
-                    Optional - limit the number of parallel executions of this job
-                    <br /><br />
-                    If left empty, no limit will be enforced. Setting this to 1 means that only one execution of this job is allowed at a time.
-                    <br /><br />
-                    The drop-down selection allows for control over how to log (or not log) the skipping of executions due to the parallelism limit.
-                </div>
-            </div>
-        </div>
-        <div class="row gx-5">
-            <hr />
-        </div>
-        <div class="row gx-5">
-            <div class="col mb-3 d-flex align-items-center">
-                <div class="flex-fill">
-                    <label asp-for="Keywords" class="form-label"></label>
-                    <input asp-for="Keywords" class="form-control" />
-                    <span asp-validation-for="Keywords" class="text-danger"></span>
-                </div>
-            </div>
-            <div class="col mb-3 d-flex align-items-center">
-                <div class="shadow p-3 bg-body-tertiary rounded flex-fill">Optional - comma-separated list of keywords to look for in standard out and/or standard error processing (see below)</div>
-            </div>
-        </div>
-        <div class="row gx-5">
-            <hr />
-        </div>
-        <div class="row gx-5">
-            <div class="col mb-3 d-flex align-items-center">
-                <div class="flex-fill">
-                    <label asp-for="StdOutProcessing" class="form-label"></label>
-                    <select asp-for="StdOutProcessing" asp-items="cronch.Models.ViewModels.JobViewModel.OutputProcessingOptions" class="form-select"></select>
+        <hr class="my-4" />
 
-                    <br /><br />
+        <h5 class="border-bottom pb-2 mb-3">Limits</h5>
 
-                    <label asp-for="StdErrProcessing" class="form-label"></label>
-                    <select asp-for="StdErrProcessing" asp-items="cronch.Models.ViewModels.JobViewModel.OutputProcessingOptions" class="form-select"></select>
-                </div>
-            </div>
-            <div class="col mb-3 d-flex align-items-center">
-                <div class="shadow p-3 bg-body-tertiary rounded flex-fill">How to interpret the contents of stdout and stderr after each run</div>
-            </div>
+        <div class="mb-3">
+            <label asp-for="TimeLimitSecs" class="form-label"></label>
+            <input asp-for="TimeLimitSecs" class="form-control" style="max-width: 10rem;" />
+            <div class="form-text">Leave empty for no limit. Set to 0 to kill the job immediately after it starts.</div>
+            <span asp-validation-for="TimeLimitSecs" class="text-danger"></span>
         </div>
-        <br />
-        <button type="submit" class="btn btn-primary">Save</button>
-        <br /><br />
+
+        <div class="mb-3">
+            <label asp-for="Parallelism" class="form-label"></label>
+            <input asp-for="Parallelism" class="form-control" style="max-width: 10rem;" />
+            <div class="form-text">Leave empty for no limit. Set to 1 to allow only one execution at a time.</div>
+            <span asp-validation-for="Parallelism" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="MarkParallelSkipAs" class="form-label"></label>
+            <select asp-for="MarkParallelSkipAs" asp-items="cronch.Models.ViewModels.JobViewModel.ParallelSkipProcessingOptions" class="form-select"></select>
+            <div class="form-text">How to record executions that are skipped due to the parallelism limit.</div>
+        </div>
+
+        <hr class="my-4" />
+
+        <h5 class="border-bottom pb-2 mb-3">Output</h5>
+
+        <div class="mb-3">
+            <label asp-for="Keywords" class="form-label"></label>
+            <input asp-for="Keywords" class="form-control" />
+            <div class="form-text">Comma-separated. Used by the processing options below when keyword-based rules are selected.</div>
+            <span asp-validation-for="Keywords" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="StdOutProcessing" class="form-label"></label>
+            <select asp-for="StdOutProcessing" asp-items="cronch.Models.ViewModels.JobViewModel.OutputProcessingOptions" class="form-select"></select>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="StdErrProcessing" class="form-label"></label>
+            <select asp-for="StdErrProcessing" asp-items="cronch.Models.ViewModels.JobViewModel.OutputProcessingOptions" class="form-select"></select>
+        </div>
+
+        <button type="submit" class="btn btn-primary mb-4">Save</button>
     </form>
 </div>
