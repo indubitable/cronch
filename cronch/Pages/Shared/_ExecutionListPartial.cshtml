@@ -30,24 +30,31 @@
     }
 </script>
 
-<table class="table table-striped table-hover text-start">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Start time</th>
-            <th>Run time</th>
-            <th class="text-center">Result</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var vm in Model)
-        {
-            <tr class="clickable-row" onclick="navigateToExecution('@vm.ExecutionId')">
-                <td>@vm.JobName</td>
-                <td>@vm.StartedOn.ToLocalTime().ToString("G")</td>
-                <td>@(vm.CompletedOn.HasValue || vm.Status == Models.ExecutionStatus.Running ? vm.FormattedDuration : "N/A")</td>
-                @RenderStatus(vm.Status)
+@if (!Model.Any())
+{
+    <p class="text-muted">No executions yet. Head to <a asp-page="/Manage">Manage</a> to enable some jobs.</p>
+}
+else
+{
+    <table class="table table-striped table-hover text-start">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Start time</th>
+                <th>Run time</th>
+                <th class="text-center">Result</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var vm in Model)
+            {
+                <tr class="clickable-row" onclick="navigateToExecution('@vm.ExecutionId')">
+                    <td>@vm.JobName</td>
+                    <td title="@vm.StartedOn.ToLocalTime().ToString("G")">@vm.RelativeStartTime</td>
+                    <td>@(vm.CompletedOn.HasValue || vm.Status == Models.ExecutionStatus.Running ? vm.FormattedDuration : "N/A")</td>
+                    @RenderStatus(vm.Status)
+                </tr>
+            }
+        </tbody>
+    </table>
+}
