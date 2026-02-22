@@ -8,7 +8,7 @@ public class ConfigPersistenceService(ILogger<ConfigPersistenceService> _logger,
     private readonly XmlSerializer _serializer = new(typeof(ConfigPersistenceModel));
     private const string CONFIG_FILE = "config.xml";
 
-    public ConfigPersistenceModel? Load()
+    public virtual ConfigPersistenceModel? Load()
     {
         lock (_serializer)
         {
@@ -41,7 +41,7 @@ public class ConfigPersistenceService(ILogger<ConfigPersistenceService> _logger,
         }
     }
 
-    public void Save(ConfigPersistenceModel model)
+    public virtual void Save(ConfigPersistenceModel model)
     {
         lock (_serializer)
         {

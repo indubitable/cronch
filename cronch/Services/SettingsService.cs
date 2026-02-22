@@ -8,14 +8,14 @@ public class SettingsService(ConfigPersistenceService _configPersistenceService)
     public const int DefaultMaxHistoryItemsShown = 250;
     public const int MaxCompletionScriptRuntimeSeconds = 20;
 
-    public void SaveSettings(SettingsModel settingsModel)
+    public virtual void SaveSettings(SettingsModel settingsModel)
     {
         var persistenceModel = _configPersistenceService.Load() ?? new ConfigPersistenceModel();
         ApplySettingsToPersistenceModel(settingsModel, persistenceModel);
         _configPersistenceService.Save(persistenceModel);
     }
 
-    public SettingsModel LoadSettings()
+    public virtual SettingsModel LoadSettings()
     {
         var persistenceModel = _configPersistenceService.Load() ?? new ConfigPersistenceModel();
         return CreateSettingsModelFromPersistenceModel(persistenceModel);

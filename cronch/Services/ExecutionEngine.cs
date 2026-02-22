@@ -5,7 +5,7 @@ namespace cronch.Services;
 
 public class ExecutionEngine(ILogger<ExecutionEngine> _logger)
 {
-    public void PerformExecution(ExecutionModel execution, JobModel jobModel, string targetScriptFile, Stream outputStream, bool formatOutput, Dictionary<string, string> environmentVars, CancellationToken cancelToken)
+    public virtual void PerformExecution(ExecutionModel execution, JobModel jobModel, string targetScriptFile, Stream outputStream, bool formatOutput, Dictionary<string, string> environmentVars, CancellationToken cancelToken)
     {
         var intermediateExecutionStatus = ExecutionStatus.CompletedAsSuccess;
 

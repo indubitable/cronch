@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="cronch\cronch.csproj" />
+  <Project Path="cronch.UnitTests\cronch.UnitTests.csproj" />
 </Solution>
