@@ -69,31 +69,25 @@ public class ConversionUtilityTests
     }
 
     [TestMethod]
-    [Description("Documents current behavior: empty/null keywords produce [\"\"], not []. " +
-                 "An empty keyword will match every output line because line.Contains(\"\") is always true, " +
-                 "so enabling keyword matching with empty keywords effectively means matching everything.")]
-    public void ToModelFromJobViewModelShouldProduceListWithEmptyStringWhenKeywordsIsEmpty()
+    public void ToModelFromJobViewModelShouldProduceEmptyListWhenKeywordsIsEmpty()
     {
         var vm = MinimalJobViewModel();
         vm.Keywords = "";
 
         var model = vm.ToModel();
 
-        Assert.HasCount(1, model.Keywords);
-        Assert.AreEqual("", model.Keywords[0]);
+        Assert.IsEmpty(model.Keywords);
     }
 
     [TestMethod]
-    [Description("Same empty-keyword behavior applies when Keywords is null.")]
-    public void ToModelFromJobViewModelShouldProduceListWithEmptyStringWhenKeywordsIsNull()
+    public void ToModelFromJobViewModelShouldProduceEmptyListWhenKeywordsIsNull()
     {
         var vm = MinimalJobViewModel();
         vm.Keywords = null;
 
         var model = vm.ToModel();
 
-        Assert.HasCount(1, model.Keywords);
-        Assert.AreEqual("", model.Keywords[0]);
+        Assert.IsEmpty(model.Keywords);
     }
 
     // --- Keywords round-trip ---

@@ -50,7 +50,7 @@ public static class ConversionUtility
             TimeLimitSecs = jobViewModel.TimeLimitSecs,
             Parallelism = jobViewModel.Parallelism,
             MarkParallelSkipAs = jobViewModel.MarkParallelSkipAs.ToEnumWithFallback(JobModel.ParallelSkipProcessing.Ignore),
-            Keywords = (jobViewModel.Keywords ?? "").Split(',').Select(s => s.Trim()).ToList(),
+            Keywords = (jobViewModel.Keywords ?? "").Split(',').Select(s => s.Trim()).Where(s => s.Length > 0).ToList(),
             StdOutProcessing = jobViewModel.StdOutProcessing.ToEnumWithFallback(JobModel.OutputProcessing.None),
             StdErrProcessing = jobViewModel.StdErrProcessing.ToEnumWithFallback(JobModel.OutputProcessing.None),
             ChainRules = jobViewModel.ChainRules.Select(r => new ChainRuleModel
