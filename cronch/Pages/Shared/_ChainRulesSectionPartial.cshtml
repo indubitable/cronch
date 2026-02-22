@@ -1,0 +1,149 @@
+@model List<cronch.Models.ViewModels.ChainRuleViewModel>
+@inject cronch.Services.JobConfigService ChainJobConfigService
+@{
+	var currentJobId = ViewData["CurrentJobId"] as Guid? ?? Guid.Empty;
+	var allJobs = ChainJobConfigService.GetAllJobs()
+		.Where(j => j.Id != currentJobId)
+		.OrderBy(j => j.Enabled ? 0 : 1).ThenBy(j => j.Name)
+		.ToList();
+}
+<div id="chain-rules-section">
+	@for (int i = 0; i < Model.Count; i++)
+	{
+		var rule = Model[i];
+		<div class="d-flex align-items-start gap-3 mb-2 p-2 border rounded chain-rule-row">
+			<div class="flex-grow-1">
+				<select name="ChainRules[@i].TargetJobId" class="form-select form-select-sm mb-2">
+					@foreach (var j in allJobs)
+					{
+						var label = j.Enabled ? j.Name : $"{j.Name} (disabled)";
+						if (rule.TargetJobId == j.Id)
+						{
+							<option value="@j.Id" selected>@label</option>
+						}
+						else
+						{
+							<option value="@j.Id">@label</option>
+						}
+					}
+				</select>
+				<div class="d-flex flex-wrap gap-3">
+					<div class="form-check form-check-inline">
+						<input type="checkbox" id="chain-@i-success" name="ChainRules[@i].RunOnSuccess" value="true"
+							   class="form-check-input" @(rule.RunOnSuccess ? "checked" : "") />
+						<label class="form-check-label" for="chain-@i-success">Success</label>
+					</div>
+					<input type="hidden" name="ChainRules[@i].RunOnSuccess" value="false" />
+					<div class="form-check form-check-inline">
+						<input type="checkbox" id="chain-@i-indeterminate" name="ChainRules[@i].RunOnIndeterminate" value="true"
+							   class="form-check-input" @(rule.RunOnIndeterminate ? "checked" : "") />
+						<label class="form-check-label" for="chain-@i-indeterminate">Indeterminate</label>
+					</div>
+					<input type="hidden" name="ChainRules[@i].RunOnIndeterminate" value="false" />
+					<div class="form-check form-check-inline">
+						<input type="checkbox" id="chain-@i-warning" name="ChainRules[@i].RunOnWarning" value="true"
+							   class="form-check-input" @(rule.RunOnWarning ? "checked" : "") />
+						<label class="form-check-label" for="chain-@i-warning">Warning</label>
+					</div>
+					<input type="hidden" name="ChainRules[@i].RunOnWarning" value="false" />
+					<div class="form-check form-check-inline">
+						<input type="checkbox" id="chain-@i-error" name="ChainRules[@i].RunOnError" value="true"
+							   class="form-check-input" @(rule.RunOnError ? "checked" : "") />
+						<label class="form-check-label" for="chain-@i-error">Error</label>
+					</div>
+					<input type="hidden" name="ChainRules[@i].RunOnError" value="false" />
+				</div>
+			</div>
+			<button type="button" class="btn btn-sm btn-outline-danger chain-rule-remove-btn">&#x00D7;</button>
+		</div>
+	}
+	@if (allJobs.Count == 0)
+	{
+		<div class="text-muted small mb-2">No other jobs available to chain to.</div>
+	}
+	else
+	{
+		<template id="chain-rule-template">
+			<div class="d-flex align-items-start gap-3 mb-2 p-2 border rounded chain-rule-row">
+				<div class="flex-grow-1">
+					<select name="ChainRules[__INDEX__].TargetJobId" class="form-select form-select-sm mb-2">
+						@foreach (var j in allJobs)
+						{
+							var tlabel = j.Enabled ? j.Name : $"{j.Name} (disabled)";
+							<option value="@j.Id">@tlabel</option>
+						}
+					</select>
+					<div class="d-flex flex-wrap gap-3">
+						<div class="form-check form-check-inline">
+							<input type="checkbox" id="chain-__INDEX__-success" name="ChainRules[__INDEX__].RunOnSuccess" value="true" class="form-check-input" />
+							<label class="form-check-label" for="chain-__INDEX__-success">Success</label>
+						</div>
+						<input type="hidden" name="ChainRules[__INDEX__].RunOnSuccess" value="false" />
+						<div class="form-check form-check-inline">
+							<input type="checkbox" id="chain-__INDEX__-indeterminate" name="ChainRules[__INDEX__].RunOnIndeterminate" value="true" class="form-check-input" />
+							<label class="form-check-label" for="chain-__INDEX__-indeterminate">Indeterminate</label>
+						</div>
+						<input type="hidden" name="ChainRules[__INDEX__].RunOnIndeterminate" value="false" />
+						<div class="form-check form-check-inline">
+							<input type="checkbox" id="chain-__INDEX__-warning" name="ChainRules[__INDEX__].RunOnWarning" value="true" class="form-check-input" />
+							<label class="form-check-label" for="chain-__INDEX__-warning">Warning</label>
+						</div>
+						<input type="hidden" name="ChainRules[__INDEX__].RunOnWarning" value="false" />
+						<div class="form-check form-check-inline">
+							<input type="checkbox" id="chain-__INDEX__-error" name="ChainRules[__INDEX__].RunOnError" value="true" class="form-check-input" />
+							<label class="form-check-label" for="chain-__INDEX__-error">Error</label>
+						</div>
+						<input type="hidden" name="ChainRules[__INDEX__].RunOnError" value="false" />
+					</div>
+				</div>
+				<button type="button" class="btn btn-sm btn-outline-danger chain-rule-remove-btn">&#x00D7;</button>
+			</div>
+		</template>
+		<button type="button" id="chain-rule-add-btn" class="btn btn-sm btn-outline-secondary mt-1">+ Add chain rule</button>
+		<script>
+			(function () {
+				var section = document.getElementById('chain-rules-section');
+				var addBtn = document.getElementById('chain-rule-add-btn');
+				var template = document.getElementById('chain-rule-template');
+
+				function reindex() {
+					section.querySelectorAll('.chain-rule-row').forEach(function (row, i) {
+						row.querySelectorAll('[name]').forEach(function (el) {
+							el.name = el.name.replace(/ChainRules\[\d+\]/, 'ChainRules[' + i + ']');
+						});
+						row.querySelectorAll('[id^="chain-"]').forEach(function (el) {
+							el.id = el.id.replace(/^(chain-)\d+(-\w+)$/, '$1' + i + '$2');
+						});
+						row.querySelectorAll('label[for^="chain-"]').forEach(function (el) {
+							el.htmlFor = el.htmlFor.replace(/^(chain-)\d+(-\w+)$/, '$1' + i + '$2');
+						});
+					});
+				}
+
+				section.addEventListener('click', function (e) {
+					var btn = e.target.closest('.chain-rule-remove-btn');
+					if (btn) {
+						btn.closest('.chain-rule-row').remove();
+						reindex();
+					}
+				});
+
+				addBtn.addEventListener('click', function () {
+					var nextIndex = section.querySelectorAll('.chain-rule-row').length;
+					var clone = template.content.cloneNode(true);
+					var newRow = clone.querySelector('.chain-rule-row');
+					newRow.querySelectorAll('[name*="__INDEX__"]').forEach(function (el) {
+						el.name = el.name.replace(/__INDEX__/g, nextIndex);
+					});
+					newRow.querySelectorAll('[id*="__INDEX__"]').forEach(function (el) {
+						el.id = el.id.replace(/__INDEX__/g, nextIndex);
+					});
+					newRow.querySelectorAll('[for*="__INDEX__"]').forEach(function (el) {
+						el.htmlFor = el.htmlFor.replace(/__INDEX__/g, nextIndex);
+					});
+					template.before(newRow);
+				});
+			})();
+		</script>
+	}
+</div>
