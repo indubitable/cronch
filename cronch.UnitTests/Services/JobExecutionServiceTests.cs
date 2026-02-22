@@ -317,6 +317,131 @@ public class JobExecutionServiceTests
         persistence.DidNotReceive().AddExecution(Arg.Is<ExecutionModel>(e => e.StopReason == TerminationReason.SkippedForParallelism));
     }
 
+    // --- ExecuteChainedJobs ---
+
+    [TestMethod]
+    public void ExecuteChainedJobsShouldSkipWhenNoChainRules()
+    {
+        var (sut, jobConfigService) = CreateSutForChainedJobs();
+        var job = new JobModel { Id = Guid.NewGuid(), Name = "Test", ChainRules = [] };
+
+        sut.ExecuteChainedJobs(MakeExecution(ExecutionStatus.CompletedAsSuccess), job, 0, Path.GetTempFileName());
+
+        jobConfigService.DidNotReceive().GetJob(Arg.Any<Guid>());
+    }
+
+    [TestMethod]
+    public void ExecuteChainedJobsShouldSkipWhenDepthLimitReached()
+    {
+        var (sut, jobConfigService) = CreateSutForChainedJobs(maxChainDepth: 3);
+        var targetId = Guid.NewGuid();
+        var job = new JobModel
+        {
+            Id = Guid.NewGuid(),
+            Name = "Test",
+            ChainRules = [new ChainRuleModel { TargetJobId = targetId, RunOnSuccess = true }],
+        };
+
+        sut.ExecuteChainedJobs(MakeExecution(ExecutionStatus.CompletedAsSuccess), job, currentDepth: 3, Path.GetTempFileName());
+
+        jobConfigService.DidNotReceive().GetJob(Arg.Any<Guid>());
+    }
+
+    [TestMethod]
+    public void ExecuteChainedJobsShouldSkipWhenStatusDoesNotMatchRule()
+    {
+        var (sut, jobConfigService) = CreateSutForChainedJobs();
+        var targetId = Guid.NewGuid();
+        var job = new JobModel
+        {
+            Id = Guid.NewGuid(),
+            Name = "Test",
+            ChainRules = [new ChainRuleModel { TargetJobId = targetId, RunOnSuccess = true, RunOnError = false }],
+        };
+
+        sut.ExecuteChainedJobs(MakeExecution(ExecutionStatus.CompletedAsError), job, 0, Path.GetTempFileName());
+
+        jobConfigService.DidNotReceive().GetJob(Arg.Any<Guid>());
+    }
+
+    [TestMethod]
+    public void ExecuteChainedJobsShouldSkipDisabledTargetJob()
+    {
+        var targetId = Guid.NewGuid();
+        var (sut, jobConfigService) = CreateSutForChainedJobs();
+        jobConfigService.GetJob(targetId).Returns(new JobModel { Id = targetId, Enabled = false });
+        var job = new JobModel
+        {
+            Id = Guid.NewGuid(),
+            Name = "Test",
+            ChainRules = [new ChainRuleModel { TargetJobId = targetId, RunOnSuccess = true }],
+        };
+
+        sut.ExecuteChainedJobs(MakeExecution(ExecutionStatus.CompletedAsSuccess), job, 0, Path.GetTempFileName());
+
+        Assert.IsEmpty(sut.ExecuteJobCalls);
+    }
+
+    [TestMethod]
+    public void ExecuteChainedJobsShouldSkipNullTargetJob()
+    {
+        var targetId = Guid.NewGuid();
+        var (sut, jobConfigService) = CreateSutForChainedJobs();
+        jobConfigService.GetJob(targetId).Returns((JobModel?)null);
+        var job = new JobModel
+        {
+            Id = Guid.NewGuid(),
+            Name = "Test",
+            ChainRules = [new ChainRuleModel { TargetJobId = targetId, RunOnSuccess = true }],
+        };
+
+        sut.ExecuteChainedJobs(MakeExecution(ExecutionStatus.CompletedAsSuccess), job, 0, Path.GetTempFileName());
+
+        Assert.IsEmpty(sut.ExecuteJobCalls);
+    }
+
+    [TestMethod]
+    public void ExecuteChainedJobsShouldExecuteTargetJobWhenStatusMatchesAndJobEnabled()
+    {
+        var targetId = Guid.NewGuid();
+        var targetJob = new JobModel { Id = targetId, Name = "Target", Enabled = true };
+        var (sut, jobConfigService) = CreateSutForChainedJobs();
+        jobConfigService.GetJob(targetId).Returns(targetJob);
+        var job = new JobModel
+        {
+            Id = Guid.NewGuid(),
+            Name = "Test",
+            ChainRules = [new ChainRuleModel { TargetJobId = targetId, RunOnSuccess = true }],
+        };
+
+        sut.ExecuteChainedJobs(MakeExecution(ExecutionStatus.CompletedAsSuccess), job, 0, Path.GetTempFileName());
+
+        Assert.HasCount(1, sut.ExecuteJobCalls);
+        Assert.AreEqual(targetId, sut.ExecuteJobCalls[0].Job.Id);
+        Assert.AreEqual(ExecutionReason.Chained, sut.ExecuteJobCalls[0].Reason);
+        Assert.AreEqual(1, sut.ExecuteJobCalls[0].ChainDepth);
+    }
+
+    [TestMethod]
+    public void ExecuteChainedJobsShouldPassIncrementedDepthToExecuteJob()
+    {
+        var targetId = Guid.NewGuid();
+        var targetJob = new JobModel { Id = targetId, Name = "Target", Enabled = true };
+        var (sut, jobConfigService) = CreateSutForChainedJobs(maxChainDepth: 10);
+        jobConfigService.GetJob(targetId).Returns(targetJob);
+        var job = new JobModel
+        {
+            Id = Guid.NewGuid(),
+            Name = "Test",
+            ChainRules = [new ChainRuleModel { TargetJobId = targetId, RunOnError = true }],
+        };
+
+        sut.ExecuteChainedJobs(MakeExecution(ExecutionStatus.CompletedAsError), job, currentDepth: 4, Path.GetTempFileName());
+
+        Assert.HasCount(1, sut.ExecuteJobCalls);
+        Assert.AreEqual(5, sut.ExecuteJobCalls[0].ChainDepth);
+    }
+
     // --- Helpers ---
 
     private static (JobExecutionService sut, ExecutionEngine engine, ExecutionPersistenceService persistence) CreateSut()
@@ -410,6 +535,59 @@ public class JobExecutionServiceTests
         Parallelism = parallelism,
         MarkParallelSkipAs = skipProcessing,
     };
+
+    private static (TestJobExecutionService sut, JobConfigService jobConfigService) CreateSutForChainedJobs(int maxChainDepth = 10)
+    {
+        var mockJobConfig = Substitute.For<JobConfigService>(
+            Substitute.For<ConfigPersistenceService>(
+                Substitute.For<ILogger<ConfigPersistenceService>>(),
+                Substitute.For<IConfiguration>()),
+            Substitute.For<JobSchedulingService>(
+                Substitute.For<ILogger<JobSchedulingService>>(),
+                null!));
+
+        var scopeServiceProvider = Substitute.For<IServiceProvider>();
+        scopeServiceProvider.GetService(typeof(JobConfigService)).Returns(mockJobConfig);
+
+        var mockScope = Substitute.For<IServiceScope>();
+        mockScope.ServiceProvider.Returns(scopeServiceProvider);
+
+        var mockScopeFactory = Substitute.For<IServiceScopeFactory>();
+        mockScopeFactory.CreateScope().Returns(mockScope);
+
+        var mockServiceProvider = Substitute.For<IServiceProvider>();
+        mockServiceProvider.GetService(typeof(IServiceScopeFactory)).Returns(mockScopeFactory);
+
+        var mockSettingsService = Substitute.For<SettingsService>(
+            Substitute.For<ConfigPersistenceService>(
+                Substitute.For<ILogger<ConfigPersistenceService>>(),
+                Substitute.For<IConfiguration>()));
+        mockSettingsService.LoadSettings().Returns(new SettingsModel { MaxChainDepth = maxChainDepth });
+
+        var sut = new TestJobExecutionService(
+            Substitute.For<ILogger<JobExecutionService>>(),
+            mockSettingsService,
+            mockServiceProvider);
+
+        return (sut, mockJobConfig);
+    }
+
+    /// <summary>
+    /// Test double that overrides ExecuteJob to record calls without spawning threads,
+    /// allowing ExecuteChainedJobs to be tested in isolation.
+    /// </summary>
+    private class TestJobExecutionService(ILogger<JobExecutionService> logger, SettingsService settingsService, IServiceProvider serviceProvider)
+        : JobExecutionService(logger, settingsService, serviceProvider)
+    {
+        public record ExecuteJobCall(JobModel Job, ExecutionReason Reason, int ChainDepth);
+        public List<ExecuteJobCall> ExecuteJobCalls { get; } = [];
+
+        public override Guid ExecuteJob(JobModel jobModel, ExecutionReason reason, int chainDepth = 0)
+        {
+            ExecuteJobCalls.Add(new(jobModel, reason, chainDepth));
+            return Guid.NewGuid();
+        }
+    }
 
     /// <summary>
     /// Creates a SettingsModel with a completion script configured.

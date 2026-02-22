@@ -14,6 +14,7 @@ public class AddJobModel(JobConfigService _jobConfigService) : PageModel
 
     public IActionResult OnGet()
     {
+        ViewData["CurrentJobId"] = Guid.Empty;
         return Page();
     }
 
@@ -34,6 +35,7 @@ public class AddJobModel(JobConfigService _jobConfigService) : PageModel
 
     public IActionResult OnPost()
     {
+        ViewData["CurrentJobId"] = Guid.Empty;
         if (JobVM == null || !ModelState.IsValid)
         {
             return Page();

@@ -209,6 +209,14 @@ table tr.clickable-row:hover td:first-child::before {
   color: rgba(var(--bs-danger-rgb), 0.6);
 }
 
+.container.job-output code .chaininfo {
+  color: #67e8f9;
+}
+
+.container.job-output code .chaininfo .timestamp {
+  color: rgba(103, 232, 249, 0.5);
+}
+
 .dropdown-toggle.no-caret::after {
   display: none;
 }

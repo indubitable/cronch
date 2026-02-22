@@ -37,6 +37,8 @@ public class SettingsService(ConfigPersistenceService _configPersistenceService)
         if (settingsModel.RunCompletionScriptOnIndeterminate) persistenceModel.RunCompletionScriptOn.Add("Indeterminate");
         if (settingsModel.RunCompletionScriptOnWarning) persistenceModel.RunCompletionScriptOn.Add("Warning");
         if (settingsModel.RunCompletionScriptOnError) persistenceModel.RunCompletionScriptOn.Add("Error");
+
+        persistenceModel.MaxChainDepth = settingsModel.MaxChainDepth;
     }
 
     private static SettingsModel CreateSettingsModelFromPersistenceModel(ConfigPersistenceModel persistenceModel)
@@ -56,6 +58,7 @@ public class SettingsService(ConfigPersistenceService _configPersistenceService)
             RunCompletionScriptOnIndeterminate = persistenceModel.RunCompletionScriptOn.Contains("Indeterminate"),
             RunCompletionScriptOnWarning = persistenceModel.RunCompletionScriptOn.Contains("Warning"),
             RunCompletionScriptOnError = persistenceModel.RunCompletionScriptOn.Contains("Error"),
+            MaxChainDepth = persistenceModel.MaxChainDepth,
         };
     }
 }

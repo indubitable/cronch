@@ -43,4 +43,8 @@ public class SettingsViewModel
     [Required(AllowEmptyStrings = false)]
     [Display(Name = "Error", Description = "Run completion script on error")]
     public bool RunCompletionScriptOnError { get; set; }
+
+    [Display(Name = "Maximum chain depth")]
+    [Range(1, 100)]
+    public int? MaxChainDepth { get; set; }
 }

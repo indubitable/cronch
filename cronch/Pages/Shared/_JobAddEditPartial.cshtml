@@ -17,7 +17,7 @@
                 <input asp-for="Enabled" type="checkbox" class="form-check-input" autocomplete="off" />
                 <label asp-for="Enabled" class="form-check-label"></label>
             </div>
-            <div class="form-text">When disabled, the job will not run on its schedule.</div>
+            <div class="form-text">When disabled, the job will not run on its schedule or be triggered via chaining. Manual runs are always allowed regardless of this setting.</div>
         </div>
 
         <div class="row gx-5 mb-3">
@@ -27,6 +27,7 @@
                        hx-get="?handler=CronPreview" hx-trigger="input changed delay:400ms"
                        hx-target="#cron-preview" hx-swap="innerHTML" />
                 <div id="cron-preview" class="form-text">@(Model?.GetValidatedCronDescription())</div>
+                <div class="form-text">Leave empty to allow triggering only via manual runs or chain rules.</div>
                 <span asp-validation-for="CronSchedule" class="text-danger"></span>
             </div>
             <div class="col">
@@ -166,6 +167,15 @@
                     </ul>
                 </div>
             </div>
+        </div>
+
+        <hr class="my-4" />
+
+        <h5 class="border-bottom pb-2 mb-3">Chaining</h5>
+
+        <div class="mb-3">
+            <div class="form-text mb-2">Automatically trigger other jobs when this job completes. Chained jobs respect the chain depth limit configured in Settings.</div>
+            <partial name="_ChainRulesSectionPartial" model="Model?.ChainRules ?? new()" />
         </div>
 
         <button type="submit" class="btn btn-primary mb-4" data-loading-disable>

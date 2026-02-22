@@ -31,4 +31,7 @@ public class ConfigPersistenceModel
 
     [XmlArray(Order = 8), XmlArrayItem("Status")]
     public List<string> RunCompletionScriptOn { get; set; } = [];
+
+    [XmlElement(Order = 9, IsNullable = true)]
+    public int? MaxChainDepth { get; set; }
 }

@@ -14,7 +14,7 @@ public class JobPersistenceModel
     public bool Enabled { get; set; }
 
     [XmlElement(Order = 3)]
-    public string CronSchedule { get; set; } = string.Empty;
+    public string? CronSchedule { get; set; }
 
     [XmlElement(Order = 4)]
     public string Executor { get; set; } = string.Empty;
@@ -46,4 +46,7 @@ public class JobPersistenceModel
 
     [XmlElement(Order = 13)]
     public string StdErrProcessing { get; set; } = string.Empty;
+
+    [XmlArray(Order = 14), XmlArrayItem("ChainRule")]
+    public List<ChainRulePersistenceModel> ChainRules { get; set; } = [];
 }

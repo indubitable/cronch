@@ -58,7 +58,7 @@ public class ExecutionDetailsModel(JobExecutionService _jobExecutionService, Job
             if (l.Length >= 18 && l[1] == ' ' && l[10] == ' ' && l[17] == ' ')
             {
                 // Process this line
-                var spanClass = (l[0] == 'E' ? "stderr" : "stdout");
+                var spanClass = l[0] == 'E' ? "stderr" : l[0] == 'C' ? "chaininfo" : "stdout";
                 if (DateTimeOffset.TryParseExact(l.AsSpan(2, 15), "yyyyMMdd HHmmss", null, System.Globalization.DateTimeStyles.AssumeUniversal, out var timestamp))
                 {
                     stb.Append($"<span class=\"{spanClass}\"><span class=\"unselectable timestamp me-2\">{timestamp.ToLocalTime():yyyy-MM-dd HH:mm:ss}</span>{_htmlEncoder.Encode(l[18..])}\n</span>");

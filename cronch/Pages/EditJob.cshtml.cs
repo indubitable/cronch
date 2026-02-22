@@ -32,6 +32,7 @@ public class EditJobModel(JobConfigService _jobConfigService) : PageModel
         var job = _jobConfigService.GetJob(id);
         if (job != null)
         {
+            ViewData["CurrentJobId"] = id;
             JobVM = job.ToViewModel();
             return Page();
         }
@@ -43,6 +44,7 @@ public class EditJobModel(JobConfigService _jobConfigService) : PageModel
 
     public IActionResult OnPost(Guid id)
     {
+        ViewData["CurrentJobId"] = id;
         if (JobVM == null || !ModelState.IsValid)
         {
             return Page();
@@ -60,4 +62,5 @@ public class EditJobModel(JobConfigService _jobConfigService) : PageModel
 
         return RedirectToPage("/Manage");
     }
+
 }

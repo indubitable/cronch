@@ -24,6 +24,14 @@ public static class ConversionUtility
             Keywords = new List<string>(jobPersistenceModel.Keywords),
             StdOutProcessing = jobPersistenceModel.StdOutProcessing.ToEnumWithFallback(JobModel.OutputProcessing.None),
             StdErrProcessing = jobPersistenceModel.StdErrProcessing.ToEnumWithFallback(JobModel.OutputProcessing.None),
+            ChainRules = jobPersistenceModel.ChainRules.Select(r => new ChainRuleModel
+            {
+                TargetJobId = r.TargetJobId,
+                RunOnSuccess = r.RunOnSuccess,
+                RunOnIndeterminate = r.RunOnIndeterminate,
+                RunOnWarning = r.RunOnWarning,
+                RunOnError = r.RunOnError,
+            }).ToList(),
         };
     }
 
@@ -45,6 +53,14 @@ public static class ConversionUtility
             Keywords = (jobViewModel.Keywords ?? "").Split(',').Select(s => s.Trim()).ToList(),
             StdOutProcessing = jobViewModel.StdOutProcessing.ToEnumWithFallback(JobModel.OutputProcessing.None),
             StdErrProcessing = jobViewModel.StdErrProcessing.ToEnumWithFallback(JobModel.OutputProcessing.None),
+            ChainRules = jobViewModel.ChainRules.Select(r => new ChainRuleModel
+            {
+                TargetJobId = r.TargetJobId,
+                RunOnSuccess = r.RunOnSuccess,
+                RunOnIndeterminate = r.RunOnIndeterminate,
+                RunOnWarning = r.RunOnWarning,
+                RunOnError = r.RunOnError,
+            }).ToList(),
         };
     }
 
@@ -63,6 +79,7 @@ public static class ConversionUtility
             RunCompletionScriptOnIndeterminate = settingsViewModel.RunCompletionScriptOnIndeterminate,
             RunCompletionScriptOnWarning = settingsViewModel.RunCompletionScriptOnWarning,
             RunCompletionScriptOnError = settingsViewModel.RunCompletionScriptOnError,
+            MaxChainDepth = settingsViewModel.MaxChainDepth,
         };
     }
 
@@ -84,6 +101,14 @@ public static class ConversionUtility
             Keywords = new List<string>(jobModel.Keywords),
             StdOutProcessing = jobModel.StdOutProcessing.ToString(),
             StdErrProcessing = jobModel.StdErrProcessing.ToString(),
+            ChainRules = jobModel.ChainRules.Select(r => new ChainRulePersistenceModel
+            {
+                TargetJobId = r.TargetJobId,
+                RunOnSuccess = r.RunOnSuccess,
+                RunOnIndeterminate = r.RunOnIndeterminate,
+                RunOnWarning = r.RunOnWarning,
+                RunOnError = r.RunOnError,
+            }).ToList(),
         };
     }
 
@@ -105,6 +130,14 @@ public static class ConversionUtility
             Keywords = string.Join(',', jobModel.Keywords),
             StdOutProcessing = jobModel.StdOutProcessing.ToString(),
             StdErrProcessing = jobModel.StdErrProcessing.ToString(),
+            ChainRules = jobModel.ChainRules.Select(r => new ChainRuleViewModel
+            {
+                TargetJobId = r.TargetJobId,
+                RunOnSuccess = r.RunOnSuccess,
+                RunOnIndeterminate = r.RunOnIndeterminate,
+                RunOnWarning = r.RunOnWarning,
+                RunOnError = r.RunOnError,
+            }).ToList(),
         };
     }
 
@@ -123,6 +156,7 @@ public static class ConversionUtility
             RunCompletionScriptOnIndeterminate = settingsModel.RunCompletionScriptOnIndeterminate,
             RunCompletionScriptOnWarning = settingsModel.RunCompletionScriptOnWarning,
             RunCompletionScriptOnError = settingsModel.RunCompletionScriptOnError,
+            MaxChainDepth = settingsModel.MaxChainDepth,
         };
     }
 

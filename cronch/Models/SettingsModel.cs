@@ -13,4 +13,5 @@ public class SettingsModel
     public bool RunCompletionScriptOnIndeterminate { get; set; }
     public bool RunCompletionScriptOnWarning { get; set; }
     public bool RunCompletionScriptOnError { get; set; }
+    public int? MaxChainDepth { get; set; }
 }

@@ -47,6 +47,17 @@
 
             <hr class="my-4" />
 
+            <h5 class="border-bottom pb-2 mb-3">Chaining</h5>
+
+            <div class="mb-3">
+                <label asp-for="SettingsVM.MaxChainDepth" class="form-label"></label>
+                <input asp-for="SettingsVM.MaxChainDepth" class="form-control" style="max-width: 10rem;" />
+                <div class="form-text">Maximum number of chained jobs that can trigger in sequence. Leave empty to use the default (10). Valid range: 1–100.</div>
+                <span asp-validation-for="SettingsVM.MaxChainDepth" class="text-danger"></span>
+            </div>
+
+            <hr class="my-4" />
+
             <h5 class="border-bottom pb-2 mb-3">Completion Script</h5>
             <p class="text-muted">An optional script that runs automatically after job executions complete. Requires an executor and at least one trigger status to be configured.</p>
 

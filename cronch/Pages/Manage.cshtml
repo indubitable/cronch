@@ -43,9 +43,16 @@
                     <td>@job.Name</td>
                     <td><div class="form-check form-switch"><input class="form-check-input" type="checkbox" disabled="disabled" @(job.Enabled ? "checked=\"checked\"" : "")></div></td>
                     <td>
-                        <code>@job.CronSchedule</code>
-                        <br />
-                        <small><i>@job.GetValidatedCronDescription()</i></small>
+                        @if (!string.IsNullOrWhiteSpace(job.CronSchedule))
+                        {
+                            <code>@job.CronSchedule</code>
+                            <br />
+                            <small><i>@job.GetValidatedCronDescription()</i></small>
+                        }
+                        else
+                        {
+                            <small class="text-muted"><i>Manual / Chained only</i></small>
+                        }
                     </td>
                     <td id="latest-next-td-for-job-@job.Id" hx-get="@(HttpContext.Request.Path + HttpContext.Request.QueryString)" hx-trigger="every 30s" hx-select="#latest-next-td-for-job-@job.Id" hx-swap="outerHTML">
                         Latest: @(job.LatestExecution?.ToLocalTime().ToString("G") ?? "N/A")

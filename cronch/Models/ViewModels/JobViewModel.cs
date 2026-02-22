@@ -19,9 +19,8 @@ public class JobViewModel : IValidatableObject
     [Display(Name = "Enabled")]
     public bool Enabled { get; set; }
 
-    [Required(AllowEmptyStrings = false)]
     [Display(Name = "Cron schedule")]
-    public string CronSchedule { get; set; } = string.Empty;
+    public string? CronSchedule { get; set; }
 
     [Required(AllowEmptyStrings = false)]
     [Display(Name = "Executor")]
@@ -58,6 +57,8 @@ public class JobViewModel : IValidatableObject
     [Required(AllowEmptyStrings = false)]
     [Display(Name = "Standard Error processing")]
     public string StdErrProcessing { get; set; } = string.Empty;
+
+    public List<ChainRuleViewModel> ChainRules { get; set; } = [];
 
     // Reporting-only fields:
 

@@ -88,7 +88,7 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
 		}
 	}
 
-	public virtual Guid ExecuteJob(JobModel jobModel, ExecutionReason reason)
+	public virtual Guid ExecuteJob(JobModel jobModel, ExecutionReason reason, int chainDepth = 0)
 	{
 		var execution = ExecutionModel.CreateNew(jobModel.Id, jobModel.Name, reason, ExecutionStatus.Unknown);
 
@@ -148,7 +148,7 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
 			throw new InvalidOperationException("Unable to execute job: could not register execution token");
 		}
 
-		var thread = new Thread(() => PerformExecution(execution, jobModel, cancelSource.Token))
+		var thread = new Thread(() => PerformExecution(execution, jobModel, cancelSource.Token, chainDepth))
 		{
 			IsBackground = true
 		};
@@ -186,12 +186,13 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
 		};
 	}
 
-	private void PerformExecution(ExecutionModel execution, JobModel jobModel, CancellationToken cancelToken)
+	private void PerformExecution(ExecutionModel execution, JobModel jobModel, CancellationToken cancelToken, int chainDepth)
 	{
 		using var scope = _serviceProvider.CreateScope();
 		var persistence = scope.ServiceProvider.GetRequiredService<ExecutionPersistenceService>();
 		var engine = scope.ServiceProvider.GetRequiredService<ExecutionEngine>();
 		var settings = _settingsService.LoadSettings();
+		var outputPathName = persistence.GetOutputPathName(execution, true);
 
 		try
 		{
@@ -209,7 +210,7 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
 				}
 			}
 
-			using var outputStream = File.Open(persistence.GetOutputPathName(execution, true), FileMode.Create, FileAccess.Write, FileShare.Read);
+			using var outputStream = File.Open(outputPathName, FileMode.Create, FileAccess.Write, FileShare.Read);
 			execution.Status = ExecutionStatus.Running;
 			persistence.AddExecution(execution);
 			engine.PerformExecution(execution, jobModel, scriptFilePathname, outputStream, true, GetRunEnvVars(execution, jobModel), cancelToken);
@@ -229,6 +230,7 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
 		}
 
 		ExecuteRunCompletionScript(execution, jobModel, settings, engine, persistence);
+		ExecuteChainedJobs(execution, jobModel, chainDepth, outputPathName);
 	}
 
 	internal void ExecuteRunCompletionScript(ExecutionModel execution, JobModel jobModel, SettingsModel settings, ExecutionEngine executionEngine, ExecutionPersistenceService executionPersistenceService)
@@ -272,6 +274,57 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
 		catch (Exception ex)
 		{
 			_logger.LogError(ex, "Error occurred while executing run completion script for job '{Name}' ({Id}), execution {ExecName}", jobModel.Name, jobModel.Id, execution.GetExecutionName());
+		}
+	}
+
+	internal void ExecuteChainedJobs(ExecutionModel execution, JobModel jobModel, int currentDepth, string outputPathName)
+	{
+		if (jobModel.ChainRules.Count == 0) return;
+
+		var maxDepth = _settingsService.LoadSettings().MaxChainDepth ?? 10;
+		if (currentDepth >= maxDepth)
+		{
+			_logger.LogWarning("Chain depth limit ({MaxDepth}) reached for job '{Name}' ({Id}); stopping further chaining.", maxDepth, jobModel.Name, jobModel.Id);
+			AppendChainInfoToOutput(outputPathName, $"Chain depth limit ({maxDepth}) reached; no further chaining.");
+			return;
+		}
+
+		using var scope = _serviceProvider.CreateScope();
+		var jobConfigService = scope.ServiceProvider.GetRequiredService<JobConfigService>();
+
+		foreach (var rule in jobModel.ChainRules)
+		{
+			var shouldRun =
+				(rule.RunOnSuccess && execution.Status == ExecutionStatus.CompletedAsSuccess) ||
+				(rule.RunOnIndeterminate && execution.Status == ExecutionStatus.CompletedAsIndeterminate) ||
+				(rule.RunOnWarning && execution.Status == ExecutionStatus.CompletedAsWarning) ||
+				(rule.RunOnError && execution.Status == ExecutionStatus.CompletedAsError);
+
+			if (!shouldRun) continue;
+
+			var targetJob = jobConfigService.GetJob(rule.TargetJobId);
+			if (targetJob == null || !targetJob.Enabled)
+			{
+				_logger.LogWarning("Chained job {TargetId} not found or is disabled; skipping.", rule.TargetJobId);
+				continue;
+			}
+
+			var newExecutionId = ExecuteJob(targetJob, ExecutionReason.Chained, currentDepth + 1);
+			AppendChainInfoToOutput(outputPathName, $"Triggered chained job \"{targetJob.Name}\" (execution {newExecutionId:D})");
+		}
+	}
+
+	private void AppendChainInfoToOutput(string outputPathName, string message)
+	{
+		try
+		{
+			using var stream = File.Open(outputPathName, FileMode.Append, FileAccess.Write, FileShare.Read);
+			using var writer = new StreamWriter(stream, System.Text.Encoding.UTF8);
+			writer.WriteLine($"C {DateTimeOffset.UtcNow:yyyyMMdd HHmmss} {message}");
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, "Error appending chain info to output file '{Path}'", outputPathName);
 		}
 	}
 

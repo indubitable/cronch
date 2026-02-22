@@ -25,7 +25,7 @@ public class JobModel
 
     public bool Enabled { get; set; }
 
-    public string CronSchedule { get; set; } = string.Empty;
+    public string? CronSchedule { get; set; }
 
     public string Executor { get; set; } = string.Empty;
 
@@ -46,4 +46,6 @@ public class JobModel
     public OutputProcessing StdOutProcessing { get; set; } = OutputProcessing.None;
 
     public OutputProcessing StdErrProcessing { get; set; } = OutputProcessing.None;
+
+    public List<ChainRuleModel> ChainRules { get; set; } = [];
 }

@@ -8,14 +8,27 @@ namespace cronch.UnitTests.Services;
 [TestClass]
 public class JobSchedulingServiceTests
 {
+    public TestContext TestContext { get; set; } = null!;
+
     private JobSchedulingService _jobSchedulingService = null!;
+    private JobExecutionService _jobExecutionService = null!;
 
     [TestInitialize]
     public void Setup()
     {
+        _jobExecutionService = Substitute.For<JobExecutionService>(
+            Substitute.For<ILogger<JobExecutionService>>(),
+            null!,
+            null!);
         _jobSchedulingService = new JobSchedulingService(
             Substitute.For<ILogger<JobSchedulingService>>(),
-            null!);
+            _jobExecutionService);
+    }
+
+    [TestCleanup]
+    public void Cleanup()
+    {
+        _jobSchedulingService.StopSchedulingRuns(waitForStop: true);
     }
 
     // --- GetNextExecution ---
@@ -113,5 +126,81 @@ public class JobSchedulingServiceTests
         var result = _jobSchedulingService.GetNextExecution(jobId);
 
         Assert.IsNull(result);
+    }
+
+    // --- RunScheduling ---
+
+    [TestMethod]
+    [Timeout(10000, CooperativeCancellation = true)]
+    public async Task RunSchedulingShouldExecuteScheduledJob()
+    {
+        var ct = TestContext.CancellationTokenSource.Token;
+        var executed = new ManualResetEventSlim(false);
+        _jobExecutionService
+            .When(s => s.ExecuteJob(Arg.Any<JobModel>(), Arg.Any<ExecutionReason>(), Arg.Any<int>()))
+            .Do(_ => executed.Set());
+
+        var job = new JobModel { Id = Guid.NewGuid(), Enabled = true, Name = "Test", CronSchedule = "* * * * * *" };
+        _jobSchedulingService.RefreshSchedules([job]);
+        _jobSchedulingService.StartSchedulingRuns();
+
+        Assert.IsTrue(executed.Wait(8000, ct), "Job should have been executed within the timeout");
+    }
+
+    [TestMethod]
+    [Timeout(10000, CooperativeCancellation = true)]
+    public async Task RunSchedulingShouldNotExecuteJobAfterDisabledViaRefreshSchedules()
+    {
+        var ct = TestContext.CancellationTokenSource.Token;
+        var firstExecution = new ManualResetEventSlim(false);
+        _jobExecutionService
+            .When(s => s.ExecuteJob(Arg.Any<JobModel>(), Arg.Any<ExecutionReason>(), Arg.Any<int>()))
+            .Do(_ => firstExecution.Set());
+
+        var job = new JobModel { Id = Guid.NewGuid(), Enabled = true, Name = "Test", CronSchedule = "* * * * * *" };
+        _jobSchedulingService.RefreshSchedules([job]);
+        _jobSchedulingService.StartSchedulingRuns();
+
+        Assert.IsTrue(firstExecution.Wait(8000, ct), "Precondition: job should have executed at least once");
+
+        _jobSchedulingService.RefreshSchedules([]);
+
+        // Wait for the scheduler to process the refresh (multiple cycles at 300ms each)
+        await Task.Delay(1000, ct);
+        _jobExecutionService.ClearReceivedCalls();
+
+        await Task.Delay(2000, ct);
+
+        _jobExecutionService.DidNotReceive().ExecuteJob(Arg.Any<JobModel>(), Arg.Any<ExecutionReason>(), Arg.Any<int>());
+    }
+
+    [TestMethod]
+    [Timeout(10000, CooperativeCancellation = true)]
+    public async Task RunSchedulingShouldNotExecuteJobOnOldScheduleAfterCronChangedViaRefreshSchedules()
+    {
+        var ct = TestContext.CancellationTokenSource.Token;
+        var firstExecution = new ManualResetEventSlim(false);
+        _jobExecutionService
+            .When(s => s.ExecuteJob(Arg.Any<JobModel>(), Arg.Any<ExecutionReason>(), Arg.Any<int>()))
+            .Do(_ => firstExecution.Set());
+
+        var jobId = Guid.NewGuid();
+        var job = new JobModel { Id = jobId, Enabled = true, Name = "Test", CronSchedule = "* * * * * *" };
+        _jobSchedulingService.RefreshSchedules([job]);
+        _jobSchedulingService.StartSchedulingRuns();
+
+        Assert.IsTrue(firstExecution.Wait(8000, ct), "Precondition: job should have executed at least once");
+
+        // Change cron to one that won't fire during this test (midnight on January 1st)
+        var rescheduledJob = new JobModel { Id = jobId, Enabled = true, Name = "Test", CronSchedule = "0 0 0 1 1 *" };
+        _jobSchedulingService.RefreshSchedules([rescheduledJob]);
+
+        // Wait for the scheduler to process the refresh (multiple cycles at 300ms each)
+        await Task.Delay(1000, ct);
+        _jobExecutionService.ClearReceivedCalls();
+
+        await Task.Delay(2000, ct);
+
+        _jobExecutionService.DidNotReceive().ExecuteJob(Arg.Any<JobModel>(), Arg.Any<ExecutionReason>(), Arg.Any<int>());
     }
 }

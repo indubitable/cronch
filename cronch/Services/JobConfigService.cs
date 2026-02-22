@@ -52,7 +52,7 @@ public class JobConfigService(ConfigPersistenceService _configPersistenceService
         _jobSchedulingService.RefreshSchedules(GetAllJobs());
     }
 
-    public List<JobModel> GetAllJobs()
+    public virtual List<JobModel> GetAllJobs()
     {
         var config = _configPersistenceService.Load();
         if (config == null)
@@ -62,7 +62,7 @@ public class JobConfigService(ConfigPersistenceService _configPersistenceService
         return config.Jobs.Select(ConversionUtility.ToModel).ToList();
     }
 
-	public JobModel? GetJob(Guid id)
+	public virtual JobModel? GetJob(Guid id)
 	{
 		return GetAllJobs().SingleOrDefault(j => j.Id == id);
 	}

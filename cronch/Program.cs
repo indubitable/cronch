@@ -51,8 +51,8 @@ builder.Services.AddSingleton<SettingsService>();
 builder.Services.AddSingleton<CleanupService>();
 builder.Services.AddSingleton<FileAccessWrapper>();
 builder.Services.AddSingleton<ProcessFactory>();
+builder.Services.AddSingleton<ExecutionPersistenceService>();
 
-builder.Services.AddTransient<ExecutionPersistenceService>();
 builder.Services.AddTransient<ExecutionEngine>();
 
 builder.Services.AddHealthChecks()

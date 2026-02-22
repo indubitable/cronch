@@ -106,7 +106,7 @@ public class JobSchedulingService(ILogger<JobSchedulingService> _logger, JobExec
                     newlyDisabledJobs.ToList().ForEach(disabledJob => scheduleQueue.RemoveWhere(q => q.JobId == disabledJob.Id));
 
                     // Delete any scheduled runs for jobs that have new schedules
-                    var rescheduledJobs = _cachedEnabledJobs.Where(oldJob => !_rawEnabledJobs.FirstOrDefault(newJob => newJob.Id == oldJob.Id)?.CronSchedule.Equals(oldJob.CronSchedule, StringComparison.InvariantCulture) ?? false);
+                    var rescheduledJobs = _cachedEnabledJobs.Where(oldJob => !string.Equals(_rawEnabledJobs.FirstOrDefault(newJob => newJob.Id == oldJob.Id)?.CronSchedule, oldJob.CronSchedule, StringComparison.InvariantCulture));
                     rescheduledJobs.ToList().ForEach(rescheduledJob => scheduleQueue.RemoveWhere(q => q.JobId == rescheduledJob.Id));
 
                     // Update the cache
@@ -119,6 +119,7 @@ public class JobSchedulingService(ILogger<JobSchedulingService> _logger, JobExec
                 // Add schedules for all enabled jobs... duplicates are ignored by the SortedSet<T>
                 foreach (var job in _cachedEnabledJobs)
                 {
+                    if (string.IsNullOrWhiteSpace(job.CronSchedule)) continue;
                     try
                     {
                         var cron = CronExpression.Parse(job.CronSchedule, CronFormat.IncludeSeconds);
