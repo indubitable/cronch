@@ -6,17 +6,17 @@
 }
 
 <div id="content-root" hx-get="@(HttpContext.Request.Path + HttpContext.Request.QueryString)" hx-trigger="every 3s" hx-select="#content-root" hx-swap="outerHTML">
-    <div class="text-center bg-light rounded-3 py-4 mb-4">
+    <div class="text-center bg-body-secondary rounded-3 py-4 mb-4">
         <div class="d-flex gap-5 justify-content-center align-items-end mb-1">
-            <a asp-page="History" asp-route-status="CompletedAsError" class="text-decoration-none text-center">
+            <a asp-page="History" asp-route-status="CompletedAsError" class="text-decoration-none text-center overview-stat-link">
                 <div class="fs-1 fw-bold text-danger lh-1">@Model.WeekStats.Errors</div>
                 <div class="text-muted small">errors</div>
             </a>
-            <a asp-page="History" asp-route-status="CompletedAsWarning" class="text-decoration-none text-center">
+            <a asp-page="History" asp-route-status="CompletedAsWarning" class="text-decoration-none text-center overview-stat-link">
                 <div class="fs-1 fw-bold lh-1" style="color: #fd7e14;">@Model.WeekStats.Warnings</div>
                 <div class="text-muted small">warnings</div>
             </a>
-            <a asp-page="History" asp-route-status="CompletedAsSuccess" class="text-decoration-none text-center">
+            <a asp-page="History" asp-route-status="CompletedAsSuccess" class="text-decoration-none text-center overview-stat-link">
                 <div class="fs-1 fw-bold text-success lh-1">@Model.WeekStats.Successes</div>
                 <div class="text-muted small">successes</div>
             </a>
@@ -24,11 +24,11 @@
         <div class="text-muted small mb-3">last 7 days</div>
         <hr class="mx-auto w-25 opacity-25">
         <div class="d-flex gap-4 justify-content-center align-items-center mt-3">
-            <a asp-page="Manage" class="text-decoration-none text-muted">
+            <a asp-page="Manage" class="text-decoration-none text-muted overview-info-link">
                 <strong class="text-body">@Model.EnabledJobCount of @Model.TotalJobCount</strong> jobs enabled
             </a>
             <span class="text-muted">·</span>
-            <a asp-page="History" asp-route-status="Running" class="text-decoration-none text-muted">
+            <a asp-page="History" asp-route-status="Running" class="text-decoration-none text-muted overview-info-link">
                 <strong class="text-body">@Model.RunningJobCount</strong> currently running
             </a>
         </div>

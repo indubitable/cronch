@@ -44,7 +44,7 @@
     }
     else
     {
-        <div class="container" id="job-metadata" hx-get="@(HttpContext.Request.Path)?lastLineCount=@Model.JobOutputProcessedLines" hx-trigger="@(Model.Execution.Status == Models.ExecutionStatus.Running ? "every 3s" : "never")" hx-swap="outerHTML" hx-select="#job-metadata">
+        <div id="job-metadata" hx-get="@(HttpContext.Request.Path)?lastLineCount=@Model.JobOutputProcessedLines" hx-trigger="@(Model.Execution.Status == Models.ExecutionStatus.Running ? "every 3s" : "never")" hx-swap="outerHTML" hx-select="#job-metadata">
             <table class="table table-striped text-start">
                 <tbody>
                     <tr>
@@ -96,7 +96,7 @@
                 <label for="auto-scroll" class="form-check-label" id="auto-scroll-label">Automatically scroll to new output</label>
             }
         </div>
-        <div class="container p-2 w-100 vh-50 text-bg-dark text-start overflow-hidden job-output">
+        <div class="container p-2 w-100 vh-50 bg-black text-white text-start overflow-hidden job-output">
             <div class="h-100 overflow-auto">
                 <pre class="overflow-visible"><code>@Html.Raw(Model.JobOutputProcessed)</code></pre>
             </div>

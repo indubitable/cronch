@@ -1,4 +1,26 @@
-﻿// Find and show any toasts
+function cronchApplyAceTheme(theme) {
+    var aceTheme = theme === 'dark' ? 'ace/theme/tomorrow_night' : 'ace/theme/tomorrow';
+    document.querySelectorAll('.ace_editor').forEach(function (el) {
+        try { ace.edit(el).setTheme(aceTheme); } catch (e) { /* editor not ready */ }
+    });
+}
+
+function cronchToggleTheme() {
+    var next = document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('cronch-theme', next);
+    document.documentElement.setAttribute('data-bs-theme', next);
+    cronchApplyAceTheme(next);
+}
+
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) {
+    if (!localStorage.getItem('cronch-theme')) {
+        var theme = e.matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-bs-theme', theme);
+        cronchApplyAceTheme(theme);
+    }
+});
+
+// Find and show any toasts
 document.querySelectorAll('.toast').forEach(toastEl => new bootstrap.Toast(toastEl).show());
 
 function initializeScriptEditors(rootEl) {
@@ -95,7 +117,8 @@ function configureCronchScriptEditor(editorElement, hiddenValueElement) {
         tabSize: 2,
         navigateWithinSoftTabs: true,
     });
-    editor.setTheme('ace/theme/tomorrow');
+    editor.setTheme(document.documentElement.getAttribute('data-bs-theme') === 'dark'
+        ? 'ace/theme/tomorrow_night' : 'ace/theme/tomorrow');
     try {
         editor.session.setMode(`ace/mode/${selectedAceLanguage}`);
     } catch (e) {

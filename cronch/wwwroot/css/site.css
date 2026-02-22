@@ -8,13 +8,52 @@ html {
   }
 }
 
+:root, [data-bs-theme="light"] {
+  --cronch-accent: #4e7a9e;
+  --cronch-accent-rgb: 78, 122, 158;
+  --bs-primary: #4e7a9e;
+  --bs-primary-rgb: 78, 122, 158;
+  --bs-link-color: #4e7a9e;
+  --bs-link-color-rgb: 78, 122, 158;
+  --bs-link-hover-color: #3a5f7a;
+  --bs-code-color: #0e7490;
+}
+
+[data-bs-theme="dark"] {
+  --cronch-accent: #7baac8;
+  --cronch-accent-rgb: 123, 170, 200;
+  --bs-primary: #7baac8;
+  --bs-primary-rgb: 123, 170, 200;
+  --bs-link-color: #7baac8;
+  --bs-link-color-rgb: 123, 170, 200;
+  --bs-link-hover-color: #9fc2db;
+  --bs-code-color: #5eead4;
+}
+
 @font-face {
   font-family: 'brokenglass';
   src: url(/fonts/brokenglass.woff2) format('woff2');
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem var(--cronch-accent);
+}
+
+.navbar a.badge {
+  transition: filter 0.15s ease;
+}
+
+.navbar a.badge:hover {
+  filter: brightness(0.88);
+}
+
+.navbar a.badge:active {
+  filter: brightness(0.78);
+}
+
+.navbar a.badge:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem var(--cronch-accent);
 }
 
 html {
@@ -28,6 +67,12 @@ body {
 
 .navbar-brand, .styled-logo-text {
   font-family: brokenglass;
+  color: var(--cronch-accent) !important;
+}
+
+[data-bs-theme="light"] .navbar-brand,
+[data-bs-theme="light"] .styled-logo-text {
+  color: #2d5f85 !important;
 }
 
 .styled-logo-text {
@@ -35,8 +80,12 @@ body {
 }
 
 .navbar-nav .nav-item.active {
-  background-color: #ddd;
+  background-color: rgba(var(--bs-emphasis-color-rgb), 0.1);
   border-radius: var(--bs-border-radius);
+}
+
+.navbar-nav .nav-item.active .nav-link {
+  color: var(--cronch-accent);
 }
 
 .validation-summary-errors {
@@ -65,6 +114,75 @@ body {
 
 table tr.clickable-row {
   cursor: pointer;
+}
+
+/* Smooth hover transition */
+table tbody td,
+table tbody th {
+  position: relative;
+  transition: box-shadow 0.15s ease-out, background-color 0.15s ease-out;
+}
+
+/* Accent-tinted hover base for table-hover tables */
+.table-hover > tbody > tr:hover > * {
+  --bs-table-hover-bg: rgba(var(--cronch-accent-rgb), 0.09);
+}
+
+/* Accent-tinted hover for non-table-hover tables */
+table:not(.table-hover) tbody tr:hover td,
+table:not(.table-hover) tbody tr:hover th {
+  background-color: rgba(var(--cronch-accent-rgb), 0.07);
+}
+
+/* Glass panel effect over the whole table */
+.table {
+  position: relative;
+  border-radius: var(--bs-border-radius-lg);
+  overflow: hidden;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+[data-bs-theme="light"] .table {
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.table thead {
+  position: relative;
+}
+
+.table thead::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.1) 0%,
+    transparent 100%
+  );
+}
+
+[data-bs-theme="light"] .table thead::after {
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.5) 0%,
+    transparent 100%
+  );
+}
+
+/* Left accent bar for clickable rows */
+table tr.clickable-row:hover td:first-child::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: var(--cronch-accent);
 }
 
 .vh-50 {
@@ -119,6 +237,30 @@ input[type=number] {
   max-height: 20rem;
 }
 
+.overview-stat-link {
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--bs-border-radius-lg);
+  border: 1px solid rgba(var(--bs-emphasis-color-rgb), 0.12);
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.overview-stat-link:hover {
+  background-color: rgba(var(--bs-emphasis-color-rgb), 0.08);
+  border-color: rgba(var(--bs-emphasis-color-rgb), 0.25);
+}
+
+.overview-info-link {
+  text-decoration: underline !important;
+  text-decoration-style: dotted !important;
+  text-decoration-color: rgba(var(--bs-emphasis-color-rgb), 0.3) !important;
+  text-underline-offset: 3px;
+}
+
+.overview-info-link:hover {
+  text-decoration-style: solid !important;
+  text-decoration-color: rgba(var(--bs-emphasis-color-rgb), 0.6) !important;
+}
+
 .live-dot {
   display: inline-block;
   width: 0.5rem;
@@ -135,3 +277,11 @@ input[type=number] {
   from { opacity: 0; transform: scale(1.8); }
   to   { opacity: 1; transform: scale(1); }
 }
+
+.badge-cronch-warning {
+  background-color: #fd7e14;
+  color: #fff;
+}
+
+[data-bs-theme="light"] .theme-icon-dark  { display: none; }
+[data-bs-theme="dark"]  .theme-icon-light { display: none; }
