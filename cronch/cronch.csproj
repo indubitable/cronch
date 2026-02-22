@@ -22,6 +22,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<InternalsVisibleTo Include="cronch.UnitTests" />
+		<InternalsVisibleTo Include="cronch.IntegrationTests" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="CronExpressionDescriptor" Version="2.38.0" />
 		<PackageReference Include="Cronos" Version="0.9.0" />
 		<PackageReference Include="Dapper" Version="2.1.66" />

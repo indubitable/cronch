@@ -153,7 +153,7 @@ public class ExecutionEngine(ILogger<ExecutionEngine> _logger)
         }
     }
 
-    private static void ProcessLineForStatusUpdate(string line, List<string> keywords, JobModel.OutputProcessing processingDirective, ref ExecutionStatus intermediateExecutionStatus)
+    internal static void ProcessLineForStatusUpdate(string line, List<string> keywords, JobModel.OutputProcessing processingDirective, ref ExecutionStatus intermediateExecutionStatus)
     {
         var keywordMatchExists = false;
         if (processingDirective == JobModel.OutputProcessing.WarningOnMatchingKeywords || processingDirective == JobModel.OutputProcessing.ErrorOnMatchingKeywords)

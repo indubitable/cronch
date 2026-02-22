@@ -52,7 +52,7 @@ public class CleanupService(ILogger<CleanupService> _logger, JobConfigService _j
         }
     }
 
-    private void CleanUpExecutionsByAge(ExecutionPersistenceService executionPersistenceService)
+    internal void CleanUpExecutionsByAge(ExecutionPersistenceService executionPersistenceService)
     {
         var maxAgeDays = _settingsService.LoadSettings().DeleteHistoricalRunsAfterDays;
         if (!maxAgeDays.HasValue) return;
@@ -61,7 +61,7 @@ public class CleanupService(ILogger<CleanupService> _logger, JobConfigService _j
         DeleteExecutions(executionPersistenceService, oldExecutions);
     }
 
-    private void CleanUpExecutionsByCount(ExecutionPersistenceService executionPersistenceService)
+    internal void CleanUpExecutionsByCount(ExecutionPersistenceService executionPersistenceService)
     {
         var maxCount = _settingsService.LoadSettings().DeleteHistoricalRunsAfterCount;
         if (!maxCount.HasValue) return;

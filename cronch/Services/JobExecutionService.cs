@@ -231,7 +231,7 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
 		ExecuteRunCompletionScript(execution, jobModel, settings, engine, persistence);
 	}
 
-	private void ExecuteRunCompletionScript(ExecutionModel execution, JobModel jobModel, SettingsModel settings, ExecutionEngine executionEngine, ExecutionPersistenceService executionPersistenceService)
+	internal void ExecuteRunCompletionScript(ExecutionModel execution, JobModel jobModel, SettingsModel settings, ExecutionEngine executionEngine, ExecutionPersistenceService executionPersistenceService)
 	{
 		if (
 			string.IsNullOrWhiteSpace(settings.CompletionScript) ||
@@ -275,7 +275,7 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
 		}
 	}
 
-	private static Dictionary<string, string> GetRunEnvVars(ExecutionModel execution, JobModel jobModel)
+	internal static Dictionary<string, string> GetRunEnvVars(ExecutionModel execution, JobModel jobModel)
 	{
 		return new Dictionary<string, string> {
 			{ "CRONCH_JOB_ID", jobModel.Id.ToString("D") },
@@ -284,7 +284,7 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
 		};
 	}
 
-	private static Dictionary<string, string> GetRunCompletionEnvVars(ExecutionModel execution, JobModel jobModel, string outputFilePathname)
+	internal static Dictionary<string, string> GetRunCompletionEnvVars(ExecutionModel execution, JobModel jobModel, string outputFilePathname)
 	{
 		return new Dictionary<string, string> {
 			{ "CRONCH_JOB_ID", jobModel.Id.ToString("D") },
@@ -304,7 +304,7 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
 		return new ExecutionIdentifier(execution.JobId, execution.Id, execution.StartedOn);
 	}
 
-	private static string GetDefaultScriptLocation(SettingsModel settings)
+	internal static string GetDefaultScriptLocation(SettingsModel settings)
 	{
 		return string.IsNullOrWhiteSpace(settings.DefaultScriptFileLocation) ? Path.GetTempPath() : settings.DefaultScriptFileLocation;
 	}
