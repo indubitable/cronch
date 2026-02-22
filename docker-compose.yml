@@ -6,6 +6,12 @@ services:
     volumes:
       - cronchconfig:/opt/cronch/cronchconfig
       - cronchdata:/opt/cronch/cronchdata
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
 volumes:
   cronchconfig:
   cronchdata:

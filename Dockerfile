@@ -36,3 +36,6 @@ ENV ASPNETCORE_FORWARDEDHEADERS_ENABLED=false
 # Change this to bind to a specific interface or different port, if needed:
 ENV CRONCH_HTTP_PORTS="8080"
 EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
