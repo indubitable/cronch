@@ -9,7 +9,7 @@
     <br />
     <div id="settings-form-container" class="container text-start px-5">
         <div asp-validation-summary="All" class="rounded border border-2 border-danger"></div>
-        <form method="post" hx-boost="true" hx-select="#settings-form-container" hx-target="#settings-form-container" hx-swap="outerHTML">
+        <form method="post" hx-boost="true" hx-select="#settings-form-container" hx-target="#settings-form-container" hx-swap="outerHTML" hx-ext="loading-states">
 
             <h5 class="border-bottom pb-2 mb-3">History &amp; Display</h5>
 
@@ -117,24 +117,38 @@
                 <div class="fw-semibold mb-1">Trigger statuses</div>
                 <div class="form-text mb-2">The completion script runs only for the selected job execution statuses. If none are selected, it never runs.</div>
                 <div class="form-check form-switch">
-                    <input asp-for="SettingsVM.RunCompletionScriptOnSuccess" type="checkbox" class="form-check-input" autocomplete="off">
+                    <input asp-for="SettingsVM.RunCompletionScriptOnSuccess" type="checkbox" class="form-check-input trigger-status-check" autocomplete="off">
                     <label asp-for="SettingsVM.RunCompletionScriptOnSuccess" class="form-check-label"></label>
                 </div>
                 <div class="form-check form-switch">
-                    <input asp-for="SettingsVM.RunCompletionScriptOnIndeterminate" type="checkbox" class="form-check-input" autocomplete="off">
+                    <input asp-for="SettingsVM.RunCompletionScriptOnIndeterminate" type="checkbox" class="form-check-input trigger-status-check" autocomplete="off">
                     <label asp-for="SettingsVM.RunCompletionScriptOnIndeterminate" class="form-check-label"></label>
                 </div>
                 <div class="form-check form-switch">
-                    <input asp-for="SettingsVM.RunCompletionScriptOnWarning" type="checkbox" class="form-check-input" autocomplete="off">
+                    <input asp-for="SettingsVM.RunCompletionScriptOnWarning" type="checkbox" class="form-check-input trigger-status-check" autocomplete="off">
                     <label asp-for="SettingsVM.RunCompletionScriptOnWarning" class="form-check-label"></label>
                 </div>
                 <div class="form-check form-switch">
-                    <input asp-for="SettingsVM.RunCompletionScriptOnError" type="checkbox" class="form-check-input" autocomplete="off">
+                    <input asp-for="SettingsVM.RunCompletionScriptOnError" type="checkbox" class="form-check-input trigger-status-check" autocomplete="off">
                     <label asp-for="SettingsVM.RunCompletionScriptOnError" class="form-check-label"></label>
                 </div>
+                <div id="trigger-none-warning" class="mt-2 small text-warning-emphasis" style="display:none;">&#x26A0;&#xFE0E; No statuses selected — the completion script will never run.</div>
+                <script>
+                    (function () {
+                        var checks = document.querySelectorAll('.trigger-status-check');
+                        var warning = document.getElementById('trigger-none-warning');
+                        function update() {
+                            warning.style.display = Array.from(checks).some(function (c) { return c.checked; }) ? 'none' : '';
+                        }
+                        checks.forEach(function (c) { c.addEventListener('change', update); });
+                        update();
+                    })();
+                </script>
             </div>
 
-            <button type="submit" class="btn btn-primary mb-4">Save</button>
+            <button type="submit" class="btn btn-primary mb-4" data-loading-disable>
+                <span class="spinner-border spinner-border-sm me-1" data-loading style="display:none;" role="status" aria-hidden="true"></span>Save
+            </button>
         </form>
     </div>
 </div>

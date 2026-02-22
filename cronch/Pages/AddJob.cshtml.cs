@@ -1,3 +1,4 @@
+using Cronos;
 using cronch.Models.ViewModels;
 using cronch.Services;
 using cronch.Utilities;
@@ -14,6 +15,21 @@ public class AddJobModel(JobConfigService _jobConfigService) : PageModel
     public IActionResult OnGet()
     {
         return Page();
+    }
+
+    public IActionResult OnGetCronPreview(string? cronSchedule)
+    {
+        if (string.IsNullOrWhiteSpace(cronSchedule))
+            return Content(string.Empty, "text/html");
+        try
+        {
+            CronExpression.Parse(cronSchedule, CronFormat.IncludeSeconds);
+            return Content(CronExpressionDescriptor.ExpressionDescriptor.GetDescription(cronSchedule), "text/html");
+        }
+        catch
+        {
+            return Content("Invalid cron expression", "text/html");
+        }
     }
 
     public IActionResult OnPost()

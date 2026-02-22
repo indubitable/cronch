@@ -2,7 +2,7 @@
 
 <div id="job-form-container" class="container text-start px-5">
     <div asp-validation-summary="All" class="rounded border border-2 border-danger"></div>
-    <form method="post" hx-boost="true" hx-select="#job-form-container" hx-target="#job-form-container" hx-swap="outerHTML">
+    <form method="post" hx-boost="true" hx-select="#job-form-container" hx-target="#job-form-container" hx-swap="outerHTML" hx-disinherit="hx-select" hx-ext="loading-states">
 
         <h5 class="border-bottom pb-2 mb-3">Schedule</h5>
 
@@ -13,8 +13,8 @@
         </div>
 
         <div class="mb-3">
-            <div class="form-check">
-                <input asp-for="Enabled" class="form-check-input" />
+            <div class="form-check form-switch">
+                <input asp-for="Enabled" type="checkbox" class="form-check-input" autocomplete="off" />
                 <label asp-for="Enabled" class="form-check-label"></label>
             </div>
             <div class="form-text">When disabled, the job will not run on its schedule.</div>
@@ -23,7 +23,10 @@
         <div class="row gx-5 mb-3">
             <div class="col">
                 <label asp-for="CronSchedule" class="form-label"></label>
-                <input asp-for="CronSchedule" class="form-control cron-schedule-input" />
+                <input asp-for="CronSchedule" class="form-control cron-schedule-input"
+                       hx-get="?handler=CronPreview" hx-trigger="input changed delay:400ms"
+                       hx-target="#cron-preview" hx-swap="innerHTML" />
+                <div id="cron-preview" class="form-text">@(Model?.GetValidatedCronDescription())</div>
                 <span asp-validation-for="CronSchedule" class="text-danger"></span>
             </div>
             <div class="col">
@@ -31,14 +34,21 @@
                     <a target="_blank" href="https://github.com/HangfireIO/Cronos#cron-format">A six-part (with seconds) cron expression</a>
                     <div class="small text-muted mt-3 mb-1">Quick choices</div>
                     <div class="d-flex flex-wrap gap-1">
-                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="document.querySelector('.cron-schedule-input').value='*/30 * * * * *'">Every 30 seconds</button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="document.querySelector('.cron-schedule-input').value='0 * * * * *'">Every minute</button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="document.querySelector('.cron-schedule-input').value='0 0 * * * *'">Every hour</button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="document.querySelector('.cron-schedule-input').value='0 0 0 * * MON-FRI'">At midnight Monday–Friday</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setCronSchedule('*/30 * * * * *')">Every 30 seconds</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setCronSchedule('0 * * * * *')">Every minute</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setCronSchedule('0 0 * * * *')">Every hour</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setCronSchedule('0 0 0 * * MON-FRI')">At midnight Monday–Friday</button>
                     </div>
                 </div>
             </div>
         </div>
+        <script>
+            function setCronSchedule(val) {
+                var input = document.querySelector('.cron-schedule-input');
+                input.value = val;
+                htmx.trigger(input, 'input');
+            }
+        </script>
 
         <hr class="my-4" />
 
@@ -127,23 +137,40 @@
 
         <h5 class="border-bottom pb-2 mb-3">Output</h5>
 
-        <div class="mb-3">
-            <label asp-for="Keywords" class="form-label"></label>
-            <input asp-for="Keywords" class="form-control" />
-            <div class="form-text">Comma-separated. Used by the processing options below when keyword-based rules are selected.</div>
-            <span asp-validation-for="Keywords" class="text-danger"></span>
+        <div class="row gx-5 mb-3">
+            <div class="col">
+                <div class="mb-3">
+                    <label asp-for="Keywords" class="form-label"></label>
+                    <input asp-for="Keywords" class="form-control" />
+                    <div class="form-text">Comma-separated. Used by keyword-based processing rules below.</div>
+                    <span asp-validation-for="Keywords" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="StdOutProcessing" class="form-label"></label>
+                    <select asp-for="StdOutProcessing" asp-items="cronch.Models.ViewModels.JobViewModel.OutputProcessingOptions" class="form-select"></select>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="StdErrProcessing" class="form-label"></label>
+                    <select asp-for="StdErrProcessing" asp-items="cronch.Models.ViewModels.JobViewModel.OutputProcessingOptions" class="form-select"></select>
+                </div>
+            </div>
+            <div class="col">
+                <div class="shadow p-3 bg-body-tertiary rounded">
+                    Controls how job output affects the execution status.
+                    <ul class="mt-2 mb-0">
+                        <li><strong>None</strong> — output is captured but does not affect status.</li>
+                        <li><strong>Any output</strong> — any content on the stream triggers the chosen status.</li>
+                        <li><strong>Keyword match</strong> — only triggers if a keyword from the Keywords field appears in the output.</li>
+                    </ul>
+                </div>
+            </div>
         </div>
 
-        <div class="mb-3">
-            <label asp-for="StdOutProcessing" class="form-label"></label>
-            <select asp-for="StdOutProcessing" asp-items="cronch.Models.ViewModels.JobViewModel.OutputProcessingOptions" class="form-select"></select>
-        </div>
-
-        <div class="mb-3">
-            <label asp-for="StdErrProcessing" class="form-label"></label>
-            <select asp-for="StdErrProcessing" asp-items="cronch.Models.ViewModels.JobViewModel.OutputProcessingOptions" class="form-select"></select>
-        </div>
-
-        <button type="submit" class="btn btn-primary mb-4">Save</button>
+        <button type="submit" class="btn btn-primary mb-4" data-loading-disable>
+            <span class="spinner-border spinner-border-sm me-1" data-loading style="display:none;" role="status" aria-hidden="true"></span>Save
+        </button>
+        <a href="/Manage" class="btn btn-secondary mb-4 ms-2" hx-boost="false">Cancel</a>
     </form>
 </div>
