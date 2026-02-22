@@ -11,7 +11,7 @@ public partial class ExecutionPersistenceService(ILogger<ExecutionPersistenceSer
 {
 	public readonly record struct ExecutionStatistics(int Successes, int Errors, int Warnings);
 
-	private static string _connectionString = null!;
+	protected string _connectionString = null!;
 
 	public virtual void InitializeDatabase()
 	{
@@ -33,6 +33,11 @@ public partial class ExecutionPersistenceService(ILogger<ExecutionPersistenceSer
 			DefaultTimeout = 30,
 		}.ToString();
 
+		InitializeTables();
+	}
+
+	protected void InitializeTables()
+	{
 		using var db = new SqliteConnection(_connectionString);
 		db.Open();
 		db.Execute(@"PRAGMA journal_mode=WAL");
@@ -347,7 +352,7 @@ public partial class ExecutionPersistenceService(ILogger<ExecutionPersistenceSer
 			StartReason = Enum.Parse<ExecutionReason>(modelData.StartReason),
 			Status = Enum.Parse<ExecutionStatus>(modelData.Status),
 			CompletedOn = (string.IsNullOrWhiteSpace(modelData.CompletedOn) ? null : ParseDate(modelData.CompletedOn)),
-			ExitCode = modelData.ExitCode as int?,
+			ExitCode = modelData.ExitCode is long l ? (int?)l : null,
 			StopReason = (string.IsNullOrWhiteSpace(modelData.StopReason) ? null : Enum.Parse<TerminationReason>(modelData.StopReason)),
 		};
 	}
