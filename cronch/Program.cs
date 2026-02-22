@@ -53,6 +53,9 @@ builder.Services.AddSingleton<CleanupService>();
 builder.Services.AddTransient<ExecutionPersistenceService>();
 builder.Services.AddTransient<ExecutionEngine>();
 
+builder.Services.AddHealthChecks()
+    .AddCheck<CronchHealthCheck>("cronch");
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -92,5 +95,6 @@ app.UseResponseCaching();
 app.UseAuthorization();
 
 app.MapRazorPages();
+app.MapHealthChecks("/health");
 
 app.Run();

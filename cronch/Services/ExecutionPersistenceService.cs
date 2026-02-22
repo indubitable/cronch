@@ -220,6 +220,13 @@ public partial class ExecutionPersistenceService(ILogger<ExecutionPersistenceSer
 		db.Execute(@"DELETE FROM Execution WHERE Id = @id", new { id = execution.Id.ToString("D").ToUpperInvariant() });
 	}
 
+	public virtual bool CheckDatabaseConnectivity()
+	{
+		using var db = new SqliteConnection(_connectionString);
+		db.Open();
+		return db.ExecuteScalar<int>("SELECT 1") == 1;
+	}
+
 	public virtual IEnumerable<ExecutionModel> GetExecutionsOlderThan(DateTimeOffset startedOn)
 	{
 		using var db = new SqliteConnection(_connectionString);

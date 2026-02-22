@@ -18,6 +18,8 @@ public class JobSchedulingService(ILogger<JobSchedulingService> _logger, JobExec
     private Thread? _schedulerThread;
     private readonly object _syncLock = new();
 
+    public bool IsRunning => _schedulerThread?.IsAlive == true;
+
     private bool _stopRequested;
     private bool _refreshRequested;
     private List<JobModel> _rawEnabledJobs = [];
