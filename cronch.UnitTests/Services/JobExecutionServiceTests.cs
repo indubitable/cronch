@@ -1,6 +1,7 @@
 using cronch.Models;
 using cronch.Services;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 
@@ -216,11 +217,111 @@ public class JobExecutionServiceTests
         engine.DidNotReceive().PerformExecution(Arg.Any<ExecutionModel>(), Arg.Any<JobModel>(), Arg.Any<string>(), Arg.Any<Stream>(), Arg.Any<bool>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<CancellationToken>());
     }
 
+    // --- ExecuteJob: no parallelism limit ---
+
+    [TestMethod]
+    public void ExecuteJobShouldReturnNonEmptyExecutionIdWhenNoParallelismLimitSet()
+    {
+        var (sut, _, _) = CreateSutForExecuteJob();
+        var job = new JobModel { Id = Guid.NewGuid(), Name = "Test", Executor = "echo" };
+
+        var result = sut.ExecuteJob(job, ExecutionReason.Scheduled);
+
+        Assert.AreNotEqual(Guid.Empty, result);
+    }
+
+    // --- ExecuteJob: parallelism limit exceeded ---
+
+    [TestMethod]
+    public void ExecuteJobShouldNotSaveWhenParallelismLimitReachedWithIgnoreSetting()
+    {
+        var (sut, persistence, _) = CreateSutForExecuteJob();
+        var job = MakeJobWithParallelism(1, JobModel.ParallelSkipProcessing.Ignore);
+        SimulateRunningExecution(sut, job.Id);
+
+        sut.ExecuteJob(job, ExecutionReason.Scheduled);
+
+        persistence.DidNotReceive().AddExecution(Arg.Any<ExecutionModel>());
+    }
+
+    [TestMethod]
+    public void ExecuteJobShouldSaveAsIndeterminateWhenParallelismLimitReachedWithIndeterminateSetting()
+    {
+        var (sut, persistence, _) = CreateSutForExecuteJob();
+        var job = MakeJobWithParallelism(1, JobModel.ParallelSkipProcessing.MarkAsIndeterminate);
+        SimulateRunningExecution(sut, job.Id);
+
+        sut.ExecuteJob(job, ExecutionReason.Scheduled);
+
+        persistence.Received(1).AddExecution(Arg.Is<ExecutionModel>(e => e.Status == ExecutionStatus.CompletedAsIndeterminate));
+    }
+
+    [TestMethod]
+    public void ExecuteJobShouldSaveAsWarningWhenParallelismLimitReachedWithWarningSetting()
+    {
+        var (sut, persistence, _) = CreateSutForExecuteJob();
+        var job = MakeJobWithParallelism(1, JobModel.ParallelSkipProcessing.MarkAsWarning);
+        SimulateRunningExecution(sut, job.Id);
+
+        sut.ExecuteJob(job, ExecutionReason.Scheduled);
+
+        persistence.Received(1).AddExecution(Arg.Is<ExecutionModel>(e => e.Status == ExecutionStatus.CompletedAsWarning));
+    }
+
+    [TestMethod]
+    public void ExecuteJobShouldSaveAsErrorWhenParallelismLimitReachedWithErrorSetting()
+    {
+        var (sut, persistence, _) = CreateSutForExecuteJob();
+        var job = MakeJobWithParallelism(1, JobModel.ParallelSkipProcessing.MarkAsError);
+        SimulateRunningExecution(sut, job.Id);
+
+        sut.ExecuteJob(job, ExecutionReason.Scheduled);
+
+        persistence.Received(1).AddExecution(Arg.Is<ExecutionModel>(e => e.Status == ExecutionStatus.CompletedAsError));
+    }
+
+    [TestMethod]
+    public void ExecuteJobShouldSetSkippedForParallelismStopReasonWhenLimitReached()
+    {
+        var (sut, persistence, _) = CreateSutForExecuteJob();
+        var job = MakeJobWithParallelism(1, JobModel.ParallelSkipProcessing.MarkAsIndeterminate);
+        SimulateRunningExecution(sut, job.Id);
+
+        sut.ExecuteJob(job, ExecutionReason.Scheduled);
+
+        persistence.Received(1).AddExecution(Arg.Is<ExecutionModel>(e => e.StopReason == TerminationReason.SkippedForParallelism));
+    }
+
+    [TestMethod]
+    public void ExecuteJobShouldReturnNonEmptyExecutionIdWhenParallelismLimitExceeded()
+    {
+        var (sut, _, _) = CreateSutForExecuteJob();
+        var job = MakeJobWithParallelism(1, JobModel.ParallelSkipProcessing.Ignore);
+        SimulateRunningExecution(sut, job.Id);
+
+        var result = sut.ExecuteJob(job, ExecutionReason.Scheduled);
+
+        Assert.AreNotEqual(Guid.Empty, result);
+    }
+
+    [TestMethod]
+    public void ExecuteJobShouldAllowExecutionWhenRunningCountIsBelowParallelismLimit()
+    {
+        var (sut, persistence, _) = CreateSutForExecuteJob();
+        var job = MakeJobWithParallelism(2, JobModel.ParallelSkipProcessing.MarkAsError);
+        SimulateRunningExecution(sut, job.Id); // 1 running, limit is 2
+
+        sut.ExecuteJob(job, ExecutionReason.Scheduled);
+
+        // The skip path saves with a specific StopReason; verify it was NOT taken
+        persistence.DidNotReceive().AddExecution(Arg.Is<ExecutionModel>(e => e.StopReason == TerminationReason.SkippedForParallelism));
+    }
+
     // --- Helpers ---
 
     private static (JobExecutionService sut, ExecutionEngine engine, ExecutionPersistenceService persistence) CreateSut()
     {
-        var engine = Substitute.For<ExecutionEngine>(Substitute.For<ILogger<ExecutionEngine>>());
+        var engine = Substitute.For<ExecutionEngine>(Substitute.For<ILogger<ExecutionEngine>>(), Substitute.For<FileAccessWrapper>(), Substitute.For<ProcessFactory>());
 
         var persistence = MakePersistence();
 
@@ -253,6 +354,61 @@ public class JobExecutionServiceTests
         ExitCode = 0,
         Status = status,
         StopReason = TerminationReason.Exited,
+    };
+
+    private static (JobExecutionService sut, ExecutionPersistenceService persistence, ExecutionEngine engine) CreateSutForExecuteJob()
+    {
+        var mockPersistence = Substitute.For<ExecutionPersistenceService>(
+            Substitute.For<ILogger<ExecutionPersistenceService>>(),
+            Substitute.For<IConfiguration>());
+        mockPersistence.GetOutputPathName(Arg.Any<ExecutionModel>(), Arg.Any<bool>())
+            .Returns(ci => Path.Combine(Path.GetTempPath(), $"cronch_test_{ci.Arg<ExecutionModel>().Id}.txt"));
+
+        var mockEngine = Substitute.For<ExecutionEngine>(
+            Substitute.For<ILogger<ExecutionEngine>>(),
+            Substitute.For<FileAccessWrapper>(),
+            Substitute.For<ProcessFactory>());
+
+        var scopeServiceProvider = Substitute.For<IServiceProvider>();
+        scopeServiceProvider.GetService(typeof(ExecutionPersistenceService)).Returns(mockPersistence);
+        scopeServiceProvider.GetService(typeof(ExecutionEngine)).Returns(mockEngine);
+
+        var mockScope = Substitute.For<IServiceScope>();
+        mockScope.ServiceProvider.Returns(scopeServiceProvider);
+
+        var mockScopeFactory = Substitute.For<IServiceScopeFactory>();
+        mockScopeFactory.CreateScope().Returns(mockScope);
+
+        var mockServiceProvider = Substitute.For<IServiceProvider>();
+        mockServiceProvider.GetService(typeof(IServiceScopeFactory)).Returns(mockScopeFactory);
+
+        var mockSettingsService = Substitute.For<SettingsService>(
+            Substitute.For<ConfigPersistenceService>(
+                Substitute.For<ILogger<ConfigPersistenceService>>(),
+                Substitute.For<IConfiguration>()));
+        mockSettingsService.LoadSettings().Returns(new SettingsModel());
+
+        var sut = new JobExecutionService(
+            Substitute.For<ILogger<JobExecutionService>>(),
+            mockSettingsService,
+            mockServiceProvider);
+
+        return (sut, mockPersistence, mockEngine);
+    }
+
+    private static void SimulateRunningExecution(JobExecutionService sut, Guid jobId)
+    {
+        var identifier = new JobExecutionService.ExecutionIdentifier(jobId, Guid.NewGuid(), DateTimeOffset.UtcNow);
+        sut._executions[identifier] = new Thread(() => { });
+    }
+
+    private static JobModel MakeJobWithParallelism(int parallelism, JobModel.ParallelSkipProcessing skipProcessing) => new()
+    {
+        Id = Guid.NewGuid(),
+        Name = "Test Job",
+        Executor = "executor",
+        Parallelism = parallelism,
+        MarkParallelSkipAs = skipProcessing,
     };
 
     /// <summary>

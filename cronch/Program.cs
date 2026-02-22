@@ -49,6 +49,8 @@ builder.Services.AddSingleton<JobExecutionService>();
 builder.Services.AddSingleton<JobSchedulingService>();
 builder.Services.AddSingleton<SettingsService>();
 builder.Services.AddSingleton<CleanupService>();
+builder.Services.AddSingleton<FileAccessWrapper>();
+builder.Services.AddSingleton<ProcessFactory>();
 
 builder.Services.AddTransient<ExecutionPersistenceService>();
 builder.Services.AddTransient<ExecutionEngine>();

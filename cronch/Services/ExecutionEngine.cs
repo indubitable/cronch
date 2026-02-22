@@ -1,9 +1,9 @@
-﻿using cronch.Models;
+using cronch.Models;
 using System.Diagnostics;
 
 namespace cronch.Services;
 
-public class ExecutionEngine(ILogger<ExecutionEngine> _logger)
+public class ExecutionEngine(ILogger<ExecutionEngine> _logger, FileAccessWrapper _fileAccess, ProcessFactory _processFactory)
 {
     public virtual void PerformExecution(ExecutionModel execution, JobModel jobModel, string targetScriptFile, Stream outputStream, bool formatOutput, Dictionary<string, string> environmentVars, CancellationToken cancelToken)
     {
@@ -13,10 +13,12 @@ public class ExecutionEngine(ILogger<ExecutionEngine> _logger)
         {
             using var outputWriter = new StreamWriter(outputStream, leaveOpen: true);
 
-            File.WriteAllText(targetScriptFile, jobModel.Script);
+            _fileAccess.WriteAllText(targetScriptFile, jobModel.Script);
             if (!OperatingSystem.IsWindows())
             {
-                try { File.SetUnixFileMode(targetScriptFile, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute | UnixFileMode.GroupRead); } catch { }
+#pragma warning disable CA1416 // guarded by !IsWindows() above
+                try { _fileAccess.SetUnixFileMode(targetScriptFile, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute | UnixFileMode.GroupRead); } catch { }
+#pragma warning restore CA1416
             }
 
             var executorFile = jobModel.Executor;
@@ -42,8 +44,7 @@ public class ExecutionEngine(ILogger<ExecutionEngine> _logger)
                 Arguments = executorArgs,
             };
             environmentVars.ToList().ForEach(kvp => startInfo.EnvironmentVariables.Add(kvp.Key, kvp.Value));
-            using var process = new Process();
-            process.StartInfo = startInfo;
+            using var process = _processFactory.Create(startInfo);
             process.OutputDataReceived += (sender, args) =>
             {
                 var line = args.Data;
@@ -71,14 +72,12 @@ public class ExecutionEngine(ILogger<ExecutionEngine> _logger)
                 }
             };
             process.Start();
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
 
             var manuallyTerminated = false;
             using var _ = cancelToken.Register(() =>
             {
                 manuallyTerminated = true;
-                process.Kill(true);
+                process.Kill();
             });
 
             if (jobModel.TimeLimitSecs.HasValue)
@@ -91,8 +90,8 @@ public class ExecutionEngine(ILogger<ExecutionEngine> _logger)
                 {
                     execution.StopReason = TerminationReason.TimedOut;
                     execution.Status = ExecutionStatus.CompletedAsError;
-                    process.Kill(true);
-                    if (!process.WaitForExit(800))
+                    process.Kill();
+                    if (!process.WaitForExit(TimeSpan.FromMilliseconds(800)))
                     {
                         _logger.LogWarning("Job '{Name}' ({Id}), execution {ExecName}, timed out and could not be fully killed in a reasonable amount of time", jobModel.Name, jobModel.Id, execution.GetExecutionName());
                         throw new TimeoutException();
@@ -106,7 +105,7 @@ public class ExecutionEngine(ILogger<ExecutionEngine> _logger)
             }
 
             execution.CompletedOn = DateTimeOffset.UtcNow;
-            execution.ExitCode = process.ExitCode;
+            execution.ExitCode = process.GetExitCode();
 
             if (manuallyTerminated)
             {
@@ -144,7 +143,7 @@ public class ExecutionEngine(ILogger<ExecutionEngine> _logger)
         {
             try
             {
-                File.Delete(targetScriptFile);
+                _fileAccess.Delete(targetScriptFile);
             }
             catch (Exception)
             {

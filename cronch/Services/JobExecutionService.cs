@@ -8,7 +8,7 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
 {
 	public readonly record struct ExecutionIdentifier(Guid JobId, Guid ExecutionId, DateTimeOffset StartedOn);
 
-	private readonly ConcurrentDictionary<ExecutionIdentifier, Thread> _executions = new();
+	internal readonly ConcurrentDictionary<ExecutionIdentifier, Thread> _executions = new();
 	private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _execCancellations = new();
 
 	public virtual Dictionary<Guid, DateTimeOffset> GetLatestExecutionsPerJob()
