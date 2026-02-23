@@ -49,7 +49,16 @@
                 <tbody>
                     <tr>
                         <th>Job name</th>
-                        <td>@Model.Execution.JobName</td>
+                        <td>
+                            @if (Model.Job != null)
+                            {
+                                <a asp-page="/EditJob" asp-route-id="@Model.Execution.JobId">@Model.Execution.JobName</a>
+                            }
+                            else
+                            {
+                                @Model.Execution.JobName
+                            }
+                        </td>
                         <th>Status</th>
                         <td>@Model.Execution.Status.ToUserString()</td>
                     </tr>
