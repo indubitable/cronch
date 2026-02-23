@@ -2,9 +2,14 @@ using cronch.Services;
 using Microsoft.Extensions.Hosting.WindowsServices;
 using Microsoft.Extensions.Logging.Configuration;
 using Microsoft.Extensions.Logging.EventLog;
+using Quartz;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables(prefix: "CRONCH_");
+
+#if DEBUG
+builder.Logging.AddFilter("Microsoft.AspNetCore.Watch", LogLevel.Warning);
+#endif
 
 if (OperatingSystem.IsWindows())
 {
@@ -42,6 +47,12 @@ if (OperatingSystem.IsWindows())
     });
     builder.Services.AddHostedService<WindowsHostedService>();
 }
+
+builder.Services.AddQuartz();
+builder.Services.AddQuartzHostedService(options =>
+{
+    options.WaitForJobsToComplete = true;
+});
 
 builder.Services.AddSingleton<JobConfigService>();
 builder.Services.AddSingleton<ConfigPersistenceService>();
@@ -81,10 +92,8 @@ using (var scope = app.Services.CreateScope())
     var cleanupService = services.GetRequiredService<CleanupService>();
     cleanupService.Initialize();
 
-    var schedulingService = services.GetRequiredService<JobSchedulingService>();
-    schedulingService.StartSchedulingRuns();
-
     var configService = services.GetRequiredService<JobConfigService>();
+    var schedulingService = services.GetRequiredService<JobSchedulingService>();
     schedulingService.RefreshSchedules(configService.GetAllJobs());
 }
 

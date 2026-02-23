@@ -6,6 +6,7 @@ namespace cronch.Services;
 public class ConfigPersistenceService(ILogger<ConfigPersistenceService> _logger, IConfiguration _configuration)
 {
     private readonly XmlSerializer _serializer = new(typeof(ConfigPersistenceModel));
+    private readonly XmlSerializer _v1Serializer = new(typeof(ConfigPersistenceModelV1));
     private const string CONFIG_FILE = "config.xml";
 
     public virtual ConfigPersistenceModel? Load()
@@ -27,17 +28,57 @@ public class ConfigPersistenceService(ILogger<ConfigPersistenceService> _logger,
                 return null;
             }
 
+            // Try loading as v2 first
             try
             {
                 using var fileStream = File.OpenRead(filePathname);
                 var config = _serializer.Deserialize(fileStream) as ConfigPersistenceModel;
-                return config;
+                if (config != null)
+                    return config;
+            }
+            catch (InvalidOperationException)
+            {
+                // v2 deserialization failed — may be a v1 config, fall through
+            }
+
+            // Try loading as v1 and migrate
+            try
+            {
+                _logger.LogInformation("Attempting to load configuration as v1 format for migration");
+                ConfigPersistenceModelV1? v1Config;
+                using (var fileStream = File.OpenRead(filePathname))
+                {
+                    v1Config = _v1Serializer.Deserialize(fileStream) as ConfigPersistenceModelV1;
+                }
+                if (v1Config != null)
+                {
+                    _logger.LogInformation("Successfully loaded v1 configuration. Migrating to v2...");
+                    var v2Config = v1Config.ToV2();
+
+                    // Check for any jobs that failed cron conversion (they were disabled)
+                    var failedJobs = v1Config.Jobs
+                        .Where(j => j.Enabled && !string.IsNullOrWhiteSpace(j.CronSchedule))
+                        .Where(j => v2Config.Jobs.Any(v2j => v2j.Id == j.Id && !v2j.Enabled))
+                        .ToList();
+                    foreach (var job in failedJobs)
+                    {
+                        _logger.LogWarning("Job '{Name}' ({Id}) had its cron expression '{Cron}' fail to convert and has been disabled. Please update it manually.",
+                            job.Name, job.Id, job.CronSchedule);
+                    }
+
+                    Save(v2Config);
+                    _logger.LogInformation("Configuration migrated to v2 successfully");
+                    return v2Config;
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Cannot load configuration: unexpected error");
+                _logger.LogError(ex, "Cannot load configuration: file exists but could not be parsed as v1 or v2");
                 throw;
             }
+
+            _logger.LogError("Cannot load configuration: file exists but could not be parsed");
+            throw new InvalidOperationException("Configuration file exists but could not be parsed as any known version");
         }
     }
 

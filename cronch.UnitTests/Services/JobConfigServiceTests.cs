@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+using Quartz;
 
 namespace cronch.UnitTests.Services;
 
@@ -22,11 +23,11 @@ public class JobConfigServiceTests
             Substitute.For<ILogger<ConfigPersistenceService>>(),
             Substitute.For<IConfiguration>());
 
-        // JobExecutionService is a deep dependency of JobSchedulingService; null! is safe here
+        // JobSchedulingService takes ISchedulerFactory; null! is safe here
         // because all JobSchedulingService methods are virtual and will be intercepted by NSubstitute.
         _jobScheduling = Substitute.For<JobSchedulingService>(
             Substitute.For<ILogger<JobSchedulingService>>(),
-            null!);
+            Substitute.For<ISchedulerFactory>());
 
         _jobConfigService = new JobConfigService(_configPersistence, _jobScheduling);
     }

@@ -1,168 +1,117 @@
-﻿using cronch.Models;
-using Cronos;
+using cronch.Models;
+using Quartz;
+using Quartz.Impl.Matchers;
 
 namespace cronch.Services;
 
-public class JobSchedulingService(ILogger<JobSchedulingService> _logger, JobExecutionService _jobExecutionService)
+public class JobSchedulingService(ILogger<JobSchedulingService> _logger, ISchedulerFactory _schedulerFactory)
 {
-    private record struct ScheduledRun(DateTimeOffset When, Guid JobId);
-    private class EarliestScheduledRun : IComparer<ScheduledRun>
+    private const string TriggerGroupName = "cronch";
+    private const string JobGroupName = "cronch";
+
+    public bool IsRunning
     {
-        public int Compare(ScheduledRun x, ScheduledRun y)
+        get
         {
-            var v = x.When.CompareTo(y.When);
-            return (v != 0 ? v : x.JobId.CompareTo(y.JobId));
-        }
-    }
-
-    private Thread? _schedulerThread;
-    private readonly object _syncLock = new();
-
-    public bool IsRunning => _schedulerThread?.IsAlive == true;
-
-    private bool _stopRequested;
-    private bool _refreshRequested;
-    private List<JobModel> _rawEnabledJobs = [];
-    private IEnumerable<JobModel> _cachedEnabledJobs = [];
-
-    public virtual void StartSchedulingRuns()
-    {
-        if (_schedulerThread != null)
-        {
-            throw new InvalidOperationException("Cannot start scheduling when scheduling is already running");
-        }
-
-        _stopRequested = false;
-        _refreshRequested = true;
-        _schedulerThread = new Thread(RunScheduling)
-        {
-            IsBackground = true
-        };
-        _schedulerThread.Start();
-    }
-
-    public virtual void StopSchedulingRuns(bool waitForStop)
-    {
-        var thread = _schedulerThread;
-        if (thread == null || !thread.IsAlive) return;
-
-        lock (_syncLock)
-        {
-            _stopRequested = true;
-        }
-
-        if (waitForStop)
-        {
-            thread.Join();
+            try
+            {
+                var scheduler = _schedulerFactory.GetScheduler().GetAwaiter().GetResult();
+                return scheduler.IsStarted && !scheduler.IsShutdown;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 
     public virtual void RefreshSchedules(IEnumerable<JobModel> allJobs)
     {
-        lock (_syncLock)
+        var scheduler = _schedulerFactory.GetScheduler().GetAwaiter().GetResult();
+        var enabledJobs = allJobs.Where(j => j.Enabled && !string.IsNullOrWhiteSpace(j.CronSchedule)).ToList();
+
+        // Get all currently scheduled trigger keys in our group
+        var existingTriggerKeys = scheduler.GetTriggerKeys(GroupMatcher<TriggerKey>.GroupEquals(TriggerGroupName))
+            .GetAwaiter().GetResult();
+
+        var desiredTriggerKeys = new HashSet<string>(enabledJobs.Select(j => j.Id.ToString()));
+
+        // Remove triggers for jobs that are no longer enabled or have been deleted
+        foreach (var triggerKey in existingTriggerKeys)
         {
-            _refreshRequested = true;
-            _rawEnabledJobs = new List<JobModel>(allJobs.Where(j => j.Enabled));
+            if (!desiredTriggerKeys.Contains(triggerKey.Name))
+            {
+                scheduler.UnscheduleJob(triggerKey).GetAwaiter().GetResult();
+                var jobKey = new JobKey(triggerKey.Name, JobGroupName);
+                scheduler.DeleteJob(jobKey).GetAwaiter().GetResult();
+                _logger.LogDebug("Unscheduled job {Id}", triggerKey.Name);
+            }
+        }
+
+        // Add or update triggers for enabled jobs
+        foreach (var job in enabledJobs)
+        {
+            try
+            {
+                ScheduleOrUpdateJob(scheduler, job);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to schedule job '{Name}' ({Id})", job.Name, job.Id);
+            }
         }
     }
 
     public virtual DateTimeOffset? GetNextExecution(Guid jobId)
     {
-        string? cron;
-        lock (_syncLock)
+        try
         {
-            // Use the raw enabled jobs because we don't need to wait for processing in this (informational) case
-            cron = _rawEnabledJobs.FirstOrDefault(j => j.Id == jobId)?.CronSchedule;
+            var scheduler = _schedulerFactory.GetScheduler().GetAwaiter().GetResult();
+            var triggerKey = new TriggerKey(jobId.ToString(), TriggerGroupName);
+            var trigger = scheduler.GetTrigger(triggerKey).GetAwaiter().GetResult();
+            return trigger?.GetNextFireTimeUtc();
         }
-        if (!string.IsNullOrWhiteSpace(cron))
+        catch
         {
-            return CronExpression.Parse(cron, CronFormat.IncludeSeconds).GetNextOccurrence(DateTimeOffset.Now, TimeZoneInfo.Local);
+            return null;
         }
-        return null;
     }
 
-    private void RunScheduling()
+    private void ScheduleOrUpdateJob(IScheduler scheduler, JobModel job)
     {
-        const int scheduleFutureSeconds = 10;
-        const int addToScheduleAfterSeconds = 5;
+        var jobKey = new JobKey(job.Id.ToString(), JobGroupName);
+        var triggerKey = new TriggerKey(job.Id.ToString(), TriggerGroupName);
 
-        var scheduleQueue = new SortedSet<ScheduledRun>(new EarliestScheduledRun());
-        var lastScheduled = DateTimeOffset.MinValue;
+        var cronExpression = job.CronSchedule!;
 
-        while (true)
+        // Validate the cron expression
+        if (!CronExpression.IsValidExpression(cronExpression))
         {
-            // Check for cross-thread changes
-            lock (_syncLock)
-            {
-                if (_stopRequested) break;
-
-                if (_refreshRequested)
-                {
-                    _refreshRequested = false;
-                    lastScheduled = DateTimeOffset.MinValue;
-
-                    // Delete any scheduled runs for jobs that have been disabled
-                    var newlyDisabledJobs = _cachedEnabledJobs.Where(oldJob => !_rawEnabledJobs.Any(newJob => newJob.Id == oldJob.Id));
-                    newlyDisabledJobs.ToList().ForEach(disabledJob => scheduleQueue.RemoveWhere(q => q.JobId == disabledJob.Id));
-
-                    // Delete any scheduled runs for jobs that have new schedules
-                    var rescheduledJobs = _cachedEnabledJobs.Where(oldJob => !string.Equals(_rawEnabledJobs.FirstOrDefault(newJob => newJob.Id == oldJob.Id)?.CronSchedule, oldJob.CronSchedule, StringComparison.InvariantCulture));
-                    rescheduledJobs.ToList().ForEach(rescheduledJob => scheduleQueue.RemoveWhere(q => q.JobId == rescheduledJob.Id));
-
-                    // Update the cache
-                    _cachedEnabledJobs = new List<JobModel>(_rawEnabledJobs);
-                }
-            }
-
-            if (DateTimeOffset.UtcNow > lastScheduled.AddSeconds(addToScheduleAfterSeconds))
-            {
-                // Add schedules for all enabled jobs... duplicates are ignored by the SortedSet<T>
-                foreach (var job in _cachedEnabledJobs)
-                {
-                    if (string.IsNullOrWhiteSpace(job.CronSchedule)) continue;
-                    try
-                    {
-                        var cron = CronExpression.Parse(job.CronSchedule, CronFormat.IncludeSeconds);
-                        cron.GetOccurrences(DateTimeOffset.Now, DateTimeOffset.Now.AddSeconds(scheduleFutureSeconds), TimeZoneInfo.Local)
-                            .ToList()
-                            .ForEach(occurrence => scheduleQueue.Add(new ScheduledRun(occurrence, job.Id)));
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Unable to schedule job '{Name}' ({Id})", job.Name, job.Id);
-                    }
-                }
-
-                lastScheduled = DateTimeOffset.UtcNow;
-            }
-
-            List<Guid> executedJobs = [];
-            while (scheduleQueue.Count > 0 && scheduleQueue.First().When <= DateTimeOffset.Now)
-            {
-                var exec = scheduleQueue.First();
-                if (executedJobs.Contains(exec.JobId))
-                {
-                    // This really shouldn't happen except when debugging or possibly under unreasonable load
-                    _logger.LogWarning("Skipping apparent duplicate scheduled execution for job {Id}", exec.JobId);
-                    continue;
-                }
-                var job = _cachedEnabledJobs.FirstOrDefault(j => j.Id == exec.JobId);
-                if (job != null)
-                {
-                    _jobExecutionService.ExecuteJob(job, ExecutionReason.Scheduled);
-                }
-                else
-                {
-                    _logger.LogWarning("Cannot execute unknown job {Id}", exec.JobId);
-                }
-                scheduleQueue.Remove(exec);
-            }
-
-            // Wait a short while, and then continue on
-            Thread.Sleep(300);
+            _logger.LogError("Invalid cron expression '{Cron}' for job '{Name}' ({Id})", cronExpression, job.Name, job.Id);
+            return;
         }
 
-        // Bye!
-        _schedulerThread = null;
+        var trigger = TriggerBuilder.Create()
+            .WithIdentity(triggerKey)
+            .WithCronSchedule(cronExpression, x => x.InTimeZone(TimeZoneInfo.Local))
+            .Build();
+
+        if (scheduler.CheckExists(jobKey).GetAwaiter().GetResult())
+        {
+            // Job exists — reschedule the trigger
+            scheduler.RescheduleJob(triggerKey, trigger).GetAwaiter().GetResult();
+            _logger.LogDebug("Rescheduled job '{Name}' ({Id})", job.Name, job.Id);
+        }
+        else
+        {
+            // New job — create job detail and schedule
+            var jobDetail = JobBuilder.Create<CronchQuartzJob>()
+                .WithIdentity(jobKey)
+                .UsingJobData(CronchQuartzJob.JobIdKey, job.Id.ToString())
+                .Build();
+
+            scheduler.ScheduleJob(jobDetail, trigger).GetAwaiter().GetResult();
+            _logger.LogDebug("Scheduled job '{Name}' ({Id})", job.Name, job.Id);
+        }
     }
 }

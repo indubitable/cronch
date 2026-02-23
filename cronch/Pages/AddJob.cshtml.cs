@@ -1,4 +1,3 @@
-using Cronos;
 using cronch.Models.ViewModels;
 using cronch.Services;
 using cronch.Utilities;
@@ -24,12 +23,11 @@ public class AddJobModel(JobConfigService _jobConfigService) : PageModel
             return Content(string.Empty, "text/html");
         try
         {
-            CronExpression.Parse(cronSchedule, CronFormat.IncludeSeconds);
-            return Content(CronExpressionDescriptor.ExpressionDescriptor.GetDescription(cronSchedule), "text/html");
+            return Content(CronDescriptionUtility.Describe(cronSchedule), "text/html");
         }
         catch
         {
-            return Content("Invalid cron expression", "text/html");
+            return Content("<span class=\"text-danger\">Invalid cron expression</span>", "text/html");
         }
     }
 

@@ -32,13 +32,13 @@
             </div>
             <div class="col">
                 <div class="shadow p-3 bg-body-tertiary rounded">
-                    <a target="_blank" href="https://github.com/HangfireIO/Cronos#cron-format">A six-part (with seconds) cron expression</a>
+                    <a target="_blank" href="https://www.quartz-scheduler.net/documentation/quartz-3.x/how-tos/crontrigger.html">A six-part (with seconds) cron expression</a>
                     <div class="small text-muted mt-3 mb-1">Quick choices</div>
                     <div class="d-flex flex-wrap gap-1">
-                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setCronSchedule('*/30 * * * * *')">Every 30 seconds</button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setCronSchedule('0 * * * * *')">Every minute</button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setCronSchedule('0 0 * * * *')">Every hour</button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setCronSchedule('0 0 0 * * MON-FRI')">At midnight Monday–Friday</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setCronSchedule('*/30 * * * * ?')">Every 30 seconds</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setCronSchedule('0 * * * * ?')">Every minute</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setCronSchedule('0 0 * * * ?')">Every hour</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="setCronSchedule('0 0 0 ? * MON-FRI')">At midnight Monday–Friday</button>
                     </div>
                 </div>
             </div>

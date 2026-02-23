@@ -10,7 +10,7 @@ CRONCH! is a cron-like job scheduler. It has a user-friendly web interface and c
 
 ## Features
 
-- A six-part (with seconds) cron schedule using [Cronos](https://github.com/HangfireIO/Cronos)
+- A six-part (with seconds) cron schedule using [Quartz.NET](https://www.quartz-scheduler.net/documentation/quartz-3.x/how-tos/crontrigger.html)
 - Web interface for configuration and monitoring
 - Configuration is SCM- and diff-friendly
   - Configuration is stored as an XML file
