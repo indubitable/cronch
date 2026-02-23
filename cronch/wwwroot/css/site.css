@@ -154,24 +154,13 @@ table:not(.table-hover) tbody tr:hover th {
   position: relative;
 }
 
-.table thead::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.1) 0%,
-    transparent 100%
-  );
+.table thead th {
+  background-color: rgba(var(--cronch-accent-rgb), 0.08);
 }
 
-[data-bs-theme="light"] .table thead::after {
-  background: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.5) 0%,
-    transparent 100%
-  );
+.table tbody tr:last-child td,
+.table tbody tr:last-child th {
+  border-bottom: 0;
 }
 
 /* Left accent bar for clickable rows */
