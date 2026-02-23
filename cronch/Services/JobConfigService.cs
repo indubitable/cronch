@@ -6,7 +6,7 @@ namespace cronch.Services;
 
 public class JobConfigService(ConfigPersistenceService _configPersistenceService, JobSchedulingService _jobSchedulingService)
 {
-    public void CreateJob(JobModel jobModel, bool assignNewId)
+    public async Task CreateJobAsync(JobModel jobModel, bool assignNewId)
     {
         var config = _configPersistenceService.Load() ?? new ConfigPersistenceModel();
         var persistenceJobs = config.Jobs;
@@ -24,10 +24,10 @@ public class JobConfigService(ConfigPersistenceService _configPersistenceService
         persistenceJobs.Add(newPersistenceJob);
         _configPersistenceService.Save(config);
 
-        _jobSchedulingService.RefreshSchedules(GetAllJobs());
+        await _jobSchedulingService.RefreshSchedulesAsync(GetAllJobs());
     }
 
-    public void UpdateJob(JobModel jobModel)
+    public async Task UpdateJobAsync(JobModel jobModel)
     {
         var config = _configPersistenceService.Load() ?? new ConfigPersistenceModel();
         var persistenceJobs = config.Jobs;
@@ -37,10 +37,10 @@ public class JobConfigService(ConfigPersistenceService _configPersistenceService
         persistenceJobs.Add(jobModel.ToPersistence());
         _configPersistenceService.Save(config);
 
-        _jobSchedulingService.RefreshSchedules(GetAllJobs());
+        await _jobSchedulingService.RefreshSchedulesAsync(GetAllJobs());
     }
 
-    public void DeleteJob(Guid id)
+    public async Task DeleteJobAsync(Guid id)
     {
         var config = _configPersistenceService.Load() ?? new ConfigPersistenceModel();
         var persistenceJobs = config.Jobs;
@@ -49,7 +49,7 @@ public class JobConfigService(ConfigPersistenceService _configPersistenceService
         persistenceJobs.Remove(oldPersistenceJob);
         _configPersistenceService.Save(config);
 
-        _jobSchedulingService.RefreshSchedules(GetAllJobs());
+        await _jobSchedulingService.RefreshSchedulesAsync(GetAllJobs());
     }
 
     public virtual List<JobModel> GetAllJobs()

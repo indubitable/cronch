@@ -9,30 +9,26 @@ public class JobSchedulingService(ILogger<JobSchedulingService> _logger, ISchedu
     private const string TriggerGroupName = "cronch";
     private const string JobGroupName = "cronch";
 
-    public bool IsRunning
+    public virtual async Task<bool> IsRunningAsync()
     {
-        get
+        try
         {
-            try
-            {
-                var scheduler = _schedulerFactory.GetScheduler().GetAwaiter().GetResult();
-                return scheduler.IsStarted && !scheduler.IsShutdown;
-            }
-            catch
-            {
-                return false;
-            }
+            var scheduler = await _schedulerFactory.GetScheduler();
+            return scheduler.IsStarted && !scheduler.IsShutdown;
+        }
+        catch
+        {
+            return false;
         }
     }
 
-    public virtual void RefreshSchedules(IEnumerable<JobModel> allJobs)
+    public virtual async Task RefreshSchedulesAsync(IEnumerable<JobModel> allJobs)
     {
-        var scheduler = _schedulerFactory.GetScheduler().GetAwaiter().GetResult();
+        var scheduler = await _schedulerFactory.GetScheduler();
         var enabledJobs = allJobs.Where(j => j.Enabled && !string.IsNullOrWhiteSpace(j.CronSchedule)).ToList();
 
         // Get all currently scheduled trigger keys in our group
-        var existingTriggerKeys = scheduler.GetTriggerKeys(GroupMatcher<TriggerKey>.GroupEquals(TriggerGroupName))
-            .GetAwaiter().GetResult();
+        var existingTriggerKeys = await scheduler.GetTriggerKeys(GroupMatcher<TriggerKey>.GroupEquals(TriggerGroupName));
 
         var desiredTriggerKeys = new HashSet<string>(enabledJobs.Select(j => j.Id.ToString()));
 
@@ -41,9 +37,9 @@ public class JobSchedulingService(ILogger<JobSchedulingService> _logger, ISchedu
         {
             if (!desiredTriggerKeys.Contains(triggerKey.Name))
             {
-                scheduler.UnscheduleJob(triggerKey).GetAwaiter().GetResult();
+                await scheduler.UnscheduleJob(triggerKey);
                 var jobKey = new JobKey(triggerKey.Name, JobGroupName);
-                scheduler.DeleteJob(jobKey).GetAwaiter().GetResult();
+                await scheduler.DeleteJob(jobKey);
                 _logger.LogDebug("Unscheduled job {Id}", triggerKey.Name);
             }
         }
@@ -53,7 +49,7 @@ public class JobSchedulingService(ILogger<JobSchedulingService> _logger, ISchedu
         {
             try
             {
-                ScheduleOrUpdateJob(scheduler, job);
+                await ScheduleOrUpdateJobAsync(scheduler, job);
             }
             catch (Exception ex)
             {
@@ -62,13 +58,13 @@ public class JobSchedulingService(ILogger<JobSchedulingService> _logger, ISchedu
         }
     }
 
-    public virtual DateTimeOffset? GetNextExecution(Guid jobId)
+    public virtual async Task<DateTimeOffset?> GetNextExecutionAsync(Guid jobId)
     {
         try
         {
-            var scheduler = _schedulerFactory.GetScheduler().GetAwaiter().GetResult();
+            var scheduler = await _schedulerFactory.GetScheduler();
             var triggerKey = new TriggerKey(jobId.ToString(), TriggerGroupName);
-            var trigger = scheduler.GetTrigger(triggerKey).GetAwaiter().GetResult();
+            var trigger = await scheduler.GetTrigger(triggerKey);
             return trigger?.GetNextFireTimeUtc();
         }
         catch
@@ -77,7 +73,7 @@ public class JobSchedulingService(ILogger<JobSchedulingService> _logger, ISchedu
         }
     }
 
-    private void ScheduleOrUpdateJob(IScheduler scheduler, JobModel job)
+    private async Task ScheduleOrUpdateJobAsync(IScheduler scheduler, JobModel job)
     {
         var jobKey = new JobKey(job.Id.ToString(), JobGroupName);
         var triggerKey = new TriggerKey(job.Id.ToString(), TriggerGroupName);
@@ -96,10 +92,10 @@ public class JobSchedulingService(ILogger<JobSchedulingService> _logger, ISchedu
             .WithCronSchedule(cronExpression, x => x.InTimeZone(TimeZoneInfo.Local))
             .Build();
 
-        if (scheduler.CheckExists(jobKey).GetAwaiter().GetResult())
+        if (await scheduler.CheckExists(jobKey))
         {
             // Job exists — reschedule the trigger
-            scheduler.RescheduleJob(triggerKey, trigger).GetAwaiter().GetResult();
+            await scheduler.RescheduleJob(triggerKey, trigger);
             _logger.LogDebug("Rescheduled job '{Name}' ({Id})", job.Name, job.Id);
         }
         else
@@ -110,7 +106,7 @@ public class JobSchedulingService(ILogger<JobSchedulingService> _logger, ISchedu
                 .UsingJobData(CronchQuartzJob.JobIdKey, job.Id.ToString())
                 .Build();
 
-            scheduler.ScheduleJob(jobDetail, trigger).GetAwaiter().GetResult();
+            await scheduler.ScheduleJob(jobDetail, trigger);
             _logger.LogDebug("Scheduled job '{Name}' ({Id})", job.Name, job.Id);
         }
     }

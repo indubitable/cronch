@@ -40,7 +40,7 @@ public class EditJobModel(JobConfigService _jobConfigService) : PageModel
         }
     }
 
-    public IActionResult OnPost(Guid id)
+    public async Task<IActionResult> OnPostAsync(Guid id)
     {
         ViewData["CurrentJobId"] = id;
         if (JobVM == null || !ModelState.IsValid)
@@ -50,7 +50,7 @@ public class EditJobModel(JobConfigService _jobConfigService) : PageModel
 
         var model = JobVM.ToModel();
         model.Id = id;
-        _jobConfigService.UpdateJob(model);
+        await _jobConfigService.UpdateJobAsync(model);
 
         if (Request.Headers.ContainsKey("HX-Request"))
         {

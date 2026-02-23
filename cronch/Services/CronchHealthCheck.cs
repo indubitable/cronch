@@ -4,25 +4,25 @@ namespace cronch.Services;
 
 public class CronchHealthCheck(JobSchedulingService _schedulingService, ExecutionPersistenceService _executionPersistenceService) : IHealthCheck
 {
-    public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
+    public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
-        if (!_schedulingService.IsRunning)
+        if (!await _schedulingService.IsRunningAsync())
         {
-            return Task.FromResult(HealthCheckResult.Unhealthy("Scheduling service is not running"));
+            return HealthCheckResult.Unhealthy("Scheduling service is not running");
         }
 
         try
         {
             if (!_executionPersistenceService.CheckDatabaseConnectivity())
             {
-                return Task.FromResult(HealthCheckResult.Unhealthy("Database connectivity check failed"));
+                return HealthCheckResult.Unhealthy("Database connectivity check failed");
             }
         }
         catch (Exception ex)
         {
-            return Task.FromResult(HealthCheckResult.Unhealthy("Database connectivity check failed", ex));
+            return HealthCheckResult.Unhealthy("Database connectivity check failed", ex);
         }
 
-        return Task.FromResult(HealthCheckResult.Healthy());
+        return HealthCheckResult.Healthy();
     }
 }

@@ -31,7 +31,7 @@ public class AddJobModel(JobConfigService _jobConfigService) : PageModel
         }
     }
 
-    public IActionResult OnPost()
+    public async Task<IActionResult> OnPostAsync()
     {
         ViewData["CurrentJobId"] = Guid.Empty;
         if (JobVM == null || !ModelState.IsValid)
@@ -39,7 +39,7 @@ public class AddJobModel(JobConfigService _jobConfigService) : PageModel
             return Page();
         }
 
-        _jobConfigService.CreateJob(JobVM.ToModel(), true);
+        await _jobConfigService.CreateJobAsync(JobVM.ToModel(), true);
 
         if (Request.Headers.ContainsKey("HX-Request"))
         {

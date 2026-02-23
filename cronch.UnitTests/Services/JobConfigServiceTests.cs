@@ -47,18 +47,18 @@ public class JobConfigServiceTests
     // --- CreateJob ---
 
     [TestMethod]
-    public void CreateJobShouldAssignNewGuidWhenAssignNewIdIsTrue()
+    public async Task CreateJobShouldAssignNewGuidWhenAssignNewIdIsTrue()
     {
         _configPersistence.Load().Returns(new ConfigPersistenceModel());
         var job = new JobModel { Id = Guid.Empty, Name = "Test", Executor = "bash", Script = "" };
 
-        _jobConfigService.CreateJob(job, assignNewId: true);
+        await _jobConfigService.CreateJobAsync(job, assignNewId: true);
 
         Assert.AreNotEqual(Guid.Empty, job.Id);
     }
 
     [TestMethod]
-    public void CreateJobShouldThrowWhenIdAlreadyExistsAndAssignNewIdIsFalse()
+    public async Task CreateJobShouldThrowWhenIdAlreadyExistsAndAssignNewIdIsFalse()
     {
         var existingId = Guid.NewGuid();
         _configPersistence.Load().Returns(new ConfigPersistenceModel
@@ -67,34 +67,35 @@ public class JobConfigServiceTests
         });
         var job = new JobModel { Id = existingId, Name = "Duplicate" };
 
-        Assert.ThrowsExactly<InvalidOperationException>(() =>
-            _jobConfigService.CreateJob(job, assignNewId: false));
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await _jobConfigService.CreateJobAsync(job, assignNewId: false));
     }
 
     [TestMethod]
-    public void CreateJobShouldRefreshSchedulesAfterSaving()
+    public async Task CreateJobShouldRefreshSchedulesAfterSaving()
     {
         _configPersistence.Load().Returns(new ConfigPersistenceModel());
         var job = new JobModel { Id = Guid.NewGuid(), Name = "Test", Executor = "bash", Script = "" };
 
-        _jobConfigService.CreateJob(job, assignNewId: false);
+        await _jobConfigService.CreateJobAsync(job, assignNewId: false);
 
-        _jobScheduling.Received(1).RefreshSchedules(Arg.Any<IEnumerable<JobModel>>());
+        await _jobScheduling.Received(1).RefreshSchedulesAsync(Arg.Any<IEnumerable<JobModel>>());
     }
 
     // --- UpdateJob ---
 
     [TestMethod]
-    public void UpdateJobShouldThrowWhenJobDoesNotExist()
+    public async Task UpdateJobShouldThrowWhenJobDoesNotExist()
     {
         _configPersistence.Load().Returns(new ConfigPersistenceModel());
 
-        Assert.ThrowsExactly<InvalidOperationException>(() =>
-            _jobConfigService.UpdateJob(new JobModel { Id = Guid.NewGuid() }));
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await _jobConfigService.UpdateJobAsync(new JobModel { Id = Guid.NewGuid() }));
+
     }
 
     [TestMethod]
-    public void UpdateJobShouldRefreshSchedulesAfterSaving()
+    public async Task UpdateJobShouldRefreshSchedulesAfterSaving()
     {
         var id = Guid.NewGuid();
         _configPersistence.Load().Returns(new ConfigPersistenceModel
@@ -102,24 +103,24 @@ public class JobConfigServiceTests
             Jobs = [new JobPersistenceModel { Id = id }]
         });
 
-        _jobConfigService.UpdateJob(new JobModel { Id = id, Name = "Updated" });
+        await _jobConfigService.UpdateJobAsync(new JobModel { Id = id, Name = "Updated" });
 
-        _jobScheduling.Received(1).RefreshSchedules(Arg.Any<IEnumerable<JobModel>>());
+        await _jobScheduling.Received(1).RefreshSchedulesAsync(Arg.Any<IEnumerable<JobModel>>());
     }
 
     // --- DeleteJob ---
 
     [TestMethod]
-    public void DeleteJobShouldThrowWhenJobDoesNotExist()
+    public async Task DeleteJobShouldThrowWhenJobDoesNotExist()
     {
         _configPersistence.Load().Returns(new ConfigPersistenceModel());
 
-        Assert.ThrowsExactly<InvalidOperationException>(() =>
-            _jobConfigService.DeleteJob(Guid.NewGuid()));
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await _jobConfigService.DeleteJobAsync(Guid.NewGuid()));
     }
 
     [TestMethod]
-    public void DeleteJobShouldRefreshSchedulesAfterSaving()
+    public async Task DeleteJobShouldRefreshSchedulesAfterSaving()
     {
         var id = Guid.NewGuid();
         _configPersistence.Load().Returns(new ConfigPersistenceModel
@@ -127,8 +128,8 @@ public class JobConfigServiceTests
             Jobs = [new JobPersistenceModel { Id = id }]
         });
 
-        _jobConfigService.DeleteJob(id);
+        await _jobConfigService.DeleteJobAsync(id);
 
-        _jobScheduling.Received(1).RefreshSchedules(Arg.Any<IEnumerable<JobModel>>());
+        await _jobScheduling.Received(1).RefreshSchedulesAsync(Arg.Any<IEnumerable<JobModel>>());
     }
 }

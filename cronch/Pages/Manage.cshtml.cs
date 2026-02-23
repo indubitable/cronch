@@ -10,23 +10,23 @@ public class ManageModel(JobConfigService _jobConfigService, JobExecutionService
 {
     public List<JobViewModel> Jobs { get; set; } = [];
 
-    public void OnGet()
+    public async Task OnGetAsync()
     {
         Jobs = _jobConfigService.GetAllJobs()
             .Select(ConversionUtility.ToViewModel)
             .OrderByDescending(j => j.Enabled).ThenBy(j => j.Name)
             .ToList();
 
-        PostProcessRetrievedJobs();
+        await PostProcessRetrievedJobsAsync();
     }
 
-    public IActionResult OnPostDeleteJob(Guid id)
+    public async Task<IActionResult> OnPostDeleteJobAsync(Guid id)
     {
-        _jobConfigService.DeleteJob(id);
+        await _jobConfigService.DeleteJobAsync(id);
         return RedirectToPage("/Manage");
     }
 
-    public IActionResult OnPostDuplicateJob(Guid originalJobId, string duplicateName)
+    public async Task<IActionResult> OnPostDuplicateJobAsync(Guid originalJobId, string duplicateName)
     {
         var originalJob = _jobConfigService.GetJob(originalJobId);
         if (originalJob == null)
@@ -40,7 +40,7 @@ public class ManageModel(JobConfigService _jobConfigService, JobExecutionService
         newJob.Name = duplicateName;
         newJob.Enabled = false;
 
-        _jobConfigService.CreateJob(newJob, false);
+        await _jobConfigService.CreateJobAsync(newJob, false);
 
         return RedirectToPage("/EditJob", new { id = newJob.Id });
     }
@@ -64,7 +64,7 @@ public class ManageModel(JobConfigService _jobConfigService, JobExecutionService
         return RedirectToPage("/Manage");
     }
 
-    public IActionResult OnPostMultiSelectAction([FromForm] string action, [FromForm] List<Guid> jobIds)
+    public async Task<IActionResult> OnPostMultiSelectActionAsync([FromForm] string action, [FromForm] List<Guid> jobIds)
     {
         var verb = string.Empty;
         foreach (var jobId in jobIds)
@@ -89,7 +89,7 @@ public class ManageModel(JobConfigService _jobConfigService, JobExecutionService
                     return RedirectToPage("/Manage");
                 }
 
-                _jobConfigService.UpdateJob(job);
+                await _jobConfigService.UpdateJobAsync(job);
             }
         }
 
@@ -98,13 +98,13 @@ public class ManageModel(JobConfigService _jobConfigService, JobExecutionService
         return RedirectToPage("/Manage");
     }
 
-    private void PostProcessRetrievedJobs()
+    private async Task PostProcessRetrievedJobsAsync()
     {
         var latestExecutionsPerJob = _jobExecutionService.GetLatestExecutionsPerJob();
         foreach (var job in Jobs)
         {
             job.LatestExecution = (latestExecutionsPerJob.ContainsKey(job.Id) ? latestExecutionsPerJob[job.Id] : null);
-            job.NextExecution = (job.Enabled ? _jobSchedulingService.GetNextExecution(job.Id) : null);
+            job.NextExecution = (job.Enabled ? await _jobSchedulingService.GetNextExecutionAsync(job.Id) : null);
         }
     }
 }

@@ -94,7 +94,7 @@ using (var scope = app.Services.CreateScope())
 
     var configService = services.GetRequiredService<JobConfigService>();
     var schedulingService = services.GetRequiredService<JobSchedulingService>();
-    schedulingService.RefreshSchedules(configService.GetAllJobs());
+    await schedulingService.RefreshSchedulesAsync(configService.GetAllJobs());
 }
 
 app.MapStaticAssets();

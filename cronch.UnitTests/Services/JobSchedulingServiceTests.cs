@@ -46,9 +46,9 @@ public class JobSchedulingServiceTests
     // --- IsRunning ---
 
     [TestMethod]
-    public void IsRunningShouldReturnTrueWhenSchedulerIsStarted()
+    public async Task IsRunningShouldReturnTrueWhenSchedulerIsStarted()
     {
-        Assert.IsTrue(_jobSchedulingService.IsRunning);
+        Assert.IsTrue(await _jobSchedulingService.IsRunningAsync());
     }
 
     [TestMethod]
@@ -56,29 +56,29 @@ public class JobSchedulingServiceTests
     {
         await _scheduler.Shutdown(waitForJobsToComplete: false);
 
-        Assert.IsFalse(_jobSchedulingService.IsRunning);
+        Assert.IsFalse(await _jobSchedulingService.IsRunningAsync());
     }
 
     // --- GetNextExecution ---
 
     [TestMethod]
-    public void GetNextExecutionShouldReturnNullWhenJobIdIsNotScheduled()
+    public async Task GetNextExecutionShouldReturnNullWhenJobIdIsNotScheduled()
     {
-        var result = _jobSchedulingService.GetNextExecution(Guid.NewGuid());
+        var result = await _jobSchedulingService.GetNextExecutionAsync(Guid.NewGuid());
 
         Assert.IsNull(result);
     }
 
     [TestMethod]
-    public void GetNextExecutionShouldReturnFutureTimeForScheduledJob()
+    public async Task GetNextExecutionShouldReturnFutureTimeForScheduledJob()
     {
         var jobId = Guid.NewGuid();
         // "* * * * * ?" fires every second in Quartz format
         var job = new JobModel { Id = jobId, Enabled = true, CronSchedule = "* * * * * ?" };
         var before = DateTimeOffset.Now;
 
-        _jobSchedulingService.RefreshSchedules([job]);
-        var result = _jobSchedulingService.GetNextExecution(jobId);
+        await _jobSchedulingService.RefreshSchedulesAsync([job]);
+        var result = await _jobSchedulingService.GetNextExecutionAsync(jobId);
 
         Assert.IsNotNull(result);
         // Quartz may return the current second boundary (inclusive), so allow >= before minus 1 second
@@ -87,31 +87,31 @@ public class JobSchedulingServiceTests
     }
 
     [TestMethod]
-    public void GetNextExecutionShouldReturnNullAfterJobIsRemovedViaRefreshSchedules()
+    public async Task GetNextExecutionShouldReturnNullAfterJobIsRemovedViaRefreshSchedules()
     {
         var jobId = Guid.NewGuid();
         var job = new JobModel { Id = jobId, Enabled = true, CronSchedule = "* * * * * ?" };
 
-        _jobSchedulingService.RefreshSchedules([job]);
-        Assert.IsNotNull(_jobSchedulingService.GetNextExecution(jobId), "Precondition: job should have a next execution before removal");
+        await _jobSchedulingService.RefreshSchedulesAsync([job]);
+        Assert.IsNotNull(await _jobSchedulingService.GetNextExecutionAsync(jobId), "Precondition: job should have a next execution before removal");
 
-        _jobSchedulingService.RefreshSchedules([]);
-        var result = _jobSchedulingService.GetNextExecution(jobId);
+        await _jobSchedulingService.RefreshSchedulesAsync([]);
+        var result = await _jobSchedulingService.GetNextExecutionAsync(jobId);
 
         Assert.IsNull(result);
     }
 
     [TestMethod]
-    public void GetNextExecutionShouldReturnNullAfterJobIsDisabledViaRefreshSchedules()
+    public async Task GetNextExecutionShouldReturnNullAfterJobIsDisabledViaRefreshSchedules()
     {
         var jobId = Guid.NewGuid();
         var job = new JobModel { Id = jobId, Enabled = true, CronSchedule = "* * * * * ?" };
 
-        _jobSchedulingService.RefreshSchedules([job]);
-        Assert.IsNotNull(_jobSchedulingService.GetNextExecution(jobId), "Precondition: job should have a next execution while enabled");
+        await _jobSchedulingService.RefreshSchedulesAsync([job]);
+        Assert.IsNotNull(await _jobSchedulingService.GetNextExecutionAsync(jobId), "Precondition: job should have a next execution while enabled");
 
-        _jobSchedulingService.RefreshSchedules([new JobModel { Id = jobId, Enabled = false, CronSchedule = "* * * * * ?" }]);
-        var result = _jobSchedulingService.GetNextExecution(jobId);
+        await _jobSchedulingService.RefreshSchedulesAsync([new JobModel { Id = jobId, Enabled = false, CronSchedule = "* * * * * ?" }]);
+        var result = await _jobSchedulingService.GetNextExecutionAsync(jobId);
 
         Assert.IsNull(result);
     }
@@ -124,7 +124,7 @@ public class JobSchedulingServiceTests
         var jobId = Guid.NewGuid();
         var job = new JobModel { Id = jobId, Enabled = true, CronSchedule = "0 0 12 * * ?" };
 
-        _jobSchedulingService.RefreshSchedules([job]);
+        await _jobSchedulingService.RefreshSchedulesAsync([job]);
 
         var triggerKey = new TriggerKey(jobId.ToString(), "cronch");
         var trigger = await _scheduler.GetTrigger(triggerKey);
@@ -137,7 +137,7 @@ public class JobSchedulingServiceTests
         var jobId = Guid.NewGuid();
         var job = new JobModel { Id = jobId, Enabled = false, CronSchedule = "0 0 12 * * ?" };
 
-        _jobSchedulingService.RefreshSchedules([job]);
+        await _jobSchedulingService.RefreshSchedulesAsync([job]);
 
         var triggerKey = new TriggerKey(jobId.ToString(), "cronch");
         var trigger = await _scheduler.GetTrigger(triggerKey);
@@ -150,7 +150,7 @@ public class JobSchedulingServiceTests
         var jobId = Guid.NewGuid();
         var job = new JobModel { Id = jobId, Enabled = true, CronSchedule = null };
 
-        _jobSchedulingService.RefreshSchedules([job]);
+        await _jobSchedulingService.RefreshSchedulesAsync([job]);
 
         var triggerKey = new TriggerKey(jobId.ToString(), "cronch");
         var trigger = await _scheduler.GetTrigger(triggerKey);
@@ -163,12 +163,12 @@ public class JobSchedulingServiceTests
         var jobId = Guid.NewGuid();
         var job = new JobModel { Id = jobId, Enabled = true, CronSchedule = "0 0 12 * * ?" };
 
-        _jobSchedulingService.RefreshSchedules([job]);
+        await _jobSchedulingService.RefreshSchedulesAsync([job]);
 
         var triggerKey = new TriggerKey(jobId.ToString(), "cronch");
         Assert.IsNotNull(await _scheduler.GetTrigger(triggerKey), "Precondition");
 
-        _jobSchedulingService.RefreshSchedules([]);
+        await _jobSchedulingService.RefreshSchedulesAsync([]);
 
         Assert.IsNull(await _scheduler.GetTrigger(triggerKey));
     }
@@ -179,7 +179,7 @@ public class JobSchedulingServiceTests
         var jobId = Guid.NewGuid();
         var job = new JobModel { Id = jobId, Enabled = true, CronSchedule = "0 0 12 * * ?" };
 
-        _jobSchedulingService.RefreshSchedules([job]);
+        await _jobSchedulingService.RefreshSchedulesAsync([job]);
 
         var triggerKey = new TriggerKey(jobId.ToString(), "cronch");
         var trigger1 = await _scheduler.GetTrigger(triggerKey) as ICronTrigger;
@@ -188,7 +188,7 @@ public class JobSchedulingServiceTests
 
         // Change the cron schedule
         var updatedJob = new JobModel { Id = jobId, Enabled = true, CronSchedule = "0 30 6 * * ?" };
-        _jobSchedulingService.RefreshSchedules([updatedJob]);
+        await _jobSchedulingService.RefreshSchedulesAsync([updatedJob]);
 
         var trigger2 = await _scheduler.GetTrigger(triggerKey) as ICronTrigger;
         Assert.IsNotNull(trigger2);
