@@ -5,5 +5,6 @@
     <EnableSourceControlManagerQueries>true</EnableSourceControlManagerQueries>
     <AnalysisLevel>latest</AnalysisLevel>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <TreatWarningsAsErrors Condition="'$(CI)' == 'true'">true</TreatWarningsAsErrors>
   </PropertyGroup>
 </Project>
