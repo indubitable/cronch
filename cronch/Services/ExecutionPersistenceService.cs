@@ -255,9 +255,12 @@ public partial class ExecutionPersistenceService(ILogger<ExecutionPersistenceSer
 			.Where(d => Guid.TryParseExact(Path.GetFileName(d), "D", out var _));
 		foreach (var subdir in allDataSubdirectories)
 		{
-			if (!Guid.TryParseExact(Path.GetFileName(subdir), "D", out var id)) continue;
+			if (!Guid.TryParseExact(Path.GetFileName(subdir), "D", out var id))
+            {
+                continue;
+            }
 
-			if (!knownJobIds.Contains(id))
+            if (!knownJobIds.Contains(id))
 			{
 				// Found one! Remove it.
 				try
@@ -329,21 +332,18 @@ public partial class ExecutionPersistenceService(ILogger<ExecutionPersistenceSer
 		return Path.GetFullPath(location);
 	}
 
-	private static DateTimeOffset ParseDate(string dateString)
-	{
-		return DateTimeOffset.Parse(dateString, CultureInfo.InvariantCulture.DateTimeFormat, DateTimeStyles.AssumeUniversal);
-	}
+    private static DateTimeOffset ParseDate(string dateString) => DateTimeOffset.Parse(dateString, CultureInfo.InvariantCulture.DateTimeFormat, DateTimeStyles.AssumeUniversal);
 
-	private static string FormatDate(DateTimeOffset date)
-	{
-		return date.ToUniversalTime().ToString("yyyy'-'MM'-'dd HH':'mm':'ss'.'fffffff", CultureInfo.InvariantCulture.DateTimeFormat);
-	}
+    private static string FormatDate(DateTimeOffset date) => date.ToUniversalTime().ToString("yyyy'-'MM'-'dd HH':'mm':'ss'.'fffffff", CultureInfo.InvariantCulture.DateTimeFormat);
 
-	private static ExecutionModel? ReadModel(dynamic? modelData)
+    private static ExecutionModel? ReadModel(dynamic? modelData)
 	{
-		if (modelData == null) return null;
+		if (modelData == null)
+        {
+            return null;
+        }
 
-		return new ExecutionModel
+        return new ExecutionModel
 		{
 			Id = Guid.ParseExact(modelData.Id, "D"),
 			JobId = Guid.ParseExact(modelData.JobId, "D"),

@@ -141,7 +141,10 @@ public class ExecutionPersistenceServiceTests
     [TestMethod]
     public void GetRecentExecutionsShouldRespectMaxCount()
     {
-        for (var i = 0; i < 5; i++) AddExecution();
+        for (var i = 0; i < 5; i++)
+        {
+            AddExecution();
+        }
 
         var results = _service.GetRecentExecutions(3, null, null).ToList();
 

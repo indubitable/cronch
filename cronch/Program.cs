@@ -41,18 +41,12 @@ if (builder.Environment.IsDevelopment())
 
 if (OperatingSystem.IsWindows())
 {
-    builder.Services.AddWindowsService(options =>
-    {
-        options.ServiceName = "CRONCH!";
-    });
+    builder.Services.AddWindowsService(options => options.ServiceName = "CRONCH!");
     builder.Services.AddHostedService<WindowsHostedService>();
 }
 
 builder.Services.AddQuartz();
-builder.Services.AddQuartzHostedService(options =>
-{
-    options.WaitForJobsToComplete = true;
-});
+builder.Services.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);
 
 builder.Services.AddSingleton<JobConfigService>();
 builder.Services.AddSingleton<ConfigPersistenceService>();
@@ -65,6 +59,8 @@ builder.Services.AddSingleton<ProcessFactory>();
 builder.Services.AddSingleton<ExecutionPersistenceService>();
 
 builder.Services.AddTransient<ExecutionEngine>();
+
+builder.Services.AddHostedService<ParentProcessMonitorService>();
 
 builder.Services.AddHealthChecks()
     .AddCheck<CronchHealthCheck>("cronch");

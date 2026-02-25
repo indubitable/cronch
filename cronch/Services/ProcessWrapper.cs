@@ -4,7 +4,7 @@ namespace cronch.Services;
 
 public class ProcessWrapper : IDisposable
 {
-    private Process _process = null!;
+    private readonly Process _process = null!;
 
     public ProcessWrapper(ProcessStartInfo startInfo)
     {

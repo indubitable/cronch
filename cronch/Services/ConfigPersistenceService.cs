@@ -32,9 +32,10 @@ public class ConfigPersistenceService(ILogger<ConfigPersistenceService> _logger,
             try
             {
                 using var fileStream = File.OpenRead(filePathname);
-                var config = _serializer.Deserialize(fileStream) as ConfigPersistenceModel;
-                if (config != null)
+                if (_serializer.Deserialize(fileStream) is ConfigPersistenceModel config)
+                {
                     return config;
+                }
             }
             catch (InvalidOperationException)
             {
@@ -111,8 +112,5 @@ public class ConfigPersistenceService(ILogger<ConfigPersistenceService> _logger,
         }
     }
 
-    private static void ArrangeModel(ConfigPersistenceModel model)
-    {
-        model.Jobs.Sort((a, b) => a.Id.CompareTo(b.Id));
-    }
+    private static void ArrangeModel(ConfigPersistenceModel model) => model.Jobs.Sort((a, b) => a.Id.CompareTo(b.Id));
 }

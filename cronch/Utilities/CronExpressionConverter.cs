@@ -17,7 +17,9 @@ public static class CronExpressionConverter
     public static string? TryConvertCronosToQuartz(string? cronosExpression)
     {
         if (string.IsNullOrWhiteSpace(cronosExpression))
+        {
             return cronosExpression;
+        }
 
         try
         {
@@ -40,7 +42,9 @@ public static class CronExpressionConverter
         // Cronos with seconds: sec min hr dom mon dow (6 fields)
         // Cronos does not support a year field
         if (parts.Length != 6)
+        {
             throw new FormatException($"Expected 6 fields in Cronos cron expression, got {parts.Length}: '{cronosExpression}'");
+        }
 
         var sec = parts[0];
         var min = parts[1];
@@ -69,7 +73,9 @@ public static class CronExpressionConverter
         // But named days (SUN, MON, etc.) are already correct in Quartz
 
         if (field == "*" || field == "?")
+        {
             return field;
+        }
 
         // Process each comma-separated part
         var parts = field.Split(',');
@@ -125,27 +131,32 @@ public static class CronExpressionConverter
     private static string IncrementDowValue(string value)
     {
         if (value == "*" || value == "?")
+        {
             return value;
+        }
 
         // Named days don't need conversion
         if (!int.TryParse(value, out var numericValue))
+        {
             return value;
+        }
 
         // Cronos: 0=SUN..6=SAT, 7=SUN
         // Quartz: 1=SUN..7=SAT
         if (numericValue == 7)
+        {
             return "1"; // 7 (SUN in Cronos) → 1 (SUN in Quartz)
+        }
 
         if (numericValue < 0 || numericValue > 6)
+        {
             throw new FormatException($"Invalid day-of-week value: {value}");
+        }
 
         return (numericValue + 1).ToString();
     }
 
-    private static bool IsWildcard(string field)
-    {
-        return field == "*" || field == "?";
-    }
+    private static bool IsWildcard(string field) => field == "*" || field == "?";
 
     private static (string dom, string dow) ApplyQuestionMarkRule(string dom, string dow)
     {

@@ -101,7 +101,11 @@ public class CleanupServiceTests
     public void CleanUpExecutionsByCountShouldDoNothingWhenSettingIsNull()
     {
         var jobId = Guid.NewGuid();
-        for (var i = 0; i < 5; i++) AddExecution(jobId: jobId);
+        for (var i = 0; i < 5; i++)
+        {
+            AddExecution(jobId: jobId);
+        }
+
         var sut = CreateCleanupService(
             settings: new SettingsModel { DeleteHistoricalRunsAfterCount = null },
             jobIds: [jobId]);
@@ -141,7 +145,11 @@ public class CleanupServiceTests
     public void CleanUpExecutionsByCountShouldNotDeleteWhenCountIsWithinLimit()
     {
         var jobId = Guid.NewGuid();
-        for (var i = 0; i < 3; i++) AddExecution(jobId: jobId);
+        for (var i = 0; i < 3; i++)
+        {
+            AddExecution(jobId: jobId);
+        }
+
         var sut = CreateCleanupService(
             settings: new SettingsModel { DeleteHistoricalRunsAfterCount = 5 },
             jobIds: [jobId]);
@@ -158,8 +166,14 @@ public class CleanupServiceTests
         var unconfiguredJobId = Guid.NewGuid();
 
         var baseTime = DateTimeOffset.UtcNow.AddMinutes(-10);
-        for (var i = 0; i < 4; i++) AddExecution(jobId: configuredJobId, startedOn: baseTime.AddMinutes(i));
-        for (var i = 0; i < 4; i++) AddExecution(jobId: unconfiguredJobId, startedOn: baseTime.AddMinutes(i));
+        for (var i = 0; i < 4; i++)
+        {
+            AddExecution(jobId: configuredJobId, startedOn: baseTime.AddMinutes(i));
+        }
+        for (var i = 0; i < 4; i++)
+        {
+            AddExecution(jobId: unconfiguredJobId, startedOn: baseTime.AddMinutes(i));
+        }
 
         // Only configuredJobId is known to JobConfigService
         var sut = CreateCleanupService(

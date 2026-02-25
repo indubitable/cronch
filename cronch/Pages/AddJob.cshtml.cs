@@ -20,7 +20,10 @@ public class AddJobModel(JobConfigService _jobConfigService) : PageModel
     public IActionResult OnGetCronPreview(string? cronSchedule)
     {
         if (string.IsNullOrWhiteSpace(cronSchedule))
+        {
             return Content(string.Empty, "text/html");
+        }
+
         try
         {
             return Content(CronDescriptionUtility.Describe(cronSchedule), "text/html");

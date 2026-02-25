@@ -9,7 +9,10 @@ public class CleanupService(ILogger<CleanupService> _logger, JobConfigService _j
 
     public virtual void Initialize()
     {
-        if (_runThread != null) return;
+        if (_runThread != null)
+        {
+            return;
+        }
 
         _runThread = new Thread(RunCleanupThread)
         {
@@ -55,7 +58,10 @@ public class CleanupService(ILogger<CleanupService> _logger, JobConfigService _j
     internal void CleanUpExecutionsByAge(ExecutionPersistenceService executionPersistenceService)
     {
         var maxAgeDays = _settingsService.LoadSettings().DeleteHistoricalRunsAfterDays;
-        if (!maxAgeDays.HasValue) return;
+        if (!maxAgeDays.HasValue)
+        {
+            return;
+        }
 
         var oldExecutions = executionPersistenceService.GetExecutionsOlderThan(DateTimeOffset.UtcNow.AddDays(-1 * maxAgeDays.Value));
         DeleteExecutions(executionPersistenceService, oldExecutions);
@@ -64,7 +70,10 @@ public class CleanupService(ILogger<CleanupService> _logger, JobConfigService _j
     internal void CleanUpExecutionsByCount(ExecutionPersistenceService executionPersistenceService)
     {
         var maxCount = _settingsService.LoadSettings().DeleteHistoricalRunsAfterCount;
-        if (!maxCount.HasValue) return;
+        if (!maxCount.HasValue)
+        {
+            return;
+        }
 
         var allJobIds = _jobConfigService.GetAllJobs().Select(j => j.Id);
         foreach (var jobId in allJobIds)

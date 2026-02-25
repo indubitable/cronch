@@ -75,12 +75,9 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
 			.ToList();
 	}
 
-	public virtual List<ExecutionIdentifier> GetAllRunningExecutions()
-	{
-		return _executions.Keys.ToList();
-	}
+    public virtual List<ExecutionIdentifier> GetAllRunningExecutions() => _executions.Keys.ToList();
 
-	public virtual void TerminateExecution(Guid id)
+    public virtual void TerminateExecution(Guid id)
 	{
 		if (_execCancellations.TryGetValue(id, out var cancelSource))
 		{
@@ -168,12 +165,18 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
 
 	private ExecutionViewModel? ConvertExecutionModelToViewModel(ExecutionModel? model)
 	{
-		if (model == null) return null;
+		if (model == null)
+        {
+            return null;
+        }
 
-		var currentExecutions = _executions.Keys.ToList();
-		ExecutionStatus fixOutdatedRunningStatus(Guid execId, ExecutionStatus es) => (es == ExecutionStatus.Running && !currentExecutions.Any(ce => ce.ExecutionId == execId)) ? ExecutionStatus.Unknown : es;
+        var currentExecutions = _executions.Keys.ToList();
+        ExecutionStatus fixOutdatedRunningStatus(Guid execId, ExecutionStatus es)
+        {
+            return (es == ExecutionStatus.Running && !currentExecutions.Any(ce => ce.ExecutionId == execId)) ? ExecutionStatus.Unknown : es;
+        }
 
-		return new ExecutionViewModel
+        return new ExecutionViewModel
 		{
 			JobId = model.JobId,
 			ExecutionId = model.Id,
@@ -200,15 +203,10 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
 			var scriptFilePathname = Path.Combine(scriptDefaultDir, Path.GetRandomFileName());
 			if (!string.IsNullOrWhiteSpace(jobModel.ScriptFilePathname))
 			{
-				if (jobModel.ScriptFilePathname.Contains("{0}"))
-				{
-					scriptFilePathname = Path.Combine(scriptDefaultDir, string.Format(jobModel.ScriptFilePathname.Trim(), Path.GetRandomFileName()));
-				}
-				else
-				{
-					scriptFilePathname = Path.Combine(scriptDefaultDir, jobModel.ScriptFilePathname.Trim());
-				}
-			}
+				scriptFilePathname = jobModel.ScriptFilePathname.Contains("{0}")
+                    ? Path.Combine(scriptDefaultDir, string.Format(jobModel.ScriptFilePathname.Trim(), Path.GetRandomFileName()))
+                    : Path.Combine(scriptDefaultDir, jobModel.ScriptFilePathname.Trim());
+            }
 
 			using var outputStream = File.Open(outputPathName, FileMode.Create, FileAccess.Write, FileShare.Read);
 			execution.Status = ExecutionStatus.Running;
@@ -279,9 +277,12 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
 
 	internal void ExecuteChainedJobs(ExecutionModel execution, JobModel jobModel, int currentDepth, string outputPathName)
 	{
-		if (jobModel.ChainRules.Count == 0) return;
+		if (jobModel.ChainRules.Count == 0)
+        {
+            return;
+        }
 
-		var maxDepth = _settingsService.LoadSettings().MaxChainDepth ?? 10;
+        var maxDepth = _settingsService.LoadSettings().MaxChainDepth ?? 10;
 		if (currentDepth >= maxDepth)
 		{
 			_logger.LogWarning("Chain depth limit ({MaxDepth}) reached for job '{Name}' ({Id}); stopping further chaining.", maxDepth, jobModel.Name, jobModel.Id);
@@ -300,9 +301,12 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
 				(rule.RunOnWarning && execution.Status == ExecutionStatus.CompletedAsWarning) ||
 				(rule.RunOnError && execution.Status == ExecutionStatus.CompletedAsError);
 
-			if (!shouldRun) continue;
+			if (!shouldRun)
+            {
+                continue;
+            }
 
-			var targetJob = jobConfigService.GetJob(rule.TargetJobId);
+            var targetJob = jobConfigService.GetJob(rule.TargetJobId);
 			if (targetJob == null || !targetJob.Enabled)
 			{
 				_logger.LogWarning("Chained job {TargetId} not found or is disabled; skipping.", rule.TargetJobId);
@@ -352,13 +356,17 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
 		};
 	}
 
-	private static ExecutionIdentifier GetExecutionIdentifierFromModel(ExecutionModel execution)
-	{
-		return new ExecutionIdentifier(execution.JobId, execution.Id, execution.StartedOn);
-	}
+    private static ExecutionIdentifier GetExecutionIdentifierFromModel(ExecutionModel execution) => new ExecutionIdentifier(execution.JobId, execution.Id, execution.StartedOn);
 
-	internal static string GetDefaultScriptLocation(SettingsModel settings)
+    internal static string GetDefaultScriptLocation(SettingsModel settings)
 	{
-		return string.IsNullOrWhiteSpace(settings.DefaultScriptFileLocation) ? Path.GetTempPath() : settings.DefaultScriptFileLocation;
-	}
+        if (string.IsNullOrWhiteSpace(settings.DefaultScriptFileLocation))
+        {
+            return Path.GetTempPath();
+        }
+        else
+        {
+            return settings.DefaultScriptFileLocation;
+        }
+    }
 }

@@ -36,8 +36,5 @@ public class ExecutionModel
         };
     }
 
-    public string GetExecutionName()
-    {
-        return $"{StartedOn:yyyy-MM-dd_HH-mm-ss.fff}_{Id:N}";
-    }
+    public string GetExecutionName() => $"{StartedOn:yyyy-MM-dd_HH-mm-ss.fff}_{Id:N}";
 }

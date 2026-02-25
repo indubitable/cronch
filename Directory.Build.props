@@ -3,5 +3,7 @@
   <PropertyGroup>
     <!--<ArtifactsPath>$(MSBuildThisFileDirectory)artifacts</ArtifactsPath>-->
     <EnableSourceControlManagerQueries>true</EnableSourceControlManagerQueries>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
   </PropertyGroup>
 </Project>

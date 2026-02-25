@@ -14,10 +14,7 @@ public static class StringUtility
         };
     }
 
-    public static string ToUserString(this ExecutionReason? reason)
-    {
-        return reason.HasValue ? reason.Value.ToUserString() : "Unknown";
-    }
+    public static string ToUserString(this ExecutionReason? reason) => reason.HasValue ? reason.Value.ToUserString() : "Unknown";
 
     public static string ToUserString(this TerminationReason reason)
     {
@@ -32,10 +29,7 @@ public static class StringUtility
         };
     }
 
-    public static string ToUserString(this TerminationReason? reason)
-    {
-        return reason.HasValue ? reason.Value.ToUserString() : "Unknown";
-    }
+    public static string ToUserString(this TerminationReason? reason) => reason.HasValue ? reason.Value.ToUserString() : "Unknown";
 
     public static string ToUserString(this ExecutionStatus status)
     {
@@ -51,8 +45,5 @@ public static class StringUtility
         };
     }
 
-    public static string ToUserString(this ExecutionStatus? status)
-    {
-        return status.HasValue ? status.Value.ToUserString() : "Unknown";
-    }
+    public static string ToUserString(this ExecutionStatus? status) => status.HasValue ? status.Value.ToUserString() : "Unknown";
 }

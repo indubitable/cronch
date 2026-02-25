@@ -33,10 +33,22 @@ public class SettingsService(ConfigPersistenceService _configPersistenceService)
         persistenceModel.CompletionScript = settingsModel.CompletionScript;
 
         persistenceModel.RunCompletionScriptOn = [];
-        if (settingsModel.RunCompletionScriptOnSuccess) persistenceModel.RunCompletionScriptOn.Add("Success");
-        if (settingsModel.RunCompletionScriptOnIndeterminate) persistenceModel.RunCompletionScriptOn.Add("Indeterminate");
-        if (settingsModel.RunCompletionScriptOnWarning) persistenceModel.RunCompletionScriptOn.Add("Warning");
-        if (settingsModel.RunCompletionScriptOnError) persistenceModel.RunCompletionScriptOn.Add("Error");
+        if (settingsModel.RunCompletionScriptOnSuccess)
+        {
+            persistenceModel.RunCompletionScriptOn.Add("Success");
+        }
+        if (settingsModel.RunCompletionScriptOnIndeterminate)
+        {
+            persistenceModel.RunCompletionScriptOn.Add("Indeterminate");
+        }
+        if (settingsModel.RunCompletionScriptOnWarning)
+        {
+            persistenceModel.RunCompletionScriptOn.Add("Warning");
+        }
+        if (settingsModel.RunCompletionScriptOnError)
+        {
+            persistenceModel.RunCompletionScriptOn.Add("Error");
+        }
 
         persistenceModel.MaxChainDepth = settingsModel.MaxChainDepth;
     }

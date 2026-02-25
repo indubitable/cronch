@@ -2,4 +2,5 @@
   <Project Path="cronch\cronch.csproj" />
   <Project Path="cronch.UnitTests\cronch.UnitTests.csproj" />
   <Project Path="cronch.IntegrationTests\cronch.IntegrationTests.csproj" />
+  <Project Path="cronch.SystemTests\cronch.SystemTests.csproj" />
 </Solution>

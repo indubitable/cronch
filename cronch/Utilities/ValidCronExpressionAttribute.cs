@@ -19,7 +19,9 @@ public sealed class ValidCronExpressionAttribute : ValidationAttribute
     {
         var cronSchedule = value as string;
         if (string.IsNullOrWhiteSpace(cronSchedule))
+        {
             return ValidationResult.Success;
+        }
 
         try
         {

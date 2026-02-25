@@ -24,7 +24,9 @@ public class ConfigPersistenceServiceTests
     public void Cleanup()
     {
         if (Directory.Exists(_tempDir))
+        {
             Directory.Delete(_tempDir, recursive: true);
+        }
     }
 
     // --- Load ---

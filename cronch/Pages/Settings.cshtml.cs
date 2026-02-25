@@ -11,10 +11,7 @@ public class SettingsModel(SettingsService _settingsService) : PageModel
     [BindProperty]
     public SettingsViewModel SettingsVM { get; set; } = null!;
 
-    public void OnGet()
-    {
-        SettingsVM = _settingsService.LoadSettings().ToViewModel();
-    }
+    public void OnGet() => SettingsVM = _settingsService.LoadSettings().ToViewModel();
 
     public IActionResult OnPost()
     {

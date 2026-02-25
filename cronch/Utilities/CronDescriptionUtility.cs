@@ -24,7 +24,9 @@ public static class CronDescriptionUtility
     public static string Describe(string? cronSchedule)
     {
         if (string.IsNullOrWhiteSpace(cronSchedule))
+        {
             return string.Empty;
+        }
 
         try
         {

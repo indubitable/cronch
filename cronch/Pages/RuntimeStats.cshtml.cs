@@ -45,9 +45,18 @@ public class RuntimeStatsModel : PageModel
 
     private static string HumanizeBytes(long bytes)
     {
-        if (bytes < 1024) return $"{bytes} B";
-        if (bytes < 1048576) return $"{(long)Math.Round(bytes / 1024.0)} KB";
-        if (bytes < 1073741824) return $"{(long)Math.Round(bytes / 1048576.0)} MB";
+        if (bytes < 1024)
+        {
+            return $"{bytes} B";
+        }
+        if (bytes < 1048576)
+        {
+            return $"{(long)Math.Round(bytes / 1024.0)} KB";
+        }
+        if (bytes < 1073741824)
+        {
+            return $"{(long)Math.Round(bytes / 1048576.0)} MB";
+        }
         return $"{(long)Math.Round(bytes / 1073741824.0)} GB";
     }
 }
