@@ -70,6 +70,18 @@
                         <li><code>CRONCH_JOB_NAME</code> – job name</li>
                         <li><code>CRONCH_EXECUTION_ID</code> – execution ID</li>
                     </ul>
+                    <strong>Additional variables for chained jobs</strong>
+                    <ul class="mt-2 mb-3">
+                        <li><code>CRONCH_COMPLETED_JOB_ID</code> – triggering job's ID</li>
+                        <li><code>CRONCH_COMPLETED_JOB_NAME</code> – triggering job's name</li>
+                        <li><code>CRONCH_COMPLETED_EXECUTION_ID</code> – triggering execution's ID</li>
+                        <li><code>CRONCH_COMPLETED_EXECUTION_STARTED_ON</code> – Unix Epoch start time (UTC, seconds)</li>
+                        <li><code>CRONCH_COMPLETED_EXECUTION_COMPLETED_ON</code> – Unix Epoch stop time (UTC, seconds)</li>
+                        <li><code>CRONCH_COMPLETED_EXECUTION_EXIT_CODE</code> – numeric exit code</li>
+                        <li><code>CRONCH_COMPLETED_EXECUTION_STATUS</code> – execution status</li>
+                        <li><code>CRONCH_COMPLETED_EXECUTION_STOP_REASON</code> – stop reason</li>
+                        <li><code>CRONCH_COMPLETED_EXECUTION_INTERNAL_OUTPUT_FILE</code> – triggering job's output file</li>
+                    </ul>
                     <hr />
                     <small class="text-muted">To force syntax highlighting to a specific language, add a comment in the form <code>[[[CRONCH:syntax:javascript]]]</code>. See available <a target="_blank" href="https://github.com/indubitable/cronch/tree/main/cronch/wwwroot/lib/ace"><code>mode-*.js</code></a> files.</small>
                 </div>

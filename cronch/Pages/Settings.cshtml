@@ -89,14 +89,14 @@
                     <div class="shadow p-3 bg-body-tertiary rounded" style="position: sticky; top: 1rem;">
                         <strong>Environment variables</strong>
                         <ul class="mt-2 mb-3">
-                            <li><code>CRONCH_JOB_ID</code> – job ID</li>
-                            <li><code>CRONCH_JOB_NAME</code> – job name</li>
-                            <li><code>CRONCH_EXECUTION_ID</code> – execution ID</li>
-                            <li><code>CRONCH_EXECUTION_STARTED_ON</code> – Unix Epoch start time (UTC, seconds)</li>
-                            <li><code>CRONCH_EXECUTION_COMPLETED_ON</code> – Unix Epoch stop time (UTC, seconds)</li>
-                            <li><code>CRONCH_EXECUTION_EXIT_CODE</code> – numeric exit code</li>
+                            <li><code>CRONCH_COMPLETED_JOB_ID</code> – job ID</li>
+                            <li><code>CRONCH_COMPLETED_JOB_NAME</code> – job name</li>
+                            <li><code>CRONCH_COMPLETED_EXECUTION_ID</code> – execution ID</li>
+                            <li><code>CRONCH_COMPLETED_EXECUTION_STARTED_ON</code> – Unix Epoch start time (UTC, seconds)</li>
+                            <li><code>CRONCH_COMPLETED_EXECUTION_COMPLETED_ON</code> – Unix Epoch stop time (UTC, seconds)</li>
+                            <li><code>CRONCH_COMPLETED_EXECUTION_EXIT_CODE</code> – numeric exit code</li>
                             <li>
-                                <code>CRONCH_EXECUTION_STATUS</code> – one of:
+                                <code>CRONCH_COMPLETED_EXECUTION_STATUS</code> – one of:
                                 <ul>
                                     <li><code>@(Models.ExecutionStatus.Unknown)</code></li>
                                     <li><code>@(Models.ExecutionStatus.CompletedAsSuccess)</code></li>
@@ -106,7 +106,7 @@
                                 </ul>
                             </li>
                             <li>
-                                <code>CRONCH_EXECUTION_STOP_REASON</code> – one of:
+                                <code>CRONCH_COMPLETED_EXECUTION_STOP_REASON</code> – one of:
                                 <ul>
                                     <li><code>@(Models.TerminationReason.NoneSpecified)</code></li>
                                     <li><code>@(Models.TerminationReason.Exited)</code></li>
@@ -115,8 +115,13 @@
                                     <li><code>@(Models.TerminationReason.UserTriggered)</code></li>
                                 </ul>
                             </li>
-                            <li><code>CRONCH_EXECUTION_INTERNAL_OUTPUT_FILE</code> – location of the internally-formatted file containing the job's stdout and stderr. The file format is not stable; only cursory keyword checks are recommended.</li>
+                            <li><code>CRONCH_COMPLETED_EXECUTION_INTERNAL_OUTPUT_FILE</code> – location of the internally-formatted file containing the job's stdout and stderr. The file format is not stable; only cursory keyword checks are recommended.</li>
                         </ul>
+                        <details class="mb-3">
+                            <summary class="text-muted small">Deprecated variable names</summary>
+                            <small class="text-muted">The following names are still set for backward compatibility but may be removed in a future release:
+                            <code>CRONCH_JOB_ID</code>, <code>CRONCH_JOB_NAME</code>, <code>CRONCH_EXECUTION_ID</code>, <code>CRONCH_EXECUTION_STARTED_ON</code>, <code>CRONCH_EXECUTION_COMPLETED_ON</code>, <code>CRONCH_EXECUTION_EXIT_CODE</code>, <code>CRONCH_EXECUTION_STATUS</code>, <code>CRONCH_EXECUTION_STOP_REASON</code>, <code>CRONCH_EXECUTION_INTERNAL_OUTPUT_FILE</code>.</small>
+                        </details>
                         The script runs for a maximum of @Services.SettingsService.MaxCompletionScriptRuntimeSeconds seconds.
                         <hr />
                         <small class="text-muted">To force syntax highlighting to a specific language, add a comment anywhere in the script in the form <code>[[[CRONCH:syntax:javascript]]]</code>. See available <a target="_blank" href="https://github.com/indubitable/cronch/tree/main/cronch/wwwroot/lib/ace"><code>mode-*.js</code></a> files.</small>

@@ -93,6 +93,16 @@ public class JobExecutionServiceTests
         Assert.AreEqual("CompletedAsSuccess", result["CRONCH_EXECUTION_STATUS"]);
         Assert.AreEqual("Exited", result["CRONCH_EXECUTION_STOP_REASON"]);
         Assert.AreEqual("/output/file.txt", result["CRONCH_EXECUTION_INTERNAL_OUTPUT_FILE"]);
+        // New CRONCH_COMPLETED_* names
+        Assert.AreEqual(jobId.ToString("D"), result["CRONCH_COMPLETED_JOB_ID"]);
+        Assert.AreEqual("My Job", result["CRONCH_COMPLETED_JOB_NAME"]);
+        Assert.AreEqual(executionId.ToString("D"), result["CRONCH_COMPLETED_EXECUTION_ID"]);
+        Assert.AreEqual(startedOn.ToUnixTimeSeconds().ToString(), result["CRONCH_COMPLETED_EXECUTION_STARTED_ON"]);
+        Assert.AreEqual(completedOn.ToUnixTimeSeconds().ToString(), result["CRONCH_COMPLETED_EXECUTION_COMPLETED_ON"]);
+        Assert.AreEqual("0", result["CRONCH_COMPLETED_EXECUTION_EXIT_CODE"]);
+        Assert.AreEqual("CompletedAsSuccess", result["CRONCH_COMPLETED_EXECUTION_STATUS"]);
+        Assert.AreEqual("Exited", result["CRONCH_COMPLETED_EXECUTION_STOP_REASON"]);
+        Assert.AreEqual("/output/file.txt", result["CRONCH_COMPLETED_EXECUTION_INTERNAL_OUTPUT_FILE"]);
     }
 
     [TestMethod]
@@ -114,6 +124,68 @@ public class JobExecutionServiceTests
         Assert.AreEqual(string.Empty, result["CRONCH_EXECUTION_COMPLETED_ON"]);
         Assert.AreEqual(string.Empty, result["CRONCH_EXECUTION_EXIT_CODE"]);
         Assert.AreEqual(string.Empty, result["CRONCH_EXECUTION_STOP_REASON"]);
+        // New CRONCH_COMPLETED_* names
+        Assert.AreEqual(string.Empty, result["CRONCH_COMPLETED_EXECUTION_COMPLETED_ON"]);
+        Assert.AreEqual(string.Empty, result["CRONCH_COMPLETED_EXECUTION_EXIT_CODE"]);
+        Assert.AreEqual(string.Empty, result["CRONCH_COMPLETED_EXECUTION_STOP_REASON"]);
+    }
+
+    // --- GetCompletedJobEnvVars ---
+
+    [TestMethod]
+    public void GetCompletedJobEnvVarsShouldContainAllRequiredFields()
+    {
+        var jobId = Guid.NewGuid();
+        var executionId = Guid.NewGuid();
+        var startedOn = DateTimeOffset.UtcNow.AddMinutes(-1);
+        var completedOn = DateTimeOffset.UtcNow;
+        var job = new JobModel { Id = jobId, Name = "My Job" };
+        var execution = new ExecutionModel
+        {
+            Id = executionId,
+            JobId = jobId,
+            StartedOn = startedOn,
+            CompletedOn = completedOn,
+            ExitCode = 0,
+            Status = ExecutionStatus.CompletedAsSuccess,
+            StopReason = TerminationReason.Exited,
+        };
+
+        var result = JobExecutionService.GetCompletedJobEnvVars(execution, job, "/output/file.txt");
+
+        Assert.AreEqual(jobId.ToString("D"), result["CRONCH_COMPLETED_JOB_ID"]);
+        Assert.AreEqual("My Job", result["CRONCH_COMPLETED_JOB_NAME"]);
+        Assert.AreEqual(executionId.ToString("D"), result["CRONCH_COMPLETED_EXECUTION_ID"]);
+        Assert.AreEqual(startedOn.ToUnixTimeSeconds().ToString(), result["CRONCH_COMPLETED_EXECUTION_STARTED_ON"]);
+        Assert.AreEqual(completedOn.ToUnixTimeSeconds().ToString(), result["CRONCH_COMPLETED_EXECUTION_COMPLETED_ON"]);
+        Assert.AreEqual("0", result["CRONCH_COMPLETED_EXECUTION_EXIT_CODE"]);
+        Assert.AreEqual("CompletedAsSuccess", result["CRONCH_COMPLETED_EXECUTION_STATUS"]);
+        Assert.AreEqual("Exited", result["CRONCH_COMPLETED_EXECUTION_STOP_REASON"]);
+        Assert.AreEqual("/output/file.txt", result["CRONCH_COMPLETED_EXECUTION_INTERNAL_OUTPUT_FILE"]);
+        // Should NOT contain deprecated names
+        Assert.IsFalse(result.ContainsKey("CRONCH_JOB_ID"));
+        Assert.IsFalse(result.ContainsKey("CRONCH_EXECUTION_ID"));
+    }
+
+    [TestMethod]
+    public void GetCompletedJobEnvVarsShouldUseEmptyStringForNullOptionalFields()
+    {
+        var execution = new ExecutionModel
+        {
+            Id = Guid.NewGuid(),
+            JobId = Guid.NewGuid(),
+            StartedOn = DateTimeOffset.UtcNow,
+            CompletedOn = null,
+            ExitCode = null,
+            Status = ExecutionStatus.Running,
+            StopReason = null,
+        };
+
+        var result = JobExecutionService.GetCompletedJobEnvVars(execution, new JobModel(), "/output.txt");
+
+        Assert.AreEqual(string.Empty, result["CRONCH_COMPLETED_EXECUTION_COMPLETED_ON"]);
+        Assert.AreEqual(string.Empty, result["CRONCH_COMPLETED_EXECUTION_EXIT_CODE"]);
+        Assert.AreEqual(string.Empty, result["CRONCH_COMPLETED_EXECUTION_STOP_REASON"]);
     }
 
     // --- ExecuteRunCompletionScript ---
@@ -420,6 +492,9 @@ public class JobExecutionServiceTests
         Assert.AreEqual(targetId, sut.ExecuteJobCalls[0].Job.Id);
         Assert.AreEqual(ExecutionReason.Chained, sut.ExecuteJobCalls[0].Reason);
         Assert.AreEqual(1, sut.ExecuteJobCalls[0].ChainDepth);
+        Assert.IsNotNull(sut.ExecuteJobCalls[0].CompletedJobEnvVars);
+        Assert.AreEqual(job.Id.ToString("D"), sut.ExecuteJobCalls[0].CompletedJobEnvVars!["CRONCH_COMPLETED_JOB_ID"]);
+        Assert.AreEqual("Test", sut.ExecuteJobCalls[0].CompletedJobEnvVars!["CRONCH_COMPLETED_JOB_NAME"]);
     }
 
     [TestMethod]
@@ -579,12 +654,12 @@ public class JobExecutionServiceTests
     private class TestJobExecutionService(ILogger<JobExecutionService> logger, SettingsService settingsService, IServiceProvider serviceProvider)
         : JobExecutionService(logger, settingsService, serviceProvider)
     {
-        public record ExecuteJobCall(JobModel Job, ExecutionReason Reason, int ChainDepth);
+        public record ExecuteJobCall(JobModel Job, ExecutionReason Reason, int ChainDepth, Dictionary<string, string>? CompletedJobEnvVars);
         public List<ExecuteJobCall> ExecuteJobCalls { get; } = [];
 
-        public override Guid ExecuteJob(JobModel jobModel, ExecutionReason reason, int chainDepth = 0)
+        public override Guid ExecuteJob(JobModel jobModel, ExecutionReason reason, int chainDepth = 0, Dictionary<string, string>? completedJobEnvVars = null)
         {
-            ExecuteJobCalls.Add(new(jobModel, reason, chainDepth));
+            ExecuteJobCalls.Add(new(jobModel, reason, chainDepth, completedJobEnvVars));
             return Guid.NewGuid();
         }
     }

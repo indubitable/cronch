@@ -85,7 +85,7 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
 		}
 	}
 
-	public virtual Guid ExecuteJob(JobModel jobModel, ExecutionReason reason, int chainDepth = 0)
+	public virtual Guid ExecuteJob(JobModel jobModel, ExecutionReason reason, int chainDepth = 0, Dictionary<string, string>? completedJobEnvVars = null)
 	{
 		var execution = ExecutionModel.CreateNew(jobModel.Id, jobModel.Name, reason, ExecutionStatus.Unknown);
 
@@ -145,7 +145,7 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
 			throw new InvalidOperationException("Unable to execute job: could not register execution token");
 		}
 
-		var thread = new Thread(() => PerformExecution(execution, jobModel, cancelSource.Token, chainDepth))
+		var thread = new Thread(() => PerformExecution(execution, jobModel, cancelSource.Token, chainDepth, completedJobEnvVars))
 		{
 			IsBackground = true
 		};
@@ -189,7 +189,7 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
 		};
 	}
 
-	private void PerformExecution(ExecutionModel execution, JobModel jobModel, CancellationToken cancelToken, int chainDepth)
+	private void PerformExecution(ExecutionModel execution, JobModel jobModel, CancellationToken cancelToken, int chainDepth, Dictionary<string, string>? completedJobEnvVars = null)
 	{
 		using var scope = _serviceProvider.CreateScope();
 		var persistence = scope.ServiceProvider.GetRequiredService<ExecutionPersistenceService>();
@@ -209,9 +209,17 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
             }
 
 			using var outputStream = File.Open(outputPathName, FileMode.Create, FileAccess.Write, FileShare.Read);
+			var envVars = GetRunEnvVars(execution, jobModel);
+			if (completedJobEnvVars != null)
+			{
+				foreach (var kvp in completedJobEnvVars)
+				{
+					envVars[kvp.Key] = kvp.Value;
+				}
+			}
 			execution.Status = ExecutionStatus.Running;
 			persistence.AddExecution(execution);
-			engine.PerformExecution(execution, jobModel, scriptFilePathname, outputStream, true, GetRunEnvVars(execution, jobModel), cancelToken);
+			engine.PerformExecution(execution, jobModel, scriptFilePathname, outputStream, true, envVars, cancelToken);
 			persistence.UpdateExecution(execution);
 		}
 		catch (Exception ex)
@@ -313,7 +321,8 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
 				continue;
 			}
 
-			var newExecutionId = ExecuteJob(targetJob, ExecutionReason.Chained, currentDepth + 1);
+			var completedJobEnvVars = GetCompletedJobEnvVars(execution, jobModel, outputPathName);
+			var newExecutionId = ExecuteJob(targetJob, ExecutionReason.Chained, currentDepth + 1, completedJobEnvVars);
 			AppendChainInfoToOutput(outputPathName, $"Triggered chained job \"{targetJob.Name}\" (execution {newExecutionId:D})");
 		}
 	}
@@ -341,19 +350,35 @@ public class JobExecutionService(ILogger<JobExecutionService> _logger, SettingsS
 		};
 	}
 
-	internal static Dictionary<string, string> GetRunCompletionEnvVars(ExecutionModel execution, JobModel jobModel, string outputFilePathname)
+	internal static Dictionary<string, string> GetCompletedJobEnvVars(ExecutionModel execution, JobModel jobModel, string outputFilePathname)
 	{
 		return new Dictionary<string, string> {
-			{ "CRONCH_JOB_ID", jobModel.Id.ToString("D") },
-			{ "CRONCH_JOB_NAME", jobModel.Name },
-			{ "CRONCH_EXECUTION_ID", execution.Id.ToString("D") },
-			{ "CRONCH_EXECUTION_STARTED_ON", execution.StartedOn.ToUnixTimeSeconds().ToString() },
-			{ "CRONCH_EXECUTION_COMPLETED_ON", execution.CompletedOn?.ToUnixTimeSeconds().ToString() ?? string.Empty },
-			{ "CRONCH_EXECUTION_EXIT_CODE", execution.ExitCode.HasValue ? execution.ExitCode.Value.ToString() : string.Empty },
-			{ "CRONCH_EXECUTION_STATUS", execution.Status.ToString() },
-			{ "CRONCH_EXECUTION_STOP_REASON", execution.StopReason?.ToString() ?? string.Empty },
-			{ "CRONCH_EXECUTION_INTERNAL_OUTPUT_FILE", outputFilePathname},
+			{ "CRONCH_COMPLETED_JOB_ID", jobModel.Id.ToString("D") },
+			{ "CRONCH_COMPLETED_JOB_NAME", jobModel.Name },
+			{ "CRONCH_COMPLETED_EXECUTION_ID", execution.Id.ToString("D") },
+			{ "CRONCH_COMPLETED_EXECUTION_STARTED_ON", execution.StartedOn.ToUnixTimeSeconds().ToString() },
+			{ "CRONCH_COMPLETED_EXECUTION_COMPLETED_ON", execution.CompletedOn?.ToUnixTimeSeconds().ToString() ?? string.Empty },
+			{ "CRONCH_COMPLETED_EXECUTION_EXIT_CODE", execution.ExitCode.HasValue ? execution.ExitCode.Value.ToString() : string.Empty },
+			{ "CRONCH_COMPLETED_EXECUTION_STATUS", execution.Status.ToString() },
+			{ "CRONCH_COMPLETED_EXECUTION_STOP_REASON", execution.StopReason?.ToString() ?? string.Empty },
+			{ "CRONCH_COMPLETED_EXECUTION_INTERNAL_OUTPUT_FILE", outputFilePathname },
 		};
+	}
+
+	internal static Dictionary<string, string> GetRunCompletionEnvVars(ExecutionModel execution, JobModel jobModel, string outputFilePathname)
+	{
+		var envVars = GetCompletedJobEnvVars(execution, jobModel, outputFilePathname);
+		// Deprecated: old variable names kept for backward compatibility
+		envVars["CRONCH_JOB_ID"] = jobModel.Id.ToString("D");
+		envVars["CRONCH_JOB_NAME"] = jobModel.Name;
+		envVars["CRONCH_EXECUTION_ID"] = execution.Id.ToString("D");
+		envVars["CRONCH_EXECUTION_STARTED_ON"] = execution.StartedOn.ToUnixTimeSeconds().ToString();
+		envVars["CRONCH_EXECUTION_COMPLETED_ON"] = execution.CompletedOn?.ToUnixTimeSeconds().ToString() ?? string.Empty;
+		envVars["CRONCH_EXECUTION_EXIT_CODE"] = execution.ExitCode.HasValue ? execution.ExitCode.Value.ToString() : string.Empty;
+		envVars["CRONCH_EXECUTION_STATUS"] = execution.Status.ToString();
+		envVars["CRONCH_EXECUTION_STOP_REASON"] = execution.StopReason?.ToString() ?? string.Empty;
+		envVars["CRONCH_EXECUTION_INTERNAL_OUTPUT_FILE"] = outputFilePathname;
+		return envVars;
 	}
 
     private static ExecutionIdentifier GetExecutionIdentifierFromModel(ExecutionModel execution) => new ExecutionIdentifier(execution.JobId, execution.Id, execution.StartedOn);
