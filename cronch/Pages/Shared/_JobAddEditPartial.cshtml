@@ -78,9 +78,27 @@
                         <li><code>CRONCH_COMPLETED_EXECUTION_STARTED_ON</code> – Unix Epoch start time (UTC, seconds)</li>
                         <li><code>CRONCH_COMPLETED_EXECUTION_COMPLETED_ON</code> – Unix Epoch stop time (UTC, seconds)</li>
                         <li><code>CRONCH_COMPLETED_EXECUTION_EXIT_CODE</code> – numeric exit code</li>
-                        <li><code>CRONCH_COMPLETED_EXECUTION_STATUS</code> – execution status</li>
-                        <li><code>CRONCH_COMPLETED_EXECUTION_STOP_REASON</code> – stop reason</li>
-                        <li><code>CRONCH_COMPLETED_EXECUTION_INTERNAL_OUTPUT_FILE</code> – triggering job's output file</li>
+                        <li>
+                            <code>CRONCH_COMPLETED_EXECUTION_STATUS</code> – one of:
+                            <ul>
+                                <li><code>@(Models.ExecutionStatus.Unknown)</code></li>
+                                <li><code>@(Models.ExecutionStatus.CompletedAsSuccess)</code></li>
+                                <li><code>@(Models.ExecutionStatus.CompletedAsIndeterminate)</code></li>
+                                <li><code>@(Models.ExecutionStatus.CompletedAsWarning)</code></li>
+                                <li><code>@(Models.ExecutionStatus.CompletedAsError)</code></li>
+                            </ul>
+                        </li>
+                        <li>
+                            <code>CRONCH_COMPLETED_EXECUTION_STOP_REASON</code> – one of:
+                            <ul>
+                                <li><code>@(Models.TerminationReason.NoneSpecified)</code></li>
+                                <li><code>@(Models.TerminationReason.Exited)</code></li>
+                                <li><code>@(Models.TerminationReason.TimedOut)</code></li>
+                                <li><code>@(Models.TerminationReason.SkippedForParallelism)</code></li>
+                                <li><code>@(Models.TerminationReason.UserTriggered)</code></li>
+                            </ul>
+                        </li>
+                        <li><code>CRONCH_COMPLETED_EXECUTION_INTERNAL_OUTPUT_FILE</code> – location of the internally-formatted file containing the triggering job's stdout and stderr. The file format is not stable; only cursory keyword checks are recommended.</li>
                     </ul>
                     <hr />
                     <small class="text-muted">To force syntax highlighting to a specific language, add a comment in the form <code>[[[CRONCH:syntax:javascript]]]</code>. See available <a target="_blank" href="https://github.com/indubitable/cronch/tree/main/cronch/wwwroot/lib/ace"><code>mode-*.js</code></a> files.</small>
