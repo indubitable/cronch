@@ -63,4 +63,17 @@ public class JobConfigService(ConfigPersistenceService _configPersistenceService
     }
 
     public virtual JobModel? GetJob(Guid id) => GetAllJobs().SingleOrDefault(j => j.Id == id);
+
+    public async Task ImportConfigAsync(Stream xmlStream)
+    {
+        if (!_configPersistenceService.TryParseConfigXml(xmlStream))
+        {
+            throw new InvalidOperationException("The uploaded file is not a valid cronch configuration.");
+        }
+
+        xmlStream.Position = 0;
+        _configPersistenceService.ImportConfigXml(xmlStream);
+
+        await _jobSchedulingService.RefreshSchedulesAsync(GetAllJobs());
+    }
 }

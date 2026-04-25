@@ -166,5 +166,25 @@
                 <span class="spinner-border spinner-border-sm me-1" data-loading style="display:none;" role="status" aria-hidden="true"></span>Save
             </button>
         </form>
+
+        <hr class="my-4" />
+
+        <h5 class="border-bottom pb-2 mb-3">Configuration Import / Export</h5>
+
+        <div class="mb-3">
+            <a asp-page="/Settings" asp-page-handler="Export" class="btn btn-outline-secondary">Export Configuration</a>
+            <div class="form-text mt-1">Download the current configuration as an XML file.</div>
+        </div>
+
+        <div class="mb-4">
+            <form method="post" asp-page-handler="Import" enctype="multipart/form-data">
+                <label for="configFile" class="form-label">Import Configuration</label>
+                <div class="input-group" style="max-width: 30rem;">
+                    <input type="file" class="form-control" id="configFile" name="configFile" accept=".xml,application/xml" />
+                    <button type="submit" class="btn btn-outline-warning" onclick="return confirm('This will replace your current configuration. Are you sure?');">Import</button>
+                </div>
+                <div class="form-text mt-1">Upload a previously exported configuration XML file. This will replace the current configuration and reload all job schedules.</div>
+            </form>
+        </div>
     </div>
 </div>

@@ -231,6 +231,91 @@ public class ConfigPersistenceServiceTests
         Assert.AreEqual(99, result.MaxHistoryItemsShown);
     }
 
+    // --- GetConfigXmlBytes ---
+
+    [TestMethod]
+    public void GetConfigXmlBytesShouldReturnEmptyWhenNoConfigExists()
+    {
+        var result = _service.GetConfigXmlBytes();
+
+        Assert.AreEqual(0, result.Length);
+    }
+
+    [TestMethod]
+    public void GetConfigXmlBytesShouldReturnXmlAfterSave()
+    {
+        _service.Save(new ConfigPersistenceModel { MaxHistoryItemsShown = 42 });
+
+        var result = _service.GetConfigXmlBytes();
+
+        Assert.IsTrue(result.Length > 0);
+        var xml = System.Text.Encoding.UTF8.GetString(result);
+        Assert.IsTrue(xml.Contains("42"));
+    }
+
+    // --- TryParseConfigXml ---
+
+    [TestMethod]
+    public void TryParseConfigXmlShouldReturnTrueForValidConfig()
+    {
+        _service.Save(new ConfigPersistenceModel { MaxHistoryItemsShown = 10 });
+        var xmlBytes = _service.GetConfigXmlBytes();
+        using var stream = new MemoryStream(xmlBytes);
+
+        var result = _service.TryParseConfigXml(stream);
+
+        Assert.IsTrue(result);
+    }
+
+    [TestMethod]
+    public void TryParseConfigXmlShouldReturnFalseForInvalidXml()
+    {
+        using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes("not xml at all"));
+
+        var result = _service.TryParseConfigXml(stream);
+
+        Assert.IsFalse(result);
+    }
+
+    [TestMethod]
+    public void TryParseConfigXmlShouldReturnFalseForWrongXmlStructure()
+    {
+        using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes("<root><child /></root>"));
+
+        var result = _service.TryParseConfigXml(stream);
+
+        Assert.IsFalse(result);
+    }
+
+    // --- ImportConfigXml ---
+
+    [TestMethod]
+    public void ImportConfigXmlShouldReplaceExistingConfig()
+    {
+        _service.Save(new ConfigPersistenceModel { MaxHistoryItemsShown = 10 });
+
+        var newConfig = new ConfigPersistenceModel { MaxHistoryItemsShown = 999 };
+        var tempDir2 = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(tempDir2);
+        try
+        {
+            var service2 = CreateService(tempDir2);
+            service2.Save(newConfig);
+            var xmlBytes = service2.GetConfigXmlBytes();
+            using var stream = new MemoryStream(xmlBytes);
+
+            _service.ImportConfigXml(stream);
+
+            var result = _service.Load();
+            Assert.IsNotNull(result);
+            Assert.AreEqual(999, result.MaxHistoryItemsShown);
+        }
+        finally
+        {
+            Directory.Delete(tempDir2, recursive: true);
+        }
+    }
+
     // --- Helpers ---
 
     private static ConfigPersistenceService CreateService(string configLocation)
