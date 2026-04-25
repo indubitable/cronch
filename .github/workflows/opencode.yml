@@ -29,10 +29,8 @@ jobs:
         uses: anomalyco/opencode/github@80f1f1b5b8535b6008af54621665738115346cde
         env:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           model: opencode/big-pickle
-          use_github_token: true
           prompt: |
             Review this pull request:
             - Check for code quality issues
