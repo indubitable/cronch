@@ -132,4 +132,40 @@ public class JobConfigServiceTests
 
         await _jobScheduling.Received(1).RefreshSchedulesAsync(Arg.Any<IEnumerable<JobModel>>());
     }
+
+    // --- ImportConfigAsync ---
+
+    [TestMethod]
+    public async Task ImportConfigShouldThrowWhenXmlIsInvalid()
+    {
+        using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes("not xml"));
+        _configPersistence.TryParseConfigXml(Arg.Any<Stream>()).Returns(false);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await _jobConfigService.ImportConfigAsync(stream));
+    }
+
+    [TestMethod]
+    public async Task ImportConfigShouldNotWriteWhenXmlIsInvalid()
+    {
+        using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes("not xml"));
+        _configPersistence.TryParseConfigXml(Arg.Any<Stream>()).Returns(false);
+
+        try { await _jobConfigService.ImportConfigAsync(stream); } catch { }
+
+        _configPersistence.DidNotReceive().ImportConfigXml(Arg.Any<Stream>());
+    }
+
+    [TestMethod]
+    public async Task ImportConfigShouldWriteAndReloadWhenXmlIsValid()
+    {
+        using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes("<valid/>"));
+        _configPersistence.TryParseConfigXml(Arg.Any<Stream>()).Returns(true);
+        _configPersistence.Load().Returns(new ConfigPersistenceModel());
+
+        await _jobConfigService.ImportConfigAsync(stream);
+
+        _configPersistence.Received(1).ImportConfigXml(Arg.Any<Stream>());
+        await _jobScheduling.Received(1).RefreshSchedulesAsync(Arg.Any<IEnumerable<JobModel>>());
+    }
 }

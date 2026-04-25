@@ -112,5 +112,61 @@ public class ConfigPersistenceService(ILogger<ConfigPersistenceService> _logger,
         }
     }
 
+    public virtual byte[] GetConfigXmlBytes()
+    {
+        lock (_serializer)
+        {
+            var location = _configuration["ConfigLocation"];
+            if (location == null)
+            {
+                _logger.LogError("Cannot load configuration: ConfigLocation is not set");
+                throw new InvalidOperationException();
+            }
+
+            var filePathname = Path.Combine(location, CONFIG_FILE);
+
+            if (!File.Exists(filePathname))
+            {
+                return [];
+            }
+
+            return File.ReadAllBytes(filePathname);
+        }
+    }
+
+    public virtual bool TryParseConfigXml(Stream xmlStream)
+    {
+        lock (_serializer)
+        {
+            try
+            {
+                return _serializer.Deserialize(xmlStream) is ConfigPersistenceModel;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+    }
+
+    public virtual void ImportConfigXml(Stream xmlStream)
+    {
+        lock (_serializer)
+        {
+            var location = _configuration["ConfigLocation"];
+            if (location == null)
+            {
+                _logger.LogError("Cannot save configuration: ConfigLocation is not set");
+                throw new InvalidOperationException();
+            }
+
+            Directory.CreateDirectory(location);
+            var filePathname = Path.Combine(location, CONFIG_FILE);
+
+            using var fileStream = File.Open(filePathname, FileMode.Create, FileAccess.Write, FileShare.Read);
+            xmlStream.CopyTo(fileStream);
+        }
+    }
+
     private static void ArrangeModel(ConfigPersistenceModel model) => model.Jobs.Sort((a, b) => a.Id.CompareTo(b.Id));
 }
