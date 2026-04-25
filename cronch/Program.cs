@@ -34,11 +34,6 @@ if (OperatingSystem.IsWindows())
 // Add services to the container.
 var mvcBuilder = builder.Services.AddRazorPages();
 
-if (builder.Environment.IsDevelopment())
-{
-	mvcBuilder.AddRazorRuntimeCompilation();
-}
-
 if (OperatingSystem.IsWindows())
 {
     builder.Services.AddWindowsService(options => options.ServiceName = "CRONCH!");
