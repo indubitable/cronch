@@ -29,5 +29,14 @@ jobs:
         uses: anomalyco/opencode/github@80f1f1b5b8535b6008af54621665738115346cde
         env:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           model: opencode/big-pickle
+          use_github_token: true
+          prompt: |
+            Review this pull request:
+            - Check for code quality issues
+            - Look for potential bugs and security vulnerabilities
+            - Suggest improvements
+            Focus on the code changes in this pull request and provide useful, actionable feedback. Be concise and specific in your comments. Avoid nitpicking and focus on important issues. If there are no issues, say "No issues found.".
+            Look for security vulnerabilities, performance issues, and code style problems. Provide clear explanations for any issues you find and suggest how to fix them. If the code looks good, do not make up issues.
